@@ -1,9 +1,9 @@
 ---
 // Hueco para foto. Si hay "src" muestra la foto; si no, una trama de semitono con el texto de lo que falta.
-const { src, alt = '', label = 'Foto pendiente', tone = '#222', ink = '#fff', ratio = '4/5', initials, class: cls = '' } = Astro.props;
+const { src, alt = '', label = 'Foto pendiente', tone = '#222', ink = '#fff', ratio = '4/5', pos = 'center', eager = false, initials, class: cls = '' } = Astro.props;
 ---
 <figure class={`slot ${cls}`} style={`--tone:${tone};--ink:${ink};aspect-ratio:${ratio}`}>
-  {src ? <img src={src} alt={alt} loading="lazy" /> : (
+  {src ? <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} fetchpriority={eager ? "high" : undefined} decoding="async" style={`object-position:${pos}`} /> : (
     <div class="ph" aria-hidden="true">
       {initials && <span class="ini">{initials}</span>}
       <span class="lbl">{label}</span>

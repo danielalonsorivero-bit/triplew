@@ -48,8 +48,9 @@ const past = new Date(s.date) < today;
       </div>
       <div>
         <h2 class="h-l">Galería</h2>
+        {s.galleryProvisional && <p class="muted small">Fotos asignadas a este show por deducción. <Provisional label="Confirmar show" /></p>}
         <div class="gal">
-          {Array.from({ length: 6 }).map((_, i) => <PhotoSlot tone="#141414" ink={s.color} ratio={i === 0 ? '16/10' : '1/1'} label="Foto @wrestlingphotoshow" class={i === 0 ? 'wide' : ''} />)}
+          {(s.gallery?.length ? s.gallery : Array.from({ length: 6 }).map(() => null)).map((src, i) => <PhotoSlot src={src} alt={`Foto de ${s.name}`} tone="#141414" ink={s.color} ratio={i === 0 ? '16/10' : '1/1'} label="Foto @wrestlingphotoshow" class={i === 0 ? 'wide' : ''} />)}
         </div>
       </div>
     </section>

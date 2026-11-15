@@ -41,8 +41,8 @@ const appearances = allShows.filter((s) => JSON.stringify([s.card, s.results]).i
   </section>
   <section class="wrap seq">
     <h2 class="h-m">En acción</h2>
-    <p class="muted">Aquí irá una secuencia de fotos de un mismo movimiento que se "reproduce" al hacer scroll.</p>
-    <div class="strip">{Array.from({ length: 5 }).map((_, i) => <PhotoSlot tone="#141414" ink={div.color} ratio="4/5" label={`Fotograma ${i + 1}`} />)}</div>
+    {!w.photos && <p class="muted">Aquí irán fotos de sus combates, idealmente una secuencia de un mismo movimiento.</p>}
+    <div class="strip">{(w.photos || Array.from({ length: 5 }).map(() => null)).map((src, i) => <PhotoSlot src={src} alt={`${w.name} en combate`} tone="#141414" ink={div.color} ratio="4/5" label={`Fotograma ${i + 1}`} />)}</div>
   </section>
 </Base>
 <style>

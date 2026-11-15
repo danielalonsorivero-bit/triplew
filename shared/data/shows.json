@@ -186,7 +186,22 @@
         {
           "text": "Joro ganó el torneo Young Wolves (final ante Varo Díaz)."
         }
-      ]
+      ],
+      "gallery": [
+        "/fotos/f82.jpg",
+        "/fotos/f75.jpg",
+        "/fotos/f76.jpg",
+        "/fotos/f77.jpg",
+        "/fotos/f78.jpg",
+        "/fotos/f79.jpg",
+        "/fotos/f80.jpg",
+        "/fotos/f81.jpg",
+        "/fotos/f83.jpg",
+        "/fotos/f84.jpg",
+        "/fotos/f85.jpg",
+        "/fotos/f86.jpg"
+      ],
+      "galleryProvisional": true
     },
     {
       "slug": "total-rumble-2026",
