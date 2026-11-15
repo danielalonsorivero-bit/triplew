@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
+import Provisional from '../../../shared/components/Provisional.astro';
+import { titles, wrestler, initials } from '../../../shared/lib.js';
+---
+<Base title="Campeonatos">
+  <section class="section wrap">
+    <p class="kicker">Oro de la Triple W</p>
+    <h1 class="h-xl">Campeonatos</h1>
+    <div class="list">
+      {titles.map((t) => {
+        const h = t.holder && wrestler(t.holder);
+        return (
+          <article class="title" style={`--t:${t.color}`}>
+            <div class="belt-img"><PhotoSlot tone="#121212" ink={t.color} ratio="16/9" label="Foto del cinturón" /></div>
+            <div class="t-body">
+              <h2 class="h-l">{t.name}</h2>
+              <p class="holder">{h ? <>Campeón actual: <a href={`/roster/${h.slug}/`}>{h.name}</a></> : <>Campeón actual: por confirmar <Provisional /></>}</p>
+              <h3 class="lin">Linaje {t.provisionalHistory && <Provisional label="Incompleto" />}</h3>
+              <ol class="hist">
+                {t.history.length ? t.history.map((x) => <li><b>{x.name}</b>{x.note && <span class="muted"> · {x.note}</span>}</li>) : <li class="muted">Sin datos todavía.</li>}
+              </ol>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+    <article class="hof">
+      <h2 class="h-l">Salón de la Fama</h2>
+      <p class="muted">La Triple W tiene un Salón de la Fama (aparece en sus historias destacadas de Instagram), pero no hemos encontrado la lista de miembros. <Provisional /></p>
+      <div class="hof-grid">{Array.from({ length: 4 }).map(() => <PhotoSlot tone="#1a160a" ink="#E8C547" ratio="3/4" label="Retrato ilustrado" />)}</div>
+    </article>
+  </section>
+</Base>
+<style>
+  .list { display: grid; gap: 1.5rem; margin-top: 3rem; }
+  .title { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); border: 1px solid var(--line); border-left: 6px solid var(--t); background: #111; }
+  .t-body { padding: clamp(1.2rem, 3vw, 2.2rem); }
+  .t-body h2 { color: var(--t); }
+  .holder { font-size: 1.1rem; margin-top: 1rem; }
+  .holder a { font-weight: 800; }
+  .lin { font-size: 1rem; letter-spacing: .1em; margin-top: 1.5rem; display: flex; gap: .6rem; align-items: center; }
+  .hist { padding-left: 1.2rem; display: grid; gap: .4rem; margin-top: .8rem; }
+  @media (max-width: 820px) { .title { grid-template-columns: 1fr; } }
+  .hof { margin-top: 4rem; padding: clamp(1.2rem, 3vw, 2.5rem); border: 1px solid #3a3215; background: #120f05; }
+  .hof h2 { color: #E8C547; }
+  .hof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 180px), 1fr)); gap: 1rem; margin-top: 1.5rem; }
+</style>

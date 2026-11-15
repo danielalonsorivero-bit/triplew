@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import PhotoSlot from '../../../../shared/components/PhotoSlot.astro';
+import Provisional from '../../../../shared/components/Provisional.astro';
+import { roster, divisions, titleOf, initials, allShows, dateLong } from '../../../../shared/lib.js';
+export function getStaticPaths() { return roster.map((w) => ({ params: { slug: w.slug }, props: { w } })); }
+const { w } = Astro.props;
+const div = divisions[w.division];
+const champ = (w.titles || []).map(titleOf).filter(Boolean);
+const prov = w.provisional || [];
+const appearances = allShows.filter((s) => JSON.stringify([s.card, s.results]).includes(w.name));
+---
+<Base title={w.name} accent={div.color} accentInk="#0b0b0b">
+  <section class="wrap prof">
+    <div class="photo">
+      <PhotoSlot initials={initials(w.name)} tone="#141414" ink={div.color} ratio="3/4" label="Retrato pendiente" />
+      <span class="emoji" aria-hidden="true">{w.emoji}</span>
+    </div>
+    <div class="info">
+      <p class="kicker">{div.name}</p>
+      <h1 class="h-xl">{w.name}</h1>
+      {w.nickname && <p class="nick">«{w.nickname}» {prov.includes('nickname') && <Provisional />}</p>}
+      {champ.map((t) => <p class="belt" style={`--t:${t.color}`}>Campeón actual · {t.name}</p>)}
+      <dl class="facts">
+        {w.team && <div><dt>Equipo</dt><dd>{w.team} {prov.includes('team') && <Provisional />}</dd></div>}
+        <div><dt>Debut en Triple W</dt><dd>— <Provisional /></dd></div>
+        <div><dt>Movimiento final</dt><dd>— <Provisional /></dd></div>
+        {w.instagram && <div><dt>Instagram</dt><dd><a href={`https://www.instagram.com/${w.instagram}/`}>@{w.instagram}</a></dd></div>}
+      </dl>
+      <div class="bio">
+        {w.notes && <p>{w.notes}</p>}
+        <p class="muted">Biografía pendiente: dos o tres frases en la voz del personaje. <Provisional /></p>
+      </div>
+      {appearances.length > 0 && (
+        <div class="apps">
+          <h2 class="h-m">Apariciones recientes</h2>
+          <ul>{appearances.reverse().map((s) => <li><a href={`/shows/${s.slug}/`} style={`--c:${s.color}`}>{s.name}</a> <span class="muted">· {dateLong(s.date)}</span></li>)}</ul>
+        </div>
+      )}
+    </div>
+  </section>
+  <section class="wrap seq">
+    <h2 class="h-m">En acción</h2>
+    <p class="muted">Aquí irá una secuencia de fotos de un mismo movimiento que se "reproduce" al hacer scroll.</p>
+    <div class="strip">{Array.from({ length: 5 }).map((_, i) => <PhotoSlot tone="#141414" ink={div.color} ratio="4/5" label={`Fotograma ${i + 1}`} />)}</div>
+  </section>
+</Base>
+<style>
+  .prof { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4rem); padding-block: 4rem; align-items: start; }
+  .photo { position: relative; border-top: 6px solid var(--accent); }
+  .emoji { position: absolute; right: -.6rem; top: -1.4rem; font-size: 3rem; }
+  .info h1 { overflow-wrap: anywhere; }
+  .nick { font: 800 1.6rem/1 var(--font-display); text-transform: uppercase; color: var(--accent); margin-top: .8rem; }
+  .belt { display: inline-block; font: 800 .9rem/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; background: var(--t); color: #111; padding: .5rem .7rem; margin-top: .5rem; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0; padding-block: 1.5rem; border-block: 1px solid var(--line); }
+  .facts dt { font: 700 .62rem/1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+  .facts dd { margin: 0; font-weight: 600; }
+  .apps ul { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .5rem; }
+  .apps a { font: 800 1.2rem/1 var(--font-display); text-transform: uppercase; text-decoration: none; color: var(--c); }
+  @media (max-width: 820px) { .prof { grid-template-columns: 1fr; } .photo { max-width: 420px; } }
+  .seq { padding-bottom: 2rem; }
+  .strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(180px, 1fr); gap: .5rem; overflow-x: auto; margin-top: 1rem; padding-bottom: .5rem; }
+</style>

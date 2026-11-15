@@ -1,0 +1,270 @@
+---
+import Base from '../layouts/Base.astro';
+import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
+import Provisional from '../../../shared/components/Provisional.astro';
+import data from '../../../shared/data/lucharama.json';
+import { dateLong, urls, upcomingShows } from '../../../shared/lib.js';
+
+const levelName = Object.fromEntries(data.levels.map((l) => [l.slug, l.name]));
+const levelColor = { fundamentos: '#F3E6D0', intermedio: '#F2A33A', avanzado: '#E2231A', acting: '#1A1414' };
+const levelInk = { fundamentos: '#1A1414', intermedio: '#1A1414', avanzado: '#fff', acting: '#F3E6D0' };
+const today = new Date(new Date().toISOString().slice(0, 10));
+const events = [...data.events].sort((a, b) => b.date.localeCompare(a.date));
+const nextTW = upcomingShows.find((s) => s.venue === 'lucharama');
+---
+<Base>
+  <!-- PORTADA -->
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="hero-txt">
+        <span class="kicker">Escuela de lucha libre profesional · Madrid</span>
+        <h1 class="h-xl">Aprende<br />a <span class="red">luchar.</span></h1>
+        <p class="lead">Lucharama es la escuela de la Triple W. Entrenas con los luchadores del roster, empiezas desde cero y, si quieres, acabas subiendo al ring delante del público.</p>
+        <div class="cta"><a class="btn" href="#prueba">Pide tu primera clase gratis</a><a class="btn alt" href="#horarios">Ver horarios</a></div>
+      </div>
+      <div class="hero-img">
+        <PhotoSlot tone="#1A1414" ink="#E2231A" ratio="4/5" label="Foto de una clase real" />
+        <span class="sticker">1ª clase<br /><b>gratis</b></span>
+      </div>
+    </div>
+    <div class="marquee" aria-hidden="true"><div>{Array.from({ length: 3 }).map(() => <span>Desde 2014 ★ Mayores de 14 años ★ Sin experiencia previa ★ Escuela oficial de la Triple W ★ Clases de acting ★ </span>)}</div></div>
+  </section>
+
+  <!-- EL CAMINO -->
+  <section class="section wrap">
+    <span class="kicker">De la colchoneta al main event</span>
+    <h2 class="h-l">El camino</h2>
+    <ol class="path">
+      {data.path.map((p) => (
+        <li><span class="p-step">{p.step}</span><h3>{p.name}</h3><p>{p.text}</p></li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- NIVELES -->
+  <section id="niveles" class="section levels-sec">
+    <div class="wrap">
+      <span class="kicker">Clases</span>
+      <h2 class="h-l">Tres niveles y un escenario</h2>
+      <div class="levels">
+        {data.levels.map((l) => (
+          <article class="level" style={`--lc:${levelColor[l.slug]};--li:${levelInk[l.slug]}`}>
+            <span class="l-tag">{l.tag}</span>
+            <h3>{l.name}</h3>
+            <p>{l.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- HORARIOS -->
+  <section id="horarios" class="section wrap">
+    <span class="kicker">Horarios</span>
+    <div class="head-row"><h2 class="h-l">La semana en Lucharama</h2>{data.schedule.provisional && <Provisional label="Horario de ejemplo" />}</div>
+    <div class="week">
+      {data.schedule.days.map((d) => (
+        <div class="day">
+          <h3>{d}</h3>
+          {data.schedule.slots.filter((s) => s.day === d).map((s) => (
+            <div class="slot-c" style={`--lc:${levelColor[s.level]};--li:${levelInk[s.level]}`}><b>{levelName[s.level]}</b><span>{s.time}</span></div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ENTRENADORES -->
+  <section class="section wrap">
+    <span class="kicker">Quién te enseña</span>
+    <div class="head-row"><h2 class="h-l">Entrenadores</h2><Provisional label="Nombres por confirmar" /></div>
+    <p class="muted narrow">Los entrenamientos los dan luchadores del roster de la Triple W, con distintos estilos para elegir. Cada ficha enlazará con su perfil en la web de la Triple W.</p>
+    <div class="coaches">
+      {['Fundamentos', 'Intermedio', 'Avanzado', 'Acting'].map((n) => (
+        <div class="coach"><PhotoSlot tone="#1A1414" ink="#F3E6D0" ratio="3/4" label="Retrato" /><b>Nombre del entrenador</b><span>{n}</span></div>
+      ))}
+    </div>
+  </section>
+
+  <!-- TARIFAS -->
+  <section id="tarifas" class="section prices-sec">
+    <div class="wrap prices-in">
+      <div><span class="kicker light">Tarifas</span><h2 class="h-l">Sin matrícula.<br />Sin permanencia.</h2><Provisional label="Confirmar matrícula y permanencia" /></div>
+      <div class="prices">
+        {data.prices.map((p) => (
+          <div class="price"><span class="amount">{p.amount}</span><span class="plabel">{p.label}</span>{p.note && <small>{p.note}</small>}</div>
+        ))}
+        <div class="price free"><span class="amount">0 €</span><span class="plabel">Tu primera clase</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTOS -->
+  <section id="eventos" class="section wrap">
+    <span class="kicker">Más allá de las clases</span>
+    <h2 class="h-l">Seminarios y Luchashows</h2>
+    <div class="events">
+      {events.map((e) => (
+        <article class={`event ${new Date(e.date) >= today ? 'up' : ''}`}>
+          <span class="e-type">{e.type}{new Date(e.date) >= today && ' · Próximamente'}</span>
+          <h3>{e.name}</h3>
+          <span class="e-date">{dateLong(e.date)}</span>
+          <p>{e.text}</p>
+        </article>
+      ))}
+      {nextTW && (
+        <a class="event tw" href={`${urls.triplew}/shows/${nextTW.slug}/`}>
+          <span class="e-type">Show de la Triple W en Lucharama</span>
+          <h3>{nextTW.name}</h3>
+          <span class="e-date">{dateLong(nextTW.date)} · {nextTW.start}</span>
+          <p>Entrada inversa: pagas al salir lo que creas. Ver cartelera ↗</p>
+        </a>
+      )}
+    </div>
+  </section>
+
+  <!-- A-KID -->
+  <section class="akid">
+    <div class="wrap akid-in">
+      <PhotoSlot tone="#E2231A" ink="#F3E6D0" ratio="1/1" label="Foto de A-Kid en Lucharama (pedir permiso)" />
+      <div>
+        <span class="kicker light">Salido de aquí</span>
+        <p class="quote">De este gimnasio han salido luchadores que siguen llegando cada vez más alto. Como <b>A-Kid</b>, que ha firmado con la <b>WWE</b>.</p>
+        <p class="small">No todos pueden hacerlo: hace falta algo especial. Aquí te ayudamos a llegar lo más lejos posible.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="section wrap faq-sec">
+    <span class="kicker">Antes de venir</span>
+    <h2 class="h-l">Dudas frecuentes</h2>
+    <div class="faq">
+      {data.faq.map((f) => (
+        <details><summary>{f.q}</summary><p>{f.a} {f.provisional && <Provisional />}</p></details>
+      ))}
+    </div>
+  </section>
+
+  <!-- CLASE DE PRUEBA -->
+  <section id="prueba" class="section trial dots">
+    <div class="wrap trial-in">
+      <div>
+        <span class="kicker">Primera clase gratis</span>
+        <h2 class="h-l">¿Te subes al ring?</h2>
+        <p class="lead">Déjanos tus datos y te decimos qué día puedes venir a probar. Luego ya decides si esto es para ti.</p>
+        <div class="where">
+          <b>Gimnasio Lucharama</b><br />{data.address.street}, {data.address.city}<br />
+          <span class="muted">Metro: {data.address.metro} · Bus EMT: {data.address.bus}</span><br />
+          <a href={data.address.map}>Abrir en Google Maps ↗</a>
+        </div>
+      </div>
+      <form class="form" action={`mailto:${data.email}`} method="post" enctype="text/plain">
+        <p class="form-note"><Provisional label="Formulario de prueba" /> En el prototipo abre tu correo. En la versión final enviará el mensaje directamente.</p>
+        <label>Nombre<input name="nombre" required autocomplete="name" /></label>
+        <label>Email<input name="email" type="email" required autocomplete="email" /></label>
+        <label>Edad<input name="edad" type="number" min="14" max="99" required /></label>
+        <label>Experiencia
+          <select name="experiencia"><option>Ninguna</option><option>Algo de deportes de contacto</option><option>Ya he entrenado wrestling</option></select>
+        </label>
+        <label>Mensaje (opcional)<textarea name="mensaje" rows="3"></textarea></label>
+        <label class="check"><input type="checkbox" required /> He leído la <a href="/legal/">política de privacidad</a>.</label>
+        <button class="btn" type="submit">Quiero mi clase gratis</button>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .red { color: var(--red); }
+  .hero { border-bottom: 2px solid var(--fg); }
+  .hero-in { display: grid; grid-template-columns: 1.25fr .75fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; padding-block: clamp(3rem, 7vw, 6rem); }
+  .lead { font-size: clamp(1.05rem, 1.6vw, 1.25rem); max-width: 44ch; margin-top: 1.5rem; }
+  .cta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+  .hero-img { position: relative; border: 2px solid var(--fg); box-shadow: 10px 10px 0 var(--red); }
+  .sticker { position: absolute; left: -1.5rem; bottom: 1.5rem; width: 7.5rem; height: 7.5rem; border-radius: 50%; background: #F2A33A; border: 2px solid var(--fg); display: grid; place-content: center; text-align: center; font: 800 1rem/1 var(--font-display); text-transform: uppercase; transform: rotate(-12deg); }
+  .sticker b { font-size: 1.9rem; }
+  @media (max-width: 820px) { .hero-in { grid-template-columns: 1fr; } .hero-img { max-width: 420px; margin-left: 1.5rem; } }
+  .marquee { overflow: hidden; background: var(--fg); color: var(--cream); padding: .8rem 0; }
+  .marquee div { display: flex; width: max-content; animation: mq 40s linear infinite; }
+  .marquee span { font: 800 1.3rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; padding-right: 1rem; }
+  @keyframes mq { to { transform: translateX(-33.33%); } }
+
+  .path { list-style: none; padding: 0; margin: 2.5rem 0 0; display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid var(--fg); }
+  .path li { padding: 1.4rem 1.1rem; border-right: 2px solid var(--fg); position: relative; }
+  .path li:last-child { border-right: 0; background: var(--fg); color: var(--cream); }
+  .path li:nth-child(4) { background: #2BD46A; }
+  .p-step { font: 900 2.8rem/1 var(--font-display); color: var(--red); }
+  .path h3 { font-size: 1.6rem; margin: .4rem 0 .6rem; }
+  .path p { font-size: .9rem; margin: 0; }
+  @media (max-width: 900px) { .path { grid-template-columns: 1fr; } .path li { border-right: 0; border-bottom: 2px solid var(--fg); } }
+
+  .levels-sec { background: var(--fg); color: var(--cream); }
+  .levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; margin-top: 2.5rem; }
+  .level { background: var(--lc); color: var(--li); padding: 1.5rem; border: 2px solid var(--cream); min-height: 260px; display: flex; flex-direction: column; }
+  .level h3 { font-size: 2.6rem; margin: .4rem 0 1rem; }
+  .l-tag { font: 800 .7rem/1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+
+  .head-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .week { display: grid; grid-template-columns: repeat(6, 1fr); border: 2px solid var(--fg); margin-top: 2rem; }
+  .day { border-right: 2px solid var(--fg); padding: .8rem; min-height: 180px; display: grid; align-content: start; gap: .5rem; }
+  .day:last-child { border-right: 0; }
+  .day h3 { font-size: 1.2rem; letter-spacing: .06em; padding-bottom: .5rem; border-bottom: 2px solid var(--fg); }
+  .slot-c { background: var(--lc); color: var(--li); border: 2px solid var(--fg); padding: .55rem; display: grid; gap: .15rem; }
+  .slot-c b { font: 800 1.05rem/1 var(--font-display); text-transform: uppercase; }
+  .slot-c span { font-size: .78rem; font-variant-numeric: tabular-nums; }
+  @media (max-width: 900px) { .week { grid-template-columns: 1fr 1fr; } .day { border-bottom: 2px solid var(--fg); } .day:nth-child(2n) { border-right: 0; } }
+
+  .narrow { max-width: 60ch; margin-top: 1rem; }
+  .coaches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 200px), 1fr)); gap: 1rem; margin-top: 2rem; }
+  .coach { display: grid; gap: .2rem; }
+  .coach :global(.slot) { border: 2px solid var(--fg); margin-bottom: .5rem; }
+  .coach b { font: 800 1.2rem/1 var(--font-display); text-transform: uppercase; }
+  .coach span { font-size: .8rem; color: var(--muted); }
+
+  .prices-sec { background: var(--red); color: #fff; border-block: 2px solid var(--fg); }
+  .kicker.light { color: var(--cream); }
+  .prices-in { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; align-items: center; }
+  .prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .price { background: var(--cream); color: var(--fg); border: 2px solid var(--fg); box-shadow: 6px 6px 0 var(--fg); padding: 1.3rem; display: grid; gap: .3rem; align-content: start; }
+  .price.free { background: #F2A33A; }
+  .amount { font: 900 clamp(2.6rem, 5vw, 4rem)/.9 var(--font-display); }
+  .plabel { font: 800 1rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; }
+  .price small { font-size: .75rem; color: var(--muted); }
+  @media (max-width: 900px) { .prices-in { grid-template-columns: 1fr; } .prices { grid-template-columns: 1fr 1fr; } }
+
+  .events { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; margin-top: 2rem; }
+  .event { border: 2px solid var(--fg); padding: 1.3rem; display: grid; gap: .4rem; align-content: start; text-decoration: none; background: var(--cream); }
+  .event.up { background: var(--fg); color: var(--cream); box-shadow: 6px 6px 0 var(--red); }
+  .event.tw { background: #0B0B0B; color: #F2F0EA; }
+  .event h3 { font-size: 2rem; }
+  .e-type { font: 800 .68rem/1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; color: var(--red); }
+  .event.tw .e-type { color: #F2711C; }
+  .e-date { font: 700 .95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
+  .event p { font-size: .9rem; margin: .4rem 0 0; }
+
+  .akid { background: var(--fg); color: var(--cream); padding-block: clamp(3rem, 7vw, 5rem); }
+  .akid-in { display: grid; grid-template-columns: .6fr 1.4fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .akid :global(.slot) { border: 2px solid var(--cream); }
+  .quote { font: 800 clamp(1.8rem, 4vw, 3.2rem)/1 var(--font-display); text-transform: uppercase; }
+  .quote b { color: var(--red); }
+  .small { color: #b8a993; }
+  @media (max-width: 760px) { .akid-in { grid-template-columns: 1fr; } .akid :global(.slot) { max-width: 260px; } }
+
+  .faq { margin-top: 2rem; border-top: 2px solid var(--fg); }
+  .faq details { border-bottom: 2px solid var(--fg); }
+  .faq summary { cursor: pointer; padding: 1.2rem 0; font: 800 clamp(1.2rem, 2.4vw, 1.6rem)/1.1 var(--font-display); text-transform: uppercase; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+  .faq summary::after { content: '+'; color: var(--red); font-size: 1.8rem; line-height: .7; }
+  .faq details[open] summary::after { content: '–'; }
+  .faq p { max-width: 65ch; padding-bottom: 1.2rem; margin: 0; }
+
+  .trial { border-top: 2px solid var(--fg); }
+  .trial-in { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+  .where { margin-top: 2rem; padding: 1.2rem; border: 2px solid var(--fg); background: var(--cream); line-height: 1.7; }
+  .form { background: var(--cream); border: 2px solid var(--fg); box-shadow: 10px 10px 0 var(--fg); padding: clamp(1.2rem, 3vw, 2rem); display: grid; gap: 1rem; }
+  .form-note { font-size: .8rem; color: var(--muted); margin: 0; }
+  .form label { display: grid; gap: .35rem; font: 800 .9rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; }
+  .form input:not([type=checkbox]), .form select, .form textarea { font: 400 1rem/1.4 var(--font-text); padding: .75rem; border: 2px solid var(--fg); background: #fffaf0; color: var(--fg); border-radius: 0; width: 100%; }
+  .form .check { display: flex; gap: .6rem; align-items: center; font: 500 .9rem/1.3 var(--font-text); text-transform: none; letter-spacing: 0; }
+  @media (max-width: 860px) { .trial-in { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cromo from '../../components/Cromo.astro';
+import Provisional from '../../../../shared/components/Provisional.astro';
+import { roster, divisions } from '../../../../shared/lib.js';
+const order = ['absoluto', 'levelone', 'parejas', 'staff'];
+---
+<Base title="Roster">
+  <section class="section wrap">
+    <p class="kicker">Luchadores, equipos y staff</p>
+    <h1 class="h-xl">Roster</h1>
+    <p class="intro muted">Lista sacada de los últimos shows. Las divisiones y apodos están pendientes de confirmar <Provisional />. Los retratos se harán en una sesión con fondo y luz uniformes.</p>
+    <div class="filters" role="group" aria-label="Filtrar por división">
+      <button data-f="all" aria-pressed="true">Todos</button>
+      {order.map((d) => <button data-f={d} aria-pressed="false" style={`--d:${divisions[d].color}`}>{divisions[d].name}</button>)}
+    </div>
+    {order.map((d) => (
+      <div class="block" data-div={d}>
+        <h2 class="h-m" style={`color:${divisions[d].color}`}>{divisions[d].name}</h2>
+        <div class="cromos">{roster.filter((w) => w.division === d).map((w, i) => <Cromo w={w} n={i + 1} />)}</div>
+      </div>
+    ))}
+  </section>
+</Base>
+<script>
+  const btns = document.querySelectorAll('.filters button');
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.block').forEach((bl) => { bl.hidden = b.dataset.f !== 'all' && bl.dataset.div !== b.dataset.f; });
+  }));
+</script>
+<style>
+  .intro { max-width: 60ch; margin-top: 1rem; }
+  .filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 2rem 0 1rem; }
+  .filters button { font: 800 .95rem/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: .7rem 1rem; background: transparent; color: var(--fg); border: 1.5px solid var(--line); border-radius: 999px; cursor: pointer; }
+  .filters button[aria-pressed="true"] { background: var(--fg); color: #0b0b0b; border-color: var(--fg); }
+  .block { margin-top: 3rem; }
+  .block h2 { margin-bottom: 1.2rem; }
+  .cromos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 200px), 1fr)); gap: 1rem; }
+</style>

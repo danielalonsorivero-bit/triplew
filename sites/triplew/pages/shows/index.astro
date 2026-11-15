@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import Poster from '../../components/Poster.astro';
+import Provisional from '../../../../shared/components/Provisional.astro';
+import { upcomingShows, pastShows, venues, dateLong, ticketLabel } from '../../../../shared/lib.js';
+---
+<Base title="Shows">
+  <section class="section wrap">
+    <p class="kicker">Calendario</p>
+    <h1 class="h-xl">Shows</h1>
+    <h2 class="h-m sub">Próximos</h2>
+    <div class="list">
+      {upcomingShows.map((s) => (
+        <a class="row" href={`/shows/${s.slug}/`} style={`--c:${s.color}`}>
+          <span class="r-date">{dateLong(s.date)}</span>
+          <span class="r-name">{s.name} {s.provisional && <Provisional />}</span>
+          <span class="r-venue">{venues[s.venue].name}</span>
+          <span class="r-tix">{ticketLabel(s)}</span>
+        </a>
+      ))}
+    </div>
+    <h2 class="h-m sub">Archivo 2026</h2>
+    <div class="grid">
+      {pastShows.map((s) => (
+        <div>
+          <Poster show={s} size="s" />
+          <p class="cap">{dateLong(s.date)} {s.provisional && <Provisional />}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>
+<style>
+  .sub { margin: 3rem 0 1.2rem; }
+  .list { border-top: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 11rem 1fr 12rem 10rem; gap: 1rem; align-items: center; padding: 1.3rem .5rem; border-bottom: 1px solid var(--line); text-decoration: none; transition: background .2s, padding .2s; }
+  .row:hover { background: color-mix(in srgb, var(--c) 12%, transparent); padding-left: 1rem; }
+  .r-date { font: 700 .8rem/1 var(--font-text); letter-spacing: .1em; text-transform: uppercase; color: var(--c); }
+  .r-name { font: 900 clamp(1.6rem, 3.5vw, 2.6rem)/.9 var(--font-display); text-transform: uppercase; }
+  .r-venue, .r-tix { font-size: .85rem; color: var(--muted); }
+  @media (max-width: 760px) { .row { grid-template-columns: 1fr; gap: .4rem; } }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 200px), 1fr)); gap: 1rem; }
+  .cap { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+</style>

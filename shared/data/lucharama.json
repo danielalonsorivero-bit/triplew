@@ -1,0 +1,48 @@
+{
+  "_nota": "Datos de la escuela. Tarifas, dirección y textos base: lucharama.com (nov. 2026). Horarios, entrenadores y FAQ: PROVISIONALES.",
+  "address": { "street": "C/ Gaviota 40", "city": "28025 Madrid", "metro": "Oporto y Vistalegre", "bus": "17, 34, 35, 55, 108, 118", "map": "https://www.google.com/maps/place/Gimnasio+Lucharama/@40.3886858,-3.7387914,17z" },
+  "email": "info@triplew.es",
+  "minAge": 14,
+  "prices": [
+    { "amount": "15 €", "label": "Una sesión" },
+    { "amount": "50 €", "label": "Todo el mes", "note": "Tantas clases como quieras de tu nivel, siempre que haya aforo." }
+  ],
+  "levels": [
+    { "slug": "fundamentos", "name": "Fundamentos", "tag": "Nivel 1", "text": "Empiezas desde cero: caídas, rodadas, agarres básicos y cómo moverte en el ring sin hacerte daño ni hacérselo a nadie." },
+    { "slug": "intermedio", "name": "Intermedio", "tag": "Nivel 2", "text": "Las herramientas para subirte a un ring con garantías: secuencias, timing, trabajo con el compañero y lectura del público." },
+    { "slug": "avanzado", "name": "Avanzado", "tag": "Nivel 3", "text": "Pulir lo aprendido y preparar el salto a los shows: combates completos, personaje y ritmo de un evento real." },
+    { "slug": "acting", "name": "Acting", "tag": "Interpretación", "text": "En el wrestling hay que saber contar historias. Clases impartidas por luchadores con experiencia en teatro y escenarios." }
+  ],
+  "schedule": {
+    "provisional": true,
+    "days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+    "slots": [
+      { "day": "Lunes", "time": "19:00–21:00", "level": "fundamentos" },
+      { "day": "Martes", "time": "19:00–21:00", "level": "intermedio" },
+      { "day": "Miércoles", "time": "19:00–21:00", "level": "fundamentos" },
+      { "day": "Miércoles", "time": "21:00–22:00", "level": "acting" },
+      { "day": "Jueves", "time": "19:00–21:00", "level": "avanzado" },
+      { "day": "Viernes", "time": "19:00–21:00", "level": "intermedio" },
+      { "day": "Sábado", "time": "11:00–13:00", "level": "avanzado" }
+    ]
+  },
+  "path": [
+    { "step": "01", "name": "Primera clase", "text": "Gratis. Vienes, pruebas y decides." },
+    { "step": "02", "name": "Lucharama", "text": "Fundamentos, intermedio y avanzado con luchadores del roster." },
+    { "step": "03", "name": "Luchashow", "text": "Tu primera vez ante público, en la exhibición gratuita de alumnos." },
+    { "step": "04", "name": "Level One", "text": "La división de la cantera. Torneo Young Wolves incluido." },
+    { "step": "05", "name": "Triple W", "text": "El roster principal. Y de aquí salió A-Kid, hoy en WWE." }
+  ],
+  "events": [
+    { "type": "Seminario", "name": "Flying Bryant Brothers", "date": "2026-11-20", "text": "Luchadores con experiencia en RevPro y ATTACK! Pro Wrestling. Individuales de 17:00 a 19:00 y parejas de 19:00 a 21:00." },
+    { "type": "Luchashow", "name": "Luchashow de otoño", "date": "2026-10-31", "text": "Exhibición de alumnos a las 12:30. Entrada gratuita, aforo limitado." },
+    { "type": "Seminario", "name": "Joey Torres", "date": "2026-08-06", "text": "Tres días de entreno con experiencia internacional en Europa y gira por Japón." }
+  ],
+  "faq": [
+    { "q": "¿Necesito experiencia o estar en forma?", "a": "No. El nivel Fundamentos empieza desde cero y la forma física se gana entrenando.", "provisional": true },
+    { "q": "¿Qué edad mínima hay?", "a": "14 años. Los menores necesitan autorización de madre, padre o tutor.", "provisional": true },
+    { "q": "¿Qué tengo que traer?", "a": "Ropa deportiva cómoda sin cremalleras ni botones, zapatillas y agua. Nada de anillos, pendientes ni relojes.", "provisional": true },
+    { "q": "¿Es peligroso?", "a": "Como cualquier deporte de contacto tiene riesgo. Por eso lo primero que se aprende es a caer y a cuidar del compañero.", "provisional": true },
+    { "q": "¿Tengo que acabar luchando en shows?", "a": "No. Mucha gente entrena por deporte y diversión. Si quieres dar el salto, el camino está ahí.", "provisional": true }
+  ]
+}

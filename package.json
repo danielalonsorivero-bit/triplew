@@ -1,0 +1,20 @@
+{
+  "name": "triplew-lucharama-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:triplew": "SITE_ID=triplew astro dev",
+    "dev:lucharama": "SITE_ID=lucharama astro dev --port 4322",
+    "build:triplew": "SITE_ID=triplew astro build",
+    "build:lucharama": "SITE_ID=lucharama astro build",
+    "build": "astro build"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "5.3.0",
+    "@fontsource-variable/big-shoulders-display": "5.3.0",
+    "astro": "5.18.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,36 @@
+---
+// Cartel tipográfico generado con el color del show. Sustituible por el cartel real (prop "image").
+import { dayNum, monthShort, venues } from '../../../shared/lib.js';
+const { show, image, size = 'm' } = Astro.props;
+const words = show.name.split(' ');
+const longest = Math.max(...words.map((w) => w.length));
+const fs = Math.min(26, 150 / Math.max(longest, 4), 70 / words.length);
+---
+<a class={`poster poster-${size}`} href={`/shows/${show.slug}/`} style={`--c:${show.color};--k:${show.ink}`}>
+  {image ? <img src={image} alt={`Cartel de ${show.name}`} loading="lazy" /> : (
+    <div class="p-in">
+      <span class="p-top">{show.brand === 'levelone' ? 'Level One' : 'WhiteWolf Wrestling'} presenta</span>
+      <span class="p-name" style={`--fs:${fs}`}>{words.map((w) => <span>{w}</span>)}</span>
+      <span class="p-foot">
+        <span class="p-date"><b>{dayNum(show.date)}</b>{monthShort(show.date)}</span>
+        <span class="p-venue">{venues[show.venue]?.name}</span>
+      </span>
+    </div>
+  )}
+</a>
+<style>
+  .poster { container-type: inline-size; display: block; text-decoration: none; aspect-ratio: 4/5; position: relative; overflow: hidden; background: var(--k); color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); transition: transform .25s ease; }
+  .poster:hover { transform: translateY(-4px) rotate(-.4deg); }
+  .poster img { width: 100%; height: 100%; object-fit: cover; }
+  .p-in { position: absolute; inset: 0; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--c) 28%, transparent) 1px, transparent 1.5px); background-size: 6px 6px; }
+  .p-in::before { content: ''; position: absolute; inset: 0; background: linear-gradient(170deg, transparent 40%, var(--k) 85%); }
+  .p-in > * { position: relative; }
+  .p-top { font: 700 .58rem/1 var(--font-text); letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+  .p-name { font: 900 calc(var(--fs) * 1cqi)/.84 var(--font-display); text-transform: uppercase; display: grid; letter-spacing: -.02em; }
+  .p-name span:nth-child(even) { -webkit-text-stroke: 1.5px var(--c); color: transparent; }
+  .p-foot { display: flex; justify-content: space-between; align-items: end; gap: .5rem; border-top: 2px solid var(--c); padding-top: .6rem; }
+  .p-date { font: 800 .9rem/1 var(--font-display); letter-spacing: .1em; display: grid; }
+  .p-date b { font-size: 2.2rem; line-height: .9; }
+  .p-venue { font: 700 .62rem/1.2 var(--font-text); letter-spacing: .12em; text-transform: uppercase; text-align: right; }
+</style>

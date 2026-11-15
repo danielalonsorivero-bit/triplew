@@ -1,0 +1,63 @@
+---
+import '../../../shared/styles/base.css';
+import '../styles/triplew.css';
+import { nextShow, urls } from '../../../shared/lib.js';
+const { title, description = 'Triple W · WhiteWolf Wrestling. Lucha libre en Madrid desde 2009.', accent = nextShow.color, accentInk = nextShow.ink } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/shows/', label: 'Shows' },
+  { href: '/roster/', label: 'Roster' },
+  { href: '/campeonatos/', label: 'Campeonatos' },
+  { href: '/historia/', label: 'Historia' },
+];
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title ? `${title} · Triple W` : 'Triple W · WhiteWolf Wrestling'}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#0B0B0B" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body style={`--accent:${accent};--accent-ink:${accentInk}`}>
+  <div class="proto-bar"><b>Prototipo</b> · Lo marcado como <b>provisional</b> está pendiente de confirmar por la Triple W.</div>
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="/" aria-label="Triple W, inicio">
+        <span class="brand-w">Triple<span>W</span></span>
+        <span class="brand-sub">WhiteWolf Wrestling · Madrid · 2009</span>
+      </a>
+      <input type="checkbox" id="navt" class="sr-only" />
+      <label for="navt" class="nav-btn" aria-label="Menú"><span></span><span></span></label>
+      <nav class="nav">
+        {nav.map((n) => <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>)}
+        <a class="nav-school" href={urls.lucharama}>Escuela Lucharama ↗</a>
+      </nav>
+    </div>
+  </header>
+  <main><slot /></main>
+  <footer class="site-foot">
+    <div class="wrap foot-in">
+      <div>
+        <p class="foot-big">Triple<span>W</span></p>
+        <p class="muted">Lucha libre profesional en Madrid desde 2009.<br />Gimnasio Lucharama · C/ Gaviota 40, 28025 Madrid</p>
+      </div>
+      <div class="foot-links">
+        <a href="https://www.instagram.com/latriplew/">Instagram</a>
+        <a href="https://www.youtube.com/latriplew">YouTube</a>
+        <a href="https://twitter.com/la_triplew">X / Twitter</a>
+        <a href="https://www.facebook.com/LaTripleW">Facebook</a>
+        <a href="mailto:info@triplew.es">info@triplew.es</a>
+      </div>
+      <div class="foot-links">
+        <a href="/shows/">Shows</a><a href="/roster/">Roster</a><a href="/campeonatos/">Campeonatos</a><a href="/historia/">Historia</a>
+        <a href="/legal/">Aviso legal y privacidad</a>
+      </div>
+    </div>
+    <div class="wrap foot-credit muted">Fotografía: @wrestlingphotoshow · Carteles de shows: @marco111morales</div>
+  </footer>
+</body>
+</html>

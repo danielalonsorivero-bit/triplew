@@ -1,0 +1,265 @@
+{
+  "_nota": "Shows de Triple W y Level One. Fechas y nombres sacados de @latriplew y triplew.es (nov. 2026). 'provisional: true' marca datos inventados o sin confirmar.",
+  "venues": {
+    "lucharama": {
+      "name": "Gimnasio Lucharama",
+      "address": "C/ Gaviota 40, 28025 Madrid",
+      "map": "https://maps.app.goo.gl/FxkKPcWW6rEwbgDF8"
+    },
+    "revi": {
+      "name": "Sala Revi",
+      "address": "C/ los Cavilas 4, Vicálvaro, 28052 Madrid",
+      "map": "https://maps.app.goo.gl/xUAJ5wiDMbHf3FX18"
+    }
+  },
+  "shows": [
+    {
+      "slug": "top-1-2026",
+      "name": "Top 1 2026",
+      "brand": "triplew",
+      "date": "2026-12-05",
+      "doors": "17:30",
+      "start": "18:00",
+      "venue": "revi",
+      "ticket": {
+        "type": "venta",
+        "url": "https://entradium.com/events/triple-w-top-1-2026"
+      },
+      "color": "#E3EE2B",
+      "ink": "#0B0B0B",
+      "tagline": "El caos, la ambición y la oportunidad de cambiarlo todo en un instante.",
+      "card": [
+        {
+          "title": "Lucha de escaleras por el maletín",
+          "sides": [
+            "Varo Díaz",
+            "Clasificados por decidir"
+          ],
+          "note": "Quien descuelgue el maletín tendrá una oportunidad por el título cuando quiera.",
+          "provisional": true
+        },
+        {
+          "title": "Campeonato Absoluto",
+          "sides": [
+            "Rizo",
+            "Ganador de Trevor de Vries vs. Pimp Ross"
+          ],
+          "provisional": true
+        }
+      ]
+    },
+    {
+      "slug": "el-bueno-el-malo-y-el-canalla",
+      "name": "El Bueno, el Malo y el Canalla",
+      "brand": "triplew",
+      "date": "2026-11-21",
+      "doors": "17:30",
+      "start": "18:00",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#F2711C",
+      "ink": "#1A0E05",
+      "tagline": "Tres hombres, tres destinos… y una sola cuenta pendiente.",
+      "card": [
+        {
+          "title": "Campeonatos de Parejas",
+          "sides": [
+            "La Nueva Ola",
+            "Flying Bryant Brothers"
+          ]
+        },
+        {
+          "title": "Aspirante al Campeonato Absoluto",
+          "sides": [
+            "Trevor de Vries",
+            "Pimp Ross"
+          ],
+          "note": "El ganador luchará por el título en Top 1."
+        },
+        {
+          "title": "Clasificatorio para Top 1",
+          "sides": [
+            "Shallow",
+            "Por anunciar"
+          ],
+          "provisional": true
+        },
+        {
+          "title": "Aparición especial",
+          "sides": [
+            "Jon Valow"
+          ],
+          "note": "¿Qué querrá decirnos El Animal antes de Top 1?"
+        }
+      ]
+    },
+    {
+      "slug": "level-one-diciembre-2026",
+      "name": "Level One · Diciembre",
+      "brand": "levelone",
+      "date": "2026-12-19",
+      "start": "18:00",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#2BD46A",
+      "ink": "#04140A",
+      "tagline": "La cantera de Triple W sube al ring.",
+      "provisional": true,
+      "card": []
+    },
+    {
+      "slug": "instinto-animal",
+      "name": "Instinto Animal",
+      "brand": "triplew",
+      "date": "2026-11-07",
+      "start": "18:00",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#FF2E88",
+      "ink": "#0A1630",
+      "tagline": "La supervivencia no entiende de reglas ni de piedad.",
+      "results": [
+        {
+          "text": "Trevor de Vries venció a Jon Valow (vía pin)."
+        },
+        {
+          "text": "Varo Díaz se impuso a Orión, Reaper, Erik de la Cruz, Pedro Guzmán y «Machoflaco» Marco Morales y se convierte en el primer clasificado para Top 1."
+        },
+        {
+          "text": "La Forja venció a AnaRKHia en combate tornado."
+        },
+        {
+          "text": "Joro venció a Newt Nova y retuvo el Campeonato de Level One."
+        },
+        {
+          "text": "Main event: Rizo vs. Pimp Ross por el Campeonato Absoluto. Resultado pendiente de confirmar.",
+          "provisional": true
+        }
+      ]
+    },
+    {
+      "slug": "kilometro-cero",
+      "name": "Kilómetro Cero",
+      "brand": "triplew",
+      "date": "2026-10-17",
+      "start": "18:00",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#F59E2B",
+      "ink": "#2A0E06",
+      "tagline": "Arranca la temporada.",
+      "results": [
+        {
+          "text": "Joro conquistó el Campeonato de Level One ante Ochoa.",
+          "provisional": true
+        },
+        {
+          "text": "Super Franki celebró sus 15 años en Triple W."
+        },
+        {
+          "text": "Resto de resultados pendientes de pasar desde Instagram.",
+          "provisional": true
+        }
+      ]
+    },
+    {
+      "slug": "level-one-young-wolves",
+      "name": "Level One: Young Wolves",
+      "brand": "levelone",
+      "date": "2026-09-26",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#2BD46A",
+      "ink": "#04140A",
+      "tagline": "Ocho promesas, un torneo.",
+      "results": [
+        {
+          "text": "Joro ganó el torneo Young Wolves (final ante Varo Díaz)."
+        }
+      ]
+    },
+    {
+      "slug": "total-rumble-2026",
+      "name": "Total Rumble 2026",
+      "brand": "triplew",
+      "date": "2026-06-27",
+      "venue": "lucharama",
+      "color": "#C8102E",
+      "ink": "#140204",
+      "tagline": "Todos contra todos.",
+      "results": [
+        {
+          "text": "Trevor de Vries ganó la Total Rumble y se ganó una oportunidad por el Campeonato Absoluto."
+        },
+        {
+          "text": "La Nueva Ola venció a Greedy Souls."
+        }
+      ]
+    },
+    {
+      "slug": "level-up-vii",
+      "name": "Level Up VII",
+      "brand": "levelone",
+      "date": "2026-06-13",
+      "venue": "lucharama",
+      "color": "#2BD46A",
+      "ink": "#04140A",
+      "tagline": "Level One.",
+      "provisional": true
+    },
+    {
+      "slug": "ultima-parada",
+      "name": "Última Parada",
+      "brand": "triplew",
+      "date": "2026-05-23",
+      "venue": "lucharama",
+      "color": "#8B5CF6",
+      "ink": "#0E0720",
+      "tagline": "Fin de trayecto.",
+      "provisional": true
+    },
+    {
+      "slug": "dominio",
+      "name": "Dominio",
+      "brand": "triplew",
+      "date": "2026-05-09",
+      "venue": "lucharama",
+      "color": "#E11D48",
+      "ink": "#16040A",
+      "tagline": "Solo uno manda.",
+      "provisional": true
+    },
+    {
+      "slug": "reset",
+      "name": "Reset",
+      "brand": "triplew",
+      "date": "2026-04-18",
+      "venue": "lucharama",
+      "color": "#22D3EE",
+      "ink": "#03161A",
+      "tagline": "Volver a empezar.",
+      "provisional": true
+    },
+    {
+      "slug": "gameroom",
+      "name": "Gameroom",
+      "brand": "levelone",
+      "date": "2026-03-14",
+      "venue": "lucharama",
+      "color": "#A3E635",
+      "ink": "#0D1404",
+      "tagline": "Pulsa start.",
+      "provisional": true
+    }
+  ]
+}

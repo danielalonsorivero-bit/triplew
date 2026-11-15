@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
+import Provisional from '../../../shared/components/Provisional.astro';
+const hitos = [
+  { y: '2009', t: 'Nace la Triple W', d: 'WhiteWolf Wrestling empieza a organizar shows de lucha libre en Madrid.' },
+  { y: '2009+', t: 'La Tabacalera', d: 'Los primeros años de shows en la legendaria Tabacalera de Embajadores, y después en algunas de las salas más reconocidas de la ciudad.', prov: 'Fechas exactas' },
+  { y: '2011', t: 'Llega Super Franki', d: 'Debuta una de las leyendas de la promoción, que en 2026 celebra 15 años en la Triple W.' },
+  { y: '2014', t: 'Abre Lucharama', d: 'La Triple W abre su propia escuela en Carabanchel para formar a las siguientes generaciones.' },
+  { y: '—', t: 'De Lucharama a WWE', d: 'A-Kid, formado en Lucharama, firma con WWE.', prov: 'Año' },
+  { y: '2026', t: 'Temporada actual', d: 'Total Rumble, Young Wolves, Kilómetro Cero, Instinto Animal… y Top 1 en Sala Revi.' },
+];
+---
+<Base title="Historia">
+  <section class="section wrap">
+    <p class="kicker">Desde 2009</p>
+    <h1 class="h-xl">Historia</h1>
+    <p class="intro">Miles de personas se han reunido al borde de nuestro ring para animar a sus luchadores favoritos. Y muchas, con el deseo de estar algún día sobre ese cuadrilátero.</p>
+    <ol class="tl">
+      {hitos.map((h, i) => (
+        <li class={i % 2 ? 'r' : ''}>
+          <span class="y">{h.y}</span>
+          <div class="c">
+            <PhotoSlot tone="#141414" ink="#F2F0EA" ratio="16/10" label="Foto de archivo" />
+            <h2 class="h-m">{h.t}</h2>
+            <p>{h.d} {h.prov && <Provisional label={`${h.prov} por confirmar`} />}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Base>
+<style>
+  .intro { font-size: clamp(1.1rem, 2vw, 1.5rem); max-width: 40ch; margin-top: 1.5rem; }
+  .tl { list-style: none; padding: 0; margin: 4rem 0 0; position: relative; display: grid; gap: 3rem; }
+  .tl::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--line); }
+  .tl li { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; position: relative; }
+  .y { font: 900 clamp(3rem, 8vw, 6rem)/.8 var(--font-display); color: var(--accent); text-align: right; }
+  .tl li.r .y { order: 2; text-align: left; }
+  .c h2 { margin: 1rem 0 .5rem; }
+  @media (max-width: 760px) { .tl::before { left: 0; } .tl li, .tl li.r { grid-template-columns: 1fr; gap: 1rem; padding-left: 1.2rem; } .y, .tl li.r .y { order: 0; text-align: left; } }
+</style>

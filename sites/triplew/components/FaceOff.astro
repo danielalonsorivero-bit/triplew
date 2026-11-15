@@ -1,0 +1,40 @@
+---
+// "Cara a cara": dos lados enfrentados en diagonal con el color del show.
+import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
+import Provisional from '../../../shared/components/Provisional.astro';
+import { findByName, initials } from '../../../shared/lib.js';
+const { match, color, ink } = Astro.props;
+const [a, b] = match.sides;
+const link = (name) => { const w = findByName(name); return w ? `/roster/${w.slug}/` : null; };
+---
+<article class={`fo ${b ? '' : 'solo'}`} style={`--c:${color};--k:${ink}`}>
+  <header class="fo-title">{match.title} {match.provisional && <Provisional />}</header>
+  <div class="fo-grid">
+    <div class="fo-side fo-a">
+      <PhotoSlot initials={initials(a)} tone="#141414" ink={color} ratio="1/1" label="" />
+      {link(a) ? <a href={link(a)} class="fo-name">{a}</a> : <span class="fo-name">{a}</span>}
+    </div>
+    {b && <span class="fo-vs">VS</span>}
+    {b && (
+      <div class="fo-side fo-b">
+        <PhotoSlot initials={initials(b)} tone="#141414" ink={color} ratio="1/1" label="" />
+        {link(b) ? <a href={link(b)} class="fo-name">{b}</a> : <span class="fo-name">{b}</span>}
+      </div>
+    )}
+  </div>
+  {match.note && <p class="fo-note">{match.note}</p>}
+</article>
+<style>
+  .fo { border: 1px solid color-mix(in srgb, var(--c) 40%, #222); background: #111; display: grid; }
+  .fo-title { font: 800 .8rem/1.2 var(--font-text); letter-spacing: .14em; text-transform: uppercase; padding: .8rem 1rem; background: var(--c); color: var(--k); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+  .fo-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; position: relative; }
+  .solo .fo-grid { grid-template-columns: 1fr; }
+  .fo-side { position: relative; }
+  .fo-a :global(.slot) { clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); }
+  .fo-b :global(.slot) { clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%); }
+  .solo .fo-a :global(.slot) { clip-path: none; aspect-ratio: 2/1 !important; }
+  .fo-name { position: absolute; left: .8rem; right: .8rem; bottom: .7rem; font: 900 clamp(1.2rem, 2.6vw, 1.9rem)/.9 var(--font-display); text-transform: uppercase; text-decoration: none; text-shadow: 0 2px 12px #000; }
+  .fo-b .fo-name { text-align: right; }
+  .fo-vs { align-self: center; font: 900 clamp(1.6rem, 3vw, 2.4rem)/1 var(--font-display); color: var(--c); padding-inline: .2rem; z-index: 2; margin-inline: -1.2rem; text-shadow: 0 0 18px #000; }
+  .fo-note { margin: 0; padding: .8rem 1rem; font-size: .88rem; color: var(--muted); border-top: 1px solid #222; }
+</style>

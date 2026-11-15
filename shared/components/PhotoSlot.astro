@@ -1,0 +1,22 @@
+---
+// Hueco para foto. Si hay "src" muestra la foto; si no, una trama de semitono con el texto de lo que falta.
+const { src, alt = '', label = 'Foto pendiente', tone = '#222', ink = '#fff', ratio = '4/5', initials, class: cls = '' } = Astro.props;
+---
+<figure class={`slot ${cls}`} style={`--tone:${tone};--ink:${ink};aspect-ratio:${ratio}`}>
+  {src ? <img src={src} alt={alt} loading="lazy" /> : (
+    <div class="ph" aria-hidden="true">
+      {initials && <span class="ini">{initials}</span>}
+      <span class="lbl">{label}</span>
+    </div>
+  )}
+</figure>
+<style>
+  .slot { margin: 0; position: relative; overflow: hidden; background: var(--tone); width: 100%; }
+  .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph { position: absolute; inset: 0; display: grid; place-items: center;
+    background-image: radial-gradient(circle at center, color-mix(in srgb, var(--ink) 22%, transparent) 1.2px, transparent 1.6px);
+    background-size: 7px 7px; }
+  .ph::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 35%, transparent 20%, var(--tone) 78%); }
+  .ini { position: relative; z-index: 1; font: 800 clamp(3rem, 9vw, 6rem)/1 var(--font-display); color: var(--ink); opacity: .9; letter-spacing: -0.02em; }
+  .lbl { position: absolute; z-index: 1; bottom: .7rem; left: .7rem; font: 600 .62rem/1 var(--font-text); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); opacity: .6; }
+</style>

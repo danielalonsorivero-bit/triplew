@@ -1,0 +1,48 @@
+---
+// Cromo de luchador: delante retrato, detrás datos. Se gira al pasar el ratón, al enfocar o al tocar.
+import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
+import { divisions, initials, titleOf } from '../../../shared/lib.js';
+const { w, n } = Astro.props;
+const div = divisions[w.division];
+const champ = (w.titles || []).map(titleOf).filter(Boolean);
+---
+<a class="cromo" href={`/roster/${w.slug}/`} style={`--d:${div.color}`}>
+  <div class="c-inner">
+    <div class="c-face c-front">
+      <PhotoSlot initials={initials(w.name)} tone="#1b1b1b" ink={div.color} ratio="3/4" label="Retrato pendiente" />
+      {champ.length > 0 && <span class="c-belt">Campeón · {champ.map((t) => t.short).join(' / ')}</span>}
+      <div class="c-name">
+        {n && <span class="c-num">#{String(n).padStart(2, '0')}</span>}
+        <span class="c-n">{w.name}</span>
+        <span class="c-div">{div.name}</span>
+      </div>
+    </div>
+    <div class="c-face c-back">
+      <span class="c-emoji" aria-hidden="true">{w.emoji}</span>
+      <span class="c-n">{w.name}</span>
+      {w.nickname && <span class="c-nick">«{w.nickname}»</span>}
+      {w.team && <span class="c-meta">Equipo: {w.team}</span>}
+      {w.notes && <span class="c-meta">{w.notes}</span>}
+      <span class="c-more">Ver ficha →</span>
+    </div>
+  </div>
+</a>
+<style>
+  .cromo { display: block; perspective: 1200px; text-decoration: none; }
+  .c-inner { position: relative; aspect-ratio: 3/4; transition: transform .6s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+  .cromo:hover .c-inner, .cromo:focus-visible .c-inner { transform: rotateY(180deg); }
+  .c-face { position: absolute; inset: 0; backface-visibility: hidden; border: 1px solid color-mix(in srgb, var(--d) 35%, #333); overflow: hidden; background: #151515; }
+  .c-front :global(.slot) { height: 100%; }
+  .c-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.5rem .8rem .8rem; background: linear-gradient(transparent, rgba(0,0,0,.92)); display: grid; }
+  .c-num { font: 800 .8rem/1 var(--font-display); color: var(--d); letter-spacing: .1em; }
+  .c-n { font: 900 clamp(1.4rem, 2.4vw, 2rem)/.9 var(--font-display); text-transform: uppercase; }
+  .c-div { font: 700 .6rem/1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; color: var(--d); margin-top: .35rem; }
+  .c-belt { position: absolute; top: .6rem; left: .6rem; font: 800 .7rem/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; background: #E8C547; color: #1a1400; padding: .35rem .5rem; }
+  .c-back { transform: rotateY(180deg); padding: 1.1rem; display: flex; flex-direction: column; gap: .6rem; justify-content: center; text-align: center; align-items: center;
+    background: var(--d); color: #0b0b0b; background-image: radial-gradient(circle, rgba(0,0,0,.12) 1px, transparent 1.5px); background-size: 6px 6px; }
+  .c-emoji { font-size: 2.6rem; line-height: 1; }
+  .c-nick { font: 800 1.15rem/1 var(--font-display); text-transform: uppercase; }
+  .c-meta { font-size: .8rem; line-height: 1.35; }
+  .c-more { font: 800 .85rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .1em; margin-top: .4rem; border-bottom: 2px solid; }
+  @media (hover: none) { .cromo:hover .c-inner { transform: none; } }
+</style>

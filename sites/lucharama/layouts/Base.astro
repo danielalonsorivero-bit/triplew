@@ -1,0 +1,49 @@
+---
+import '../../../shared/styles/base.css';
+import '../styles/lucharama.css';
+import { urls } from '../../../shared/lib.js';
+const { title, description = 'Lucharama, la escuela de lucha libre profesional de la Triple W en Madrid. Primera clase gratis.' } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title ? `${title} · Lucharama` : 'Lucharama · La casa del wrestling'}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#E2231A" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <div class="proto-bar"><b>Prototipo</b> · Lo marcado como <b>provisional</b> está pendiente de confirmar por Lucharama.</div>
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="/" aria-label="Lucharama, inicio"><span class="brand-w">Lucharama</span><span class="brand-sub">La casa del wrestling · desde 2014</span></a>
+      <nav class="nav">
+        <a href="/#niveles">Clases</a><a href="/#horarios">Horarios</a><a href="/#tarifas">Tarifas</a><a href="/#eventos">Seminarios</a><a href="/#faq">Dudas</a>
+        <a class="btn" href="/#prueba">Clase gratis</a>
+      </nav>
+    </div>
+  </header>
+  <main><slot /></main>
+  <footer class="site-foot">
+    <div class="wrap foot-in">
+      <div>
+        <p class="foot-big">Lucharama</p>
+        <p class="muted">Escuela oficial de la Triple W · WhiteWolf Wrestling.<br />C/ Gaviota 40, 28025 Madrid.</p>
+      </div>
+      <div class="foot-links">
+        <a href="https://www.instagram.com/lucharamabytriplew/">Instagram</a>
+        <a href="mailto:info@triplew.es">info@triplew.es</a>
+        <a href={urls.triplew}>Shows de la Triple W ↗</a>
+      </div>
+      <div class="foot-links">
+        <a href="/#niveles">Clases</a><a href="/#horarios">Horarios</a><a href="/#tarifas">Tarifas</a>
+        <a href="/legal/">Aviso legal y privacidad</a>
+      </div>
+    </div>
+    <div class="wrap foot-credit muted">Fotografía: @wrestlingphotoshow</div>
+  </footer>
+</body>
+</html>

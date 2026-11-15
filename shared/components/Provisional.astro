@@ -1,0 +1,13 @@
+---
+// Etiqueta visible para cualquier dato inventado o sin confirmar.
+const { label = 'Provisional', title = 'Dato pendiente de confirmar por la Triple W' } = Astro.props;
+---
+<span class="provisional" title={title}>{label}</span>
+<style>
+  .provisional {
+    display: inline-block; vertical-align: middle;
+    font: 700 0.62rem/1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.32em 0.55em; border: 1px dashed currentColor; border-radius: 3px;
+    color: #FFB020; background: rgba(255, 176, 32, 0.08); white-space: nowrap;
+  }
+</style>

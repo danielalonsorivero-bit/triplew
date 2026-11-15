@@ -1,0 +1,14 @@
+// Una sola base de código, dos webs.
+// SITE_ID decide cuál se construye: "triplew" (por defecto) o "lucharama".
+import { defineConfig } from 'astro/config';
+
+const SITE_ID = process.env.SITE_ID === 'lucharama' ? 'lucharama' : 'triplew';
+
+export default defineConfig({
+  srcDir: `./sites/${SITE_ID}`,
+  publicDir: `./public/${SITE_ID}`,
+  // En Vercel cada proyecto construye una sola web en dist/. En local, cada web va a su carpeta.
+  outDir: process.env.VERCEL ? './dist' : `./dist/${SITE_ID}`,
+  site: SITE_ID === 'lucharama' ? 'https://www.lucharama.com' : 'https://www.triplew.es',
+  build: { format: 'directory' },
+});
