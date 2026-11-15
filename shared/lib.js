@@ -35,8 +35,10 @@ export const initials = (name) => name.replace(/[^\p{L} ]/gu, '').split(' ').fil
 export const ticketLabel = (show) =>
   show.ticket?.type === 'venta' ? 'Compra tu entrada' : show.ticket?.type === 'inversa' ? 'Entrada inversa' : null;
 
-// Direcciones de cada web. Cambiar aquí cuando haya dominios definitivos.
+// Direcciones de cada web, usadas en los enlaces de una a otra.
+// Ahora apuntan al prototipo en Vercel. Al publicar en los servidores de la asociación,
+// cambiarlas por https://www.triplew.es y https://www.lucharama.com.
 export const urls = {
-  triplew: process.env.PUBLIC_TRIPLEW_URL || 'https://www.triplew.es',
-  lucharama: process.env.PUBLIC_LUCHARAMA_URL || 'https://www.lucharama.com',
+  triplew: process.env.PUBLIC_TRIPLEW_URL || 'https://triplew-prototipo.vercel.app',
+  lucharama: process.env.PUBLIC_LUCHARAMA_URL || 'https://lucharama-prototipo.vercel.app',
 };
