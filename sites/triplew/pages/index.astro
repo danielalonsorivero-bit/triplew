@@ -88,7 +88,6 @@ const champOf = (t) => t.holder && wrestler(t.holder);
   <section class="section wrap">
     <div class="sec-head lit"><h2 class="h-l">Roster<span class="sub">{roster.length} luchadores, equipos y staff</span></h2><a href="/roster/">Ver todos</a></div>
     <div class="cromos">{featured.map((w, i) => <Cromo w={w} n={i + 1} />)}</div>
-    <p class="hint">Pasa el ratón o toca cada cromo para darle la vuelta.</p>
   </section>
 
   <!-- GALERÍA: cada foto se revela con un fogonazo de flash al aparecer -->

@@ -1,46 +1,70 @@
 ---
-// Cromo de luchador: delante retrato, detrás datos. Se gira al pasar el ratón, al enfocar o al tocar.
+// Cromo de luchador "bajo el foco": en penumbra hasta que pasas el ratón (o lo enfocas);
+// entonces se enciende un foco cenital, la foto gana luz y sube un panel con sus datos.
+// Datos opcionales de ficha técnica (se muestran solo si existen en roster.json):
+//   hometown (procedencia), debut, finisher (movimiento final).
 import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
 import { divisions, initials, titleOf } from '../../../shared/lib.js';
 const { w, n } = Astro.props;
 const div = divisions[w.division];
 const champ = (w.titles || []).map(titleOf).filter(Boolean);
+const facts = [
+  w.hometown && ['De', w.hometown],
+  w.debut && ['Debut', w.debut],
+  w.finisher && ['Remate', w.finisher],
+].filter(Boolean);
 ---
 <a class="cromo" href={`/roster/${w.slug}/`} style={`--d:${div.color}`}>
-  <div class="c-inner">
-    <div class="c-face c-front">
-      <PhotoSlot src={w.photo} pos={w.photoPos} alt={w.name} initials={initials(w.name)} tone="#1b1b1b" ink={div.color} ratio="3/4" label="" />
-      {champ.length > 0 && <span class="c-belt">Campeón · {champ.map((t) => t.short).join(' / ')}</span>}
-      <div class="c-name">
-        {n && <span class="c-num">#{String(n).padStart(2, '0')}</span>}
-        <span class="c-n">{w.name}</span>
-        <span class="c-div">{div.name}</span>
-      </div>
-    </div>
-    <div class="c-face c-back">
-      <span class="c-n">{w.name}</span>
-      {w.nickname && <span class="c-nick">«{w.nickname}»</span>}
-      {w.team && <span class="c-meta">Equipo: {w.team}</span>}
-      {w.notes && <span class="c-meta">{w.notes}</span>}
-      <span class="c-more">Ver ficha →</span>
-    </div>
+  <div class="c-ph">
+    <PhotoSlot src={w.photo} pos={w.photoPos} alt="" initials={initials(w.name)} tone="#121214" ink={div.color} ratio="3/4" label="" />
   </div>
+  <span class="c-spot" aria-hidden="true"></span>
+  {champ.length > 0 && <span class="c-belt">Campeón {champ.map((t) => t.short).join(' / ')}</span>}
+  <span class="c-body">
+    {n && <span class="c-num">{String(n).padStart(2, '0')}</span>}
+    <span class="c-n">{w.name}</span>
+    <span class="c-more">
+      {w.nickname && <span class="c-nick">«{w.nickname}»</span>}
+      <span class="c-div">{div.name}</span>
+      {facts.length > 0 && <span class="c-facts">{facts.map(([k, v]) => <span><b>{k}</b> {v}</span>)}</span>}
+      <span class="c-go">Ver ficha →</span>
+    </span>
+  </span>
 </a>
+
 <style>
-  .cromo { display: block; perspective: 1200px; text-decoration: none; }
-  .c-inner { position: relative; aspect-ratio: 3/4; transition: transform .6s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
-  .cromo:hover .c-inner, .cromo:focus-visible .c-inner { transform: rotateY(180deg); }
-  .c-face { position: absolute; inset: 0; backface-visibility: hidden; border: 1px solid color-mix(in srgb, var(--d) 35%, #333); overflow: hidden; background: #151515; }
-  .c-front :global(.slot) { height: 100%; }
-  .c-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.5rem .8rem .8rem; background: linear-gradient(transparent, rgba(0,0,0,.92)); display: grid; }
-  .c-num { font: 800 .8rem/1 var(--font-display); color: var(--d); letter-spacing: .1em; }
-  .c-n { font: 900 clamp(1.4rem, 2.4vw, 2rem)/.9 var(--font-display); text-transform: uppercase; }
-  .c-div { font: 700 .78rem/1 var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--d); margin-top: .35rem; }
-  .c-belt { position: absolute; top: .6rem; left: .6rem; font: 800 .82rem/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; background: #E8C547; color: #1a1400; padding: .35rem .5rem; }
-  .c-back { transform: rotateY(180deg); padding: 1.1rem; display: flex; flex-direction: column; gap: .6rem; justify-content: center; text-align: center; align-items: center;
-    background: var(--d); color: #0b0b0b; background-image: radial-gradient(circle, rgba(0,0,0,.12) 1px, transparent 1.5px); background-size: 6px 6px; }
-  .c-nick { font: 800 1.15rem/1 var(--font-display); text-transform: uppercase; }
-  .c-meta { font-size: .9rem; line-height: 1.35; }
-  .c-more { font: 800 .85rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .1em; margin-top: .4rem; border-bottom: 2px solid; }
-  @media (hover: none) { .cromo:hover .c-inner { transform: none; } }
+  .cromo { position: relative; display: block; aspect-ratio: 3/4; overflow: hidden; text-decoration: none; background: #0c0c0e; border: 1px solid #1d1d20; isolation: isolate; }
+  .c-ph { position: absolute; inset: 0; }
+  .c-ph :global(.slot) { height: 100%; }
+  .c-ph :global(img) { filter: grayscale(1) contrast(1.15) brightness(.55); transform: scale(1.02); transition: filter .6s cubic-bezier(.16, 1, .3, 1), transform 1s cubic-bezier(.16, 1, .3, 1); }
+  .cromo::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(5,5,6,.96) 0%, rgba(5,5,6,.55) 38%, rgba(5,5,6,0) 62%); pointer-events: none; }
+  /* Foco cenital: luz blanca con un toque del color de la división */
+  .c-spot { position: absolute; z-index: 1; inset: -10% -20% 30%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .35s;
+    background: radial-gradient(ellipse 42% 75% at 50% 0%, color-mix(in srgb, var(--d) 30%, #fff) 0%, color-mix(in srgb, var(--d) 18%, transparent) 45%, transparent 75%); filter: blur(6px); }
+  .c-belt { position: absolute; z-index: 2; top: .6rem; left: .6rem; font: 800 .82rem/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; background: #E8C547; color: #1a1400; padding: .35rem .5rem; }
+  .c-body { position: absolute; z-index: 2; inset: auto 0 0 0; padding: .9rem; display: grid; }
+  .c-num { font: 800 .9rem/1 var(--font-display); color: var(--d); letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .c-n { font: 900 clamp(1.5rem, 2.4vw, 2.1rem)/.88 var(--font-display); text-transform: uppercase; color: var(--fg); margin-top: .2rem; transform-origin: 0 100%; }
+  .c-more { display: grid; gap: .3rem; max-height: 0; opacity: 0; overflow: hidden; transition: max-height .5s cubic-bezier(.16, 1, .3, 1), opacity .3s, margin .5s; }
+  .c-nick { font: 700 1.05rem/1.15 var(--font-display); text-transform: uppercase; color: #e9e3d6; }
+  .c-div { font: 700 .82rem/1 var(--font-text); color: var(--d); }
+  .c-facts { display: grid; gap: .15rem; font-size: .85rem; color: #cfc8bb; }
+  .c-facts b { font-weight: 700; color: #fff; }
+  .c-go { font: 800 .9rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; color: var(--fg); margin-top: .3rem; }
+
+  /* Encendido */
+  .cromo:hover .c-spot, .cromo:focus-visible .c-spot { opacity: 1; animation: spot-on .5s steps(1) both; }
+  @keyframes spot-on { 0% { opacity: 1; } 15% { opacity: .2; } 30%, 100% { opacity: 1; } }
+  .cromo:hover :global(img), .cromo:focus-visible :global(img) { filter: grayscale(1) contrast(1.2) brightness(1.02); transform: scale(1.07); }
+  .cromo:hover .c-n, .cromo:focus-visible .c-n { animation: c-slam .55s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes c-slam { from { transform: scale(1.25); filter: blur(8px); opacity: .3; } to { transform: none; filter: none; opacity: 1; } }
+  .cromo:hover .c-more, .cromo:focus-visible .c-more { max-height: 12rem; opacity: 1; margin-top: .5rem; }
+
+  /* En pantallas táctiles no hay "pasar el ratón": la tarjeta ya sale iluminada y con el apodo */
+  @media (hover: none) {
+    .c-spot { opacity: .6; }
+    .c-ph :global(img) { filter: grayscale(1) contrast(1.18) brightness(.9); }
+    .c-more { max-height: 12rem; opacity: 1; margin-top: .4rem; }
+    .c-facts, .c-go { display: none; }
+  }
 </style>
