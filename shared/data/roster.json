@@ -82,9 +82,13 @@
       "slug": "super-franki",
       "name": "Super Franki",
       "emoji": "🕹️",
-      "division": "absoluto",
+      "division": "levelone",
       "nickname": "Leyenda",
-      "notes": "15 años en la Triple W."
+      "notes": "15 años en la Triple W.",
+      "team": "Super Franki y Orión",
+      "provisional": [
+        "team"
+      ]
     },
     {
       "slug": "la-mujer-dominante",
@@ -234,7 +238,11 @@
       "slug": "orion",
       "name": "Orión",
       "emoji": "👾",
-      "division": "levelone"
+      "division": "levelone",
+      "team": "Super Franki y Orión",
+      "provisional": [
+        "team"
+      ]
     },
     {
       "slug": "erik-de-la-cruz",
