@@ -44,7 +44,10 @@
       "photo": "/luchadores/rizo.jpg",
       "photoPos": "center 25%",
       "photos": [
-        "/luchadores/rizo-cinturon.jpg"
+        "/luchadores/rizo-cinturon.jpg",
+        "/fotos/por-carpeta/rizzo/_an_0413.jpg",
+        "/fotos/por-carpeta/rizzo/_an_0517.jpg",
+        "/fotos/por-carpeta/rizzo/_an_0522.jpg"
       ]
     },
     {
@@ -55,7 +58,13 @@
       "nickname": "El Rey de los Canallas",
       "notes": "Ganador de la Total Rumble 2026.",
       "photo": "/luchadores/trevor-de-vries.jpg",
-      "photoPos": "center 25%"
+      "photoPos": "center 25%",
+      "photos": [
+        "/fotos/por-carpeta/trevor-de-vries/_an_0039.jpg",
+        "/fotos/por-carpeta/trevor-de-vries/_an_0070.jpg",
+        "/fotos/por-carpeta/trevor-de-vries/_an_0093.jpg",
+        "/fotos/por-carpeta/trevor-de-vries/_an_0713.jpg"
+      ]
     },
     {
       "slug": "jon-valow",
@@ -80,7 +89,12 @@
       ],
       "photo": "/luchadores/pimp-ross.jpg",
       "photoPos": "center 15%",
-      "notes": "Campeón Absoluto con el reinado más largo de la historia."
+      "notes": "Campeón Absoluto con el reinado más largo de la historia.",
+      "photos": [
+        "/fotos/por-carpeta/pimp-ross/_an_0261.jpg",
+        "/fotos/por-carpeta/pimp-ross/_an_0399.jpg",
+        "/fotos/por-carpeta/pimp-ross/_an_0400.jpg"
+      ]
     },
     {
       "slug": "super-franki",
@@ -89,7 +103,15 @@
       "division": "levelone",
       "nickname": "Leyenda",
       "notes": "15 años en la Triple W.",
-      "team": "Súper Combo Bros"
+      "team": "Súper Combo Bros",
+      "photo": "/fotos/por-carpeta/superfranki/nik_5803_realphoto-v3_1602x2400.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/superfranki/_an_0459.jpg",
+        "/fotos/por-carpeta/superfranki/nik_5841.jpg",
+        "/fotos/por-carpeta/superfranki/nik_5884.jpg",
+        "/fotos/por-carpeta/superfranki/nik_6033.jpg"
+      ]
     },
     {
       "slug": "la-mujer-dominante",
@@ -102,11 +124,21 @@
     },
     {
       "slug": "alexa",
-      "name": "Alexa",
+      "name": "Alexa Jade",
       "emoji": "🖤",
       "division": "absoluto",
       "provisional": [
-        "emoji"
+        "emoji",
+        "name"
+      ],
+      "photo": "/fotos/por-carpeta/alexa-jade/nik_6457.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/alexa-jade/nik_6468.jpg",
+        "/fotos/por-carpeta/alexa-jade/nik_6519.jpg",
+        "/fotos/por-carpeta/alexa-jade/nik_6526.jpg",
+        "/fotos/por-carpeta/alexa-jade/nik_6553.jpg",
+        "/fotos/por-carpeta/alexa-jade/nik_6558.jpg"
       ]
     },
     {
@@ -118,7 +150,15 @@
         "emoji"
       ],
       "photo": "/luchadores/shallow.jpg",
-      "photoPos": "45% 15%"
+      "photoPos": "45% 15%",
+      "photos": [
+        "/fotos/por-carpeta/shallow/_an_0058.jpg",
+        "/fotos/por-carpeta/shallow/_an_0059.jpg",
+        "/fotos/por-carpeta/shallow/_an_0092.jpg",
+        "/fotos/por-carpeta/shallow/_an_0111.jpg",
+        "/fotos/por-carpeta/shallow/_an_0175.jpg",
+        "/fotos/por-carpeta/shallow/_an_0178.jpg"
+      ]
     },
     {
       "slug": "pad-campos",
@@ -146,7 +186,10 @@
       "slug": "pedro-guzman",
       "name": "Pedro Guzmán",
       "emoji": "🔪",
-      "division": "absoluto"
+      "division": "absoluto",
+      "photo": "/fotos/por-carpeta/pedro-guzman/_an_0765.jpg",
+      "photoPos": "center 20%",
+      "photos": []
     },
     {
       "slug": "marco-morales",
@@ -165,6 +208,12 @@
       "provisional": [
         "emoji",
         "division"
+      ],
+      "photos": [
+        "/fotos/por-carpeta/hades/_an_0293.jpg",
+        "/fotos/por-carpeta/hades/_an_0363.jpg",
+        "/fotos/por-carpeta/hades/_an_1170.jpg",
+        "/fotos/por-carpeta/hades/_an_1315.jpg"
       ]
     },
     {
@@ -179,7 +228,16 @@
       "notes": "Ganador del torneo Young Wolves 2026.",
       "instagram": "its_joroo5",
       "photo": "/luchadores/joro.jpg",
-      "photoPos": "center 20%"
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/joro/nik_6792.jpg",
+        "/fotos/por-carpeta/joro/nik_6795.jpg",
+        "/fotos/por-carpeta/joro/nik_6934.jpg",
+        "/fotos/por-carpeta/joro/nik_6957.jpg",
+        "/fotos/por-carpeta/joro/nik_7021.jpg",
+        "/fotos/por-carpeta/joro/nik_7046.jpg",
+        "/fotos/por-carpeta/joro/nik_7175.jpg"
+      ]
     },
     {
       "slug": "newt-nova",
@@ -191,7 +249,12 @@
       "photo": "/luchadores/newt-nova.jpg",
       "photoPos": "center 20%",
       "photos": [
-        "/fotos/f44.jpg"
+        "/fotos/f44.jpg",
+        "/fotos/por-carpeta/newt-nova/nik_6123.jpg",
+        "/fotos/por-carpeta/newt-nova/nik_6129.jpg",
+        "/fotos/por-carpeta/newt-nova/nik_6239.jpg",
+        "/fotos/por-carpeta/newt-nova/nik_6246.jpg",
+        "/fotos/por-carpeta/newt-nova/nik_6258.jpg"
       ]
     },
     {
@@ -204,7 +267,11 @@
       "photos": [
         "/fotos/f07.jpg",
         "/fotos/f11.jpg",
-        "/fotos/f15.jpg"
+        "/fotos/f15.jpg",
+        "/fotos/por-carpeta/ochoa/_an_0783.jpg",
+        "/fotos/por-carpeta/ochoa/_an_0883.jpg",
+        "/fotos/por-carpeta/ochoa/_an_1032.jpg",
+        "/fotos/por-carpeta/ochoa/nik_5751.jpg"
       ],
       "photo": "/luchadores/ochoa.jpg",
       "photoPos": "35% 30%"
@@ -215,7 +282,15 @@
       "emoji": "☢️",
       "division": "levelone",
       "nickname": "El Mercenario",
-      "instagram": "reaper_merc20"
+      "instagram": "reaper_merc20",
+      "photo": "/fotos/por-carpeta/reaper/nik_6114.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/reaper/nik_6174.jpg",
+        "/fotos/por-carpeta/reaper/nik_6233.jpg",
+        "/fotos/por-carpeta/reaper/nik_6275.jpg",
+        "/fotos/por-carpeta/reaper/nik_6285.jpg"
+      ]
     },
     {
       "slug": "varo-diaz",
@@ -225,7 +300,15 @@
       "notes": "Primer clasificado para la escalera de Top 1.",
       "instagram": "soyvaroydiaz",
       "photo": "/luchadores/varo-diaz.jpg",
-      "photoPos": "center 25%"
+      "photoPos": "center 25%",
+      "photos": [
+        "/fotos/por-carpeta/varo-diaz/nik_6805.jpg",
+        "/fotos/por-carpeta/varo-diaz/nik_6892.jpg",
+        "/fotos/por-carpeta/varo-diaz/nik_7058.jpg",
+        "/fotos/por-carpeta/varo-diaz/nik_7089.jpg",
+        "/fotos/por-carpeta/varo-diaz/nik_7123.jpg",
+        "/fotos/por-carpeta/varo-diaz/nik_7139.jpg"
+      ]
     },
     {
       "slug": "rocha",
@@ -240,7 +323,13 @@
       "name": "Orión",
       "emoji": "👾",
       "division": "levelone",
-      "team": "Súper Combo Bros"
+      "team": "Súper Combo Bros",
+      "photo": "/fotos/por-carpeta/orion/nik_5842.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/orion/nik_5819.jpg",
+        "/fotos/por-carpeta/orion/nik_5975.jpg"
+      ]
     },
     {
       "slug": "erik-de-la-cruz",
@@ -347,14 +436,25 @@
         "super-franki",
         "orion"
       ],
-      "notes": "Pareja de Level One formada por Super Franki y Orión."
+      "notes": "Pareja de Level One formada por Super Franki y Orión.",
+      "photo": "/fotos/por-carpeta/supercombo-bros/nik_5816.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/supercombo-bros/nik_5890.jpg"
+      ]
     },
     {
       "slug": "hector-del-bar",
       "name": "Héctor del Bar",
       "emoji": "🎤",
       "division": "staff",
-      "nickname": "Presentador"
+      "nickname": "Presentador",
+      "photo": "/fotos/por-carpeta/hector-del-bar/_an_0184.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/hector-del-bar/_an_0042.jpg",
+        "/fotos/por-carpeta/hector-del-bar/_an_0187.jpg"
+      ]
     },
     {
       "slug": "coajim-echevarria",
@@ -364,7 +464,10 @@
       "nickname": "Dirección deportiva",
       "provisional": [
         "nickname"
-      ]
+      ],
+      "photo": "/fotos/por-carpeta/coajim-echevarria/_an_0403.jpg",
+      "photoPos": "center 20%",
+      "photos": []
     },
     {
       "slug": "doctor-amor",
@@ -372,6 +475,90 @@
       "emoji": "📋",
       "division": "staff",
       "nickname": "Terapeuta de parejas"
+    },
+    {
+      "slug": "aaron-smile",
+      "name": "Aaron Smile",
+      "division": "levelone",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/aaron-smile/nik_5548.jpg",
+      "photoPos": "center 20%",
+      "photos": []
+    },
+    {
+      "slug": "elvis-harrison",
+      "name": "Elvis Harrison",
+      "division": "absoluto",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/elvis-harrison/_an_0693.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/elvis-harrison/_an_1100.jpg",
+        "/fotos/por-carpeta/elvis-harrison/_an_1106.jpg"
+      ]
+    },
+    {
+      "slug": "guido",
+      "name": "Guido",
+      "division": "absoluto",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/guido/_an_0759.jpg",
+      "photoPos": "center 20%",
+      "photos": []
+    },
+    {
+      "slug": "jedu",
+      "name": "Jedu",
+      "division": "levelone",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/jedu/_an_0773.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/jedu/_an_0514.jpg",
+        "/fotos/por-carpeta/jedu/_an_0755.jpg",
+        "/fotos/por-carpeta/jedu/nik_6408.jpg",
+        "/fotos/por-carpeta/jedu/nik_6416.jpg",
+        "/fotos/por-carpeta/jedu/nik_6475.jpg",
+        "/fotos/por-carpeta/jedu/nik_6488.jpg",
+        "/fotos/por-carpeta/jedu/nik_6580.jpg"
+      ]
+    },
+    {
+      "slug": "kassius",
+      "name": "Kassius",
+      "division": "levelone",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/kassius/nik_6105.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/kassius/nik_5922.jpg",
+        "/fotos/por-carpeta/kassius/nik_6103.jpg"
+      ]
+    },
+    {
+      "slug": "macho-flaco-morales",
+      "name": "Macho Flaco Morales",
+      "division": "levelone",
+      "provisional": [
+        "division"
+      ],
+      "photo": "/fotos/por-carpeta/macho-flaco-morales/nik_5567.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/macho-flaco-morales/nik_5673.jpg",
+        "/fotos/por-carpeta/macho-flaco-morales/nik_5784.jpg",
+        "/fotos/por-carpeta/macho-flaco-morales/nik_6012.jpg"
+      ]
     }
   ]
 }
