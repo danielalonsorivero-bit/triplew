@@ -52,7 +52,9 @@
       "name": "Jon Valow",
       "emoji": "🐘",
       "division": "absoluto",
-      "nickname": "El Animal"
+      "nickname": "El Animal",
+      "photo": "/luchadores/jon-valow.jpg",
+      "photoPos": "65% 15%"
     },
     {
       "slug": "david-ross",
@@ -69,7 +71,9 @@
       "division": "absoluto",
       "provisional": [
         "emoji"
-      ]
+      ],
+      "photo": "/luchadores/pimp-ross.jpg",
+      "photoPos": "center 15%"
     },
     {
       "slug": "super-franki",
@@ -102,7 +106,9 @@
       "division": "absoluto",
       "provisional": [
         "emoji"
-      ]
+      ],
+      "photo": "/luchadores/shallow.jpg",
+      "photoPos": "45% 15%"
     },
     {
       "slug": "pad-campos",
