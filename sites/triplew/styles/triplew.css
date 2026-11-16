@@ -51,10 +51,17 @@ body { background-color: var(--bg); background-image: url("data:image/svg+xml,%3
 .foot-links { display: grid; gap: .55rem; align-content: start; }
 .foot-links a { text-decoration: none; font-weight: 500; }
 .foot-links a:hover { color: var(--accent); }
-.foot-credit { font-size: .8rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+.foot-credit { font-size: .9rem; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
 @media (max-width: 720px) { .foot-in { grid-template-columns: 1fr; } }
 
 /* Legibilidad mínima de las etiquetas "provisional" en Triple W */
 .provisional { font-size: .75rem !important; }
 p { text-wrap: pretty; }
 @media (max-width: 420px) { .brand-sub { display: none; } }
+
+.foot-credit a { color: var(--fg); font-weight: 600; text-decoration-color: var(--accent); text-underline-offset: .2em; }
+.foot-credit a:hover { color: var(--accent); }
+
+/* Marca de agua: logo del lobo sobre las fotos de las galerías públicas */
+.wm { position: relative; }
+.wm::after { content: ''; position: absolute; right: 4%; bottom: 4%; width: clamp(34px, 12%, 64px); aspect-ratio: 150/146; background: url(/logo/whitewolf-blanco.svg) center / contain no-repeat; opacity: .6; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); z-index: 2; }

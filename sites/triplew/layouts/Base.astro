@@ -2,6 +2,8 @@
 import '../../../shared/styles/base.css';
 import '../styles/triplew.css';
 import { nextShow, urls } from '../../../shared/lib.js';
+import pages from '../../../shared/data/paginas-triplew.json';
+const site = pages.sitio;
 const { title, description = 'Triple W · WhiteWolf Wrestling. Lucha libre en Madrid desde 2009.', accent = nextShow.color, accentInk = nextShow.ink, overlayHead = false } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
@@ -53,18 +55,15 @@ const nav = [
         <p class="muted">Lucha libre profesional en Madrid desde 2009.<br />Gimnasio Lucharama · C/ Gaviota 40, 28025 Madrid</p>
       </div>
       <div class="foot-links">
-        <a href="https://www.instagram.com/latriplew/">Instagram</a>
-        <a href="https://www.youtube.com/latriplew">YouTube</a>
-        <a href="https://twitter.com/la_triplew">X / Twitter</a>
-        <a href="https://www.facebook.com/LaTripleW">Facebook</a>
-        <a href="mailto:info@triplew.es">info@triplew.es</a>
+        {site.redes.map((r) => <a href={r.url}>{r.label}</a>)}
+        <a href={`mailto:${site.email}`}>{site.email}</a>
       </div>
       <div class="foot-links">
         <a href="/shows/">Shows</a><a href="/roster/">Roster</a><a href="/campeonatos/">Campeonatos</a><a href="/historia/">Historia</a>
         <a href="/legal/">Aviso legal y privacidad</a>
       </div>
     </div>
-    <div class="wrap foot-credit muted">Fotografía: @wrestlingphotoshow · Carteles de shows: @marco111morales</div>
+    <div class="wrap foot-credit muted">{site.creditos.map((c, k) => <>{k > 0 && ' · '}{c.label}: <a href={c.url}>{c.handle}</a></>)}</div>
   </footer>
 </body>
 </html>

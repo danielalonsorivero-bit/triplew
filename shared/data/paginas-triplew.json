@@ -11,12 +11,79 @@
   "historia": {
     "intro": "Miles de personas se han reunido al borde de nuestro ring para animar a sus luchadores favoritos. Y muchas, con el deseo de estar algún día sobre ese cuadrilátero.",
     "hitos": [
-      { "year": "2009", "title": "Nace la Triple W", "text": "WhiteWolf Wrestling empieza a organizar shows de lucha libre en Madrid.", "photo": "/fotos/f38.jpg" },
-      { "year": "2009+", "title": "La Tabacalera", "text": "Los primeros años de shows en la legendaria Tabacalera de Embajadores, y después en algunas de las salas más reconocidas de la ciudad.", "photo": "/fotos/f10.jpg", "provisional": "Fechas exactas por confirmar" },
-      { "year": "2011", "title": "Llega Super Franki", "text": "Debuta una de las leyendas de la promoción, que en 2026 celebra 15 años en la Triple W.", "photo": "/fotos/f20.jpg" },
-      { "year": "2014", "title": "Abre Lucharama", "text": "La Triple W abre su propia escuela en Carabanchel para formar a las siguientes generaciones.", "photo": "/fotos/f55.jpg" },
-      { "year": "¿?", "title": "De Lucharama a WWE", "text": "A-Kid, formado en Lucharama, firma con WWE.", "photo": "/fotos/f42.jpg", "provisional": "Año por confirmar" },
-      { "year": "2026", "title": "Temporada actual", "text": "Total Rumble, Young Wolves, Kilómetro Cero, Instinto Animal… y Top 1 en Sala Revi.", "photo": "/fotos/f73.jpg" }
+      {
+        "year": "2009",
+        "title": "Nace la Triple W",
+        "text": "WhiteWolf Wrestling empieza a organizar shows de lucha libre en Madrid.",
+        "photo": "/fotos/f38.jpg"
+      },
+      {
+        "year": "2009+",
+        "title": "La Tabacalera",
+        "text": "Los primeros años de shows en la legendaria Tabacalera de Embajadores, y después en algunas de las salas más reconocidas de la ciudad.",
+        "photo": "/fotos/f10.jpg",
+        "provisional": "Fechas exactas por confirmar"
+      },
+      {
+        "year": "2011",
+        "title": "Llega Super Franki",
+        "text": "Debuta una de las leyendas de la promoción, que en 2026 celebra 15 años en la Triple W.",
+        "photo": "/fotos/f20.jpg"
+      },
+      {
+        "year": "2014",
+        "title": "Abre Lucharama",
+        "text": "La Triple W abre su propia escuela en Carabanchel para formar a las siguientes generaciones.",
+        "photo": "/fotos/f55.jpg"
+      },
+      {
+        "year": "2019",
+        "title": "De Lucharama a WWE",
+        "text": "A-Kid, formado en Lucharama, firma con WWE.",
+        "photo": "/fotos/f42.jpg",
+        "provisional": "Año por confirmar"
+      },
+      {
+        "year": "2026",
+        "title": "Temporada actual",
+        "text": "Total Rumble, Young Wolves, Kilómetro Cero, Instinto Animal… y Top 1 en Sala Revi.",
+        "photo": "/fotos/f73.jpg"
+      }
+    ]
+  },
+  "sitio": {
+    "_nota": "Redes de la Triple W y créditos del pie de página.",
+    "redes": [
+      {
+        "label": "Instagram",
+        "url": "https://www.instagram.com/latriplew/"
+      },
+      {
+        "label": "YouTube",
+        "url": "https://www.youtube.com/@latriplew"
+      },
+      {
+        "label": "X / Twitter",
+        "url": "https://twitter.com/la_triplew"
+      },
+      {
+        "label": "Facebook",
+        "url": "https://www.facebook.com/LaTripleW"
+      }
+    ],
+    "email": "info@triplew.es",
+    "youtube": "https://www.youtube.com/@latriplew",
+    "creditos": [
+      {
+        "label": "Fotografía",
+        "handle": "@wrestlingphotoshow",
+        "url": "https://www.instagram.com/wrestlingphotoshow/"
+      },
+      {
+        "label": "Carteles de shows",
+        "handle": "@marco111morales",
+        "url": "https://www.instagram.com/marco111morales/"
+      }
     ]
   }
 }

@@ -2,10 +2,11 @@
 // Ficha de luchador: su propia "entrada" (retrato bajo los focos y nombre que cae letra a letra),
 // ficha técnica en marcador LED para promotoras, fotos en acción y sus shows.
 // Todo sale de roster.json, titles.json y shows.json. Campos opcionales que se muestran si existen:
-// bio, hometown, debut, finisher, instagram, video, photos.
+// bio, hometown, debut, finisher, social (redes), video, photos (galería, máximo 10).
 import Base from '../../layouts/Base.astro';
 import Provisional from '../../../../shared/components/Provisional.astro';
-import { roster, divisions, titleOf, allShows, dateLong, venues } from '../../../../shared/lib.js';
+import Galeria from '../../components/Galeria.astro';
+import { roster, divisions, titleOf, allShows, dateLong, venues, socialLinks } from '../../../../shared/lib.js';
 export function getStaticPaths() { return roster.map((w) => ({ params: { slug: w.slug }, props: { w } })); }
 const { w } = Astro.props;
 const div = divisions[w.division];
@@ -24,6 +25,7 @@ const facts = [
   ['Movimiento final', w.finisher],
 ].filter(Boolean);
 const gallery = (w.photos || []).filter((p) => p !== w.photo);
+const social = socialLinks(w);
 const same = roster.filter((x) => x.division === w.division);
 const i = same.indexOf(w);
 const prev = same[(i - 1 + same.length) % same.length];
@@ -44,6 +46,7 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
       </h1>
       {w.nickname && <p class="pro-nick">«{w.nickname}» {prov.includes('nickname') && <Provisional label="Por confirmar" />}</p>}
       <p class="pro-div">{div.name}</p>
+      {social.length > 0 && <ul class="pro-social" aria-label={`Redes de ${w.name}`}>{social.map((x) => <li><a href={x.url} rel="noopener">{x.label} ↗</a></li>)}</ul>}
     </div>
   </section>
 
@@ -54,7 +57,6 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
         {facts.map(([k, v, p]) => (
           <div><dt>{k}</dt><dd class:list={{ empty: !v }}>{v || 'Por confirmar'} {p && <Provisional label="Por confirmar" />}</dd></div>
         ))}
-        {w.instagram && <div><dt>Instagram</dt><dd><a href={`https://www.instagram.com/${w.instagram}/`}>@{w.instagram}</a></dd></div>}
       </dl>
     </div>
     <div class="tape-side">
@@ -70,8 +72,8 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
 
   {gallery.length > 0 && (
     <section class="wrap action">
-      <h2 class="h-m">En acción</h2>
-      <div class="strip">{gallery.map((src) => <figure><img src={src} alt={`${w.name} en un show de la Triple W`} loading="lazy" /></figure>)}</div>
+      <h2 class="h-m">Galería</h2>
+      <Galeria photos={gallery} alt={`${w.name} en un show de la Triple W`} max={10} />
     </section>
   )}
 
@@ -120,6 +122,9 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
   @keyframes slam { 0% { opacity: 0; transform: translateY(-.12em) scale(2.4); filter: blur(18px); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; filter: none; } }
   .pro-nick { font: 800 clamp(1.4rem, 2.6vw, 2.2rem)/1.05 var(--font-display); text-transform: uppercase; color: #e9e3d6; margin: 1.2rem 0 .4rem; }
   .pro-div { font: 700 1rem/1 var(--font-text); color: var(--d); margin: 0; }
+  .pro-social { list-style: none; padding: 0; margin: 1.4rem 0 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .pro-social a { display: inline-block; padding: .55rem .8rem; border: 1px solid color-mix(in srgb, var(--d) 50%, #333); background: rgba(6,6,7,.6); font: 800 .95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .04em; color: var(--fg); text-decoration: none; }
+  .pro-social a:hover, .pro-social a:focus-visible { border-color: var(--d); color: var(--d); }
   @media (max-width: 720px) {
     .pro { min-height: 82svh; }
     .pro-stage img { inset: 0; width: 100%; }

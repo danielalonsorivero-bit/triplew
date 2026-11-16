@@ -78,3 +78,26 @@ export function heroSlides(show) {
   }
   return slides;
 }
+
+// Redes sociales de un luchador. En roster.json, campo opcional "social":
+// { "instagram": "usuario", "x": "usuario", "facebook": "usuario o enlace", "tiktok": "usuario", "youtube": "enlace", "web": "enlace" }
+// Vale poner el nombre de usuario (con o sin @) o el enlace completo. Solo se muestran las que existan.
+const socialBase = {
+  instagram: ['Instagram', 'https://www.instagram.com/'],
+  x: ['X', 'https://x.com/'],
+  facebook: ['Facebook', 'https://www.facebook.com/'],
+  tiktok: ['TikTok', 'https://www.tiktok.com/@'],
+  youtube: ['YouTube', 'https://www.youtube.com/@'],
+  twitch: ['Twitch', 'https://www.twitch.tv/'],
+  web: ['Web', ''],
+};
+export function socialLinks(w) {
+  const s = { ...(w.instagram ? { instagram: w.instagram } : {}), ...(w.social || {}) };
+  return Object.entries(socialBase)
+    .filter(([k]) => s[k])
+    .map(([k, [label, base]]) => {
+      const v = String(s[k]).trim();
+      const url = /^https?:\/\//.test(v) ? v : base + v.replace(/^@/, '');
+      return { label, url, handle: /^https?:\/\//.test(v) ? null : '@' + v.replace(/^@/, '') };
+    });
+}

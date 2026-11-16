@@ -6,6 +6,7 @@ import FaceOff from '../components/FaceOff.astro';
 import Entrada from '../components/Entrada.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
 import home from '../../../shared/data/portada-triplew.json';
+import pages from '../../../shared/data/paginas-triplew.json';
 import { nextShow, upcomingShows, pastShows, venues, dateLong, ticketLabel, titles, wrestler, roster, urls } from '../../../shared/lib.js';
 
 const s = nextShow;
@@ -95,7 +96,7 @@ const champOf = (t) => t.holder && wrestler(t.holder);
     <div class="sec-head lit"><h2 class="h-l">Galería</h2><a href={home.gallery.link}>{home.gallery.linkLabel} ↗</a></div>
     <div class="mosaic">
       {home.gallery.photos.map((f) => (
-        <figure class:list={['m', { w: f.shape === 'wide', t: f.shape === 'tall' }]}><img src={f.src} alt={f.alt} loading="lazy" /></figure>
+        <figure class:list={['m', 'wm', { w: f.shape === 'wide', t: f.shape === 'tall' }]}><img src={f.src} alt={f.alt} loading="lazy" /></figure>
       ))}
     </div>
   </section>
@@ -113,6 +114,18 @@ const champOf = (t) => t.holder && wrestler(t.holder);
       </div>
     </section>
   )}
+
+  <!-- YOUTUBE: el canal, como una pantalla de televisión encendida -->
+  <section class="section wrap">
+    <a class="tv" href={pages.sitio.youtube} rel="noopener">
+      <span class="tv-play" aria-hidden="true"></span>
+      <span class="tv-txt">
+        <span class="tv-h">{home.youtube.lines.map((l, k) => <span class:list={{ o: k > 0 }}>{l}</span>)}</span>
+        <span class="tv-p">{home.youtube.text}</span>
+        <span class="btn">{home.youtube.cta} ↗</span>
+      </span>
+    </a>
+  </section>
 
   <!-- LUCHARAMA -->
   <section class="school wrap">
@@ -226,6 +239,17 @@ const champOf = (t) => t.holder && wrestler(t.holder);
   @media (max-width: 820px) { .res-in { grid-template-columns: 1fr; } .res-poster { max-width: 360px; } }
 
   /* Lucharama */
+  .tv { position: relative; display: grid; grid-template-columns: auto 1fr; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; padding: clamp(1.8rem, 5vw, 4rem); text-decoration: none; color: var(--fg); background-color: #09090b; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px); border: 1px solid #222; overflow: hidden; isolation: isolate; }
+  .tv::before { content: ''; position: absolute; inset: -30% 40% 10% -10%; z-index: -1; background: radial-gradient(ellipse 50% 60% at 40% 30%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%); filter: blur(30px); opacity: .7; transition: opacity .4s; }
+  .tv:hover::before { opacity: 1; }
+  .tv-play { width: clamp(90px, 13vw, 170px); aspect-ratio: 1; border: 3px solid var(--accent); border-radius: 50%; display: grid; place-items: center; box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent); transition: transform .5s cubic-bezier(.16, 1, .3, 1); }
+  .tv-play::after { content: ''; width: 34%; aspect-ratio: .87; margin-left: 9%; background: var(--accent); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .tv:hover .tv-play { transform: scale(1.06); }
+  .tv-txt { display: grid; gap: 1rem; justify-items: start; }
+  .tv-h { display: grid; font: 900 clamp(2.4rem, 6vw, 5.2rem)/.86 var(--font-display); text-transform: uppercase; }
+  .tv-h .o { color: transparent; -webkit-text-stroke: clamp(1.5px, .15vw, 2.5px) var(--fg); }
+  .tv-p { font-size: 1.1rem; line-height: 1.45; color: #d6cfbf; max-width: 44ch; }
+  @media (max-width: 640px) { .tv { grid-template-columns: 1fr; } }
   .school { padding-block: 4rem 2rem; }
   .school-in { border: 1px solid #2a1414; padding: clamp(1.5rem, 5vw, 4rem); display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: end;
     background: radial-gradient(circle, rgba(226,35,26,.3) 1px, transparent 1.6px) 0 0 / 7px 7px, #120606; }
