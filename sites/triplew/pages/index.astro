@@ -16,7 +16,7 @@ const featured = [...roster.filter((w) => w.photo), ...['jon-valow', 'super-fran
 ---
 <Base overlayHead>
   <!-- PORTADA: la entrada de los luchadores del próximo show -->
-  <Entrada show={s} />
+  {[s, ...upcomingShows.filter((x) => x !== s)].slice(0, 3).map((x, k) => <Entrada show={x} hidden={k > 0} />)}
 
   <!-- CARTELERA -->
   {s.card?.length > 0 && (

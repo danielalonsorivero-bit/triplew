@@ -66,9 +66,15 @@ export function heroSlides(show) {
       }
     }
   }
-  // Sin cartelera con fotos: los campeones y luchadores con retrato.
+  // Sin cartelera con fotos: luchadores con retrato de la división del show
+  // (Level One o Triple W), primero los campeones.
   if (!slides.length) {
-    for (const w of roster.filter((x) => x.photo).slice(0, 5)) slides.push({ w, photo: w.photo, pos: w.photoPos, text: w.nickname });
+    const div = show?.brand === 'levelone' ? 'levelone' : 'absoluto';
+    const pool = roster.filter((x) => x.photo && x.division === div).sort((a, b) => (b.titles?.length ?? 0) - (a.titles?.length ?? 0));
+    for (const w of pool.slice(0, 5)) {
+      const t = w.titles?.length ? titleOf(w.titles[0]) : null;
+      slides.push({ w, photo: w.photo, pos: w.photoPos, match: t ? `Campeón ${t.name.replace(/^Campeonatos? /, '')}` : undefined, text: w.nickname });
+    }
   }
   return slides;
 }
