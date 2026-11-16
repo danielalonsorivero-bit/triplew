@@ -25,7 +25,7 @@ const facts = [
     <span class="c-n">{w.name}</span>
     <span class="c-more">
       {w.nickname && <span class="c-nick">«{w.nickname}»</span>}
-      <span class="c-div">{div.name}</span>
+      <span class="c-div">{w.division === 'invitados' && (w.from || w.country) ? [w.from, w.country].filter(Boolean).join(' · ') : div.name}</span>
       {facts.length > 0 && <span class="c-facts">{facts.map(([k, v]) => <span><b>{k}</b> {v}</span>)}</span>}
       <span class="c-go">Ver ficha →</span>
     </span>

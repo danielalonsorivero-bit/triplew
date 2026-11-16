@@ -16,6 +16,16 @@
     "staff": {
       "name": "Staff",
       "color": "#9CA3AF"
+    },
+    "arbitros": {
+      "name": "Árbitros",
+      "color": "#D4D4D8",
+      "empty": "Pronto presentaremos aquí a los árbitros de la Triple W."
+    },
+    "invitados": {
+      "name": "Invitados",
+      "color": "#5EC8F2",
+      "empty": "Luchadores de otras promotoras, clubes y países que han pisado nuestro ring. Muy pronto, aquí."
     }
   },
   "wrestlers": [

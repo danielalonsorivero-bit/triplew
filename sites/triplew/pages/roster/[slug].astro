@@ -16,14 +16,36 @@ const mentions = (s) => JSON.stringify([s.card, s.results]).includes(w.name);
 const shows = allShows.filter(mentions).reverse();
 const lines = (n) => { const p = n.split(' '); return p.length === 1 ? [n] : [p[0], p.slice(1).join(' ')]; };
 let c = 0;
-const facts = [
-  ['División', div.name],
-  w.team && ['Equipo', w.team, prov.includes('team')],
-  ['Títulos', champ.length ? champ.map((t) => t.name).join(', ') : 'Ninguno ahora mismo'],
-  ['Procedencia', w.hometown],
-  ['Debut en Triple W', w.debut],
-  ['Movimiento final', w.finisher],
-].filter(Boolean);
+// La ficha cambia según el tipo: luchadores, árbitros e invitados de otras promotoras.
+// Campos opcionales extra: from (promotora o club de origen) y country (país), para invitados.
+const kind = w.division === 'arbitros' ? 'ref' : w.division === 'invitados' ? 'guest' : w.division === 'staff' ? 'staff' : 'wrestler';
+const facts = {
+  wrestler: [
+    ['División', div.name],
+    w.team && ['Equipo', w.team, prov.includes('team')],
+    ['Títulos', champ.length ? champ.map((t) => t.name).join(', ') : 'Ninguno ahora mismo'],
+    ['Procedencia', w.hometown],
+    ['Debut en Triple W', w.debut],
+    ['Movimiento final', w.finisher],
+  ],
+  ref: [
+    ['Función', 'Árbitro'],
+    ['Procedencia', w.hometown],
+    ['Arbitra en Triple W desde', w.debut],
+  ],
+  guest: [
+    ['Viene de', w.from],
+    ['País', w.country],
+    w.team && ['Equipo', w.team],
+    ['Primera visita a Triple W', w.debut],
+    ['Movimiento final', w.finisher],
+  ],
+  staff: [
+    ['Función', w.role || div.name],
+    ['Procedencia', w.hometown],
+    ['En Triple W desde', w.debut],
+  ],
+}[kind].filter(Boolean);
 const gallery = (w.photos || []).filter((p) => p !== w.photo);
 const social = socialLinks(w);
 const same = roster.filter((x) => x.division === w.division);
@@ -62,11 +84,11 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
     <div class="tape-side">
       {(w.bio || w.notes) && <p class="bio">{w.bio || w.notes}</p>}
       {w.video && <a class="btn ghost" href={w.video}>Ver su entrada en vídeo ↗</a>}
-      <div class="book">
+      {kind === 'wrestler' && <div class="book">
         <h2 class="h-m">¿Quieres a {w.name} en tu cartel?</h2>
         <p>Promotoras y eventos: escríbenos y te pasamos disponibilidad y condiciones.</p>
         <a class="btn" href={mail}>Contactar con Triple W</a>
-      </div>
+      </div>}
     </div>
   </section>
 
@@ -93,9 +115,9 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
   )}
 
   <nav class="wrap pager" aria-label="Más luchadores">
-    <a href={`/roster/${prev.slug}/`}><span>Anterior</span>{prev.name}</a>
+    {same.length > 1 ? <a href={`/roster/${prev.slug}/`}><span>Anterior</span>{prev.name}</a> : <span></span>}
     <a href="/roster/" class="all">Todo el roster</a>
-    <a href={`/roster/${next.slug}/`} class="nx"><span>Siguiente</span>{next.name}</a>
+    {same.length > 1 ? <a href={`/roster/${next.slug}/`} class="nx"><span>Siguiente</span>{next.name}</a> : <span></span>}
   </nav>
 </Base>
 

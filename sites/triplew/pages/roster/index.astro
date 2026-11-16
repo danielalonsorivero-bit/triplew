@@ -3,12 +3,13 @@ import Base from '../../layouts/Base.astro';
 import Cromo from '../../components/Cromo.astro';
 import Provisional from '../../../../shared/components/Provisional.astro';
 import { roster, divisions } from '../../../../shared/lib.js';
-const order = ['absoluto', 'levelone', 'parejas', 'staff'];
+const order = ['absoluto', 'levelone', 'parejas', 'arbitros', 'staff', 'invitados'].filter((d) => divisions[d]);
+const own = roster.filter((w) => !['invitados', 'arbitros', 'staff'].includes(w.division));
 ---
 <Base title="Roster">
   <section class="section wrap">
     <h1 class="h-xl">Roster</h1>
-    <p class="intro">{roster.length} luchadores, equipos y staff de Triple W y Level One. <Provisional label="Divisiones por confirmar" /></p>
+    <p class="intro">{own.length} luchadores y equipos de Triple W y Level One, con sus árbitros, su staff y los invitados que han venido de fuera. <Provisional label="Divisiones por confirmar" /></p>
     <div class="filters" role="group" aria-label="Filtrar por división">
       <button data-f="all" aria-pressed="true">Todos</button>
       {order.map((d) => <button data-f={d} aria-pressed="false" style={`--d:${divisions[d].color}`}>{divisions[d].name}</button>)}
@@ -16,7 +17,9 @@ const order = ['absoluto', 'levelone', 'parejas', 'staff'];
     {order.map((d) => (
       <div class="block" data-div={d}>
         <h2 class="h-m" style={`color:${divisions[d].color}`}>{divisions[d].name}</h2>
-        <div class="cromos">{roster.filter((w) => w.division === d).map((w, i) => <Cromo w={w} n={i + 1} />)}</div>
+        {roster.some((w) => w.division === d)
+          ? <div class="cromos">{roster.filter((w) => w.division === d).map((w, i) => <Cromo w={w} n={i + 1} />)}</div>
+          : <p class="empty" style={`--d:${divisions[d].color}`}>{divisions[d].empty || 'Muy pronto, aquí.'}</p>}
       </div>
     ))}
   </section>
@@ -35,5 +38,6 @@ const order = ['absoluto', 'levelone', 'parejas', 'staff'];
   .filters button[aria-pressed="true"] { background: var(--fg); color: #0b0b0b; border-color: var(--fg); }
   .block { margin-top: 3rem; }
   .block h2 { margin-bottom: 1.2rem; }
+  .empty { margin: 0; padding: 1.4rem 1.2rem; max-width: 60ch; font-size: 1.05rem; color: #c9c2b5; border: 1px dashed color-mix(in srgb, var(--d) 45%, #333); }
   .cromos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(46%, 200px), 1fr)); gap: 1rem; }
 </style>
