@@ -6,6 +6,7 @@
 import Base from '../../layouts/Base.astro';
 import Provisional from '../../../../shared/components/Provisional.astro';
 import Galeria from '../../components/Galeria.astro';
+import VideoYT from '../../components/VideoYT.astro';
 import { roster, divisions, titleOf, allShows, dateLong, venues, socialLinks } from '../../../../shared/lib.js';
 export function getStaticPaths() { return roster.map((w) => ({ params: { slug: w.slug }, props: { w } })); }
 const { w } = Astro.props;
@@ -49,6 +50,8 @@ const facts = {
 }[kind].filter(Boolean);
 const gallery = (w.photos || []).filter((p) => p !== w.photo);
 const social = socialLinks(w);
+// Vídeos: los de shows.json (campo videos de cada show) en los que aparece por nombre en sides.
+const videos = allShows.flatMap((s) => (s.videos || []).filter((v) => v.sides?.includes(w.name)).map((v) => ({ ...v, show: s }))).reverse();
 const same = roster.filter((x) => x.division === w.division);
 const i = same.indexOf(w);
 const prev = same[(i - 1 + same.length) % same.length];
@@ -92,6 +95,13 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
       </div>}
     </div>
   </section>
+
+  {videos.length > 0 && (
+    <section class="wrap vids">
+      <h2 class="h-m">Combates en vídeo</h2>
+      <div class="vid-grid">{videos.map((v) => <VideoYT id={v.youtube} title={`${v.title} · ${v.show.name}`} color={div.color} />)}</div>
+    </section>
+  )}
 
   {gallery.length > 0 && (
     <section class="wrap action">
@@ -170,6 +180,8 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
   .book p { color: #c9c2b5; margin: .7rem 0 1.1rem; }
   @media (max-width: 820px) { .tape { grid-template-columns: 1fr; } .board div { grid-template-columns: 1fr; gap: .3rem; } }
 
+  .vids { padding-bottom: clamp(2rem, 5vw, 4rem); }
+  .vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 1.5rem; margin-top: 1.4rem; max-width: 980px; }
   .action { padding-bottom: clamp(2rem, 5vw, 4rem); }
   .strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: .5rem; overflow-x: auto; margin-top: 1.2rem; padding-bottom: .5rem; }
   .strip figure { margin: 0; aspect-ratio: 4/5; overflow: hidden; background: #111; }

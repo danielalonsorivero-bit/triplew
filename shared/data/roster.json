@@ -196,7 +196,14 @@
       "name": "Marco Morales",
       "emoji": "🤠",
       "division": "absoluto",
-      "nickname": "Machoflaco"
+      "nickname": "Machoflaco",
+      "photo": "/fotos/por-carpeta/macho-flaco-morales/nik_5567.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/por-carpeta/macho-flaco-morales/nik_5673.jpg",
+        "/fotos/por-carpeta/macho-flaco-morales/nik_5784.jpg",
+        "/fotos/por-carpeta/macho-flaco-morales/nik_6012.jpg"
+      ]
     },
     {
       "slug": "hades",
@@ -329,7 +336,8 @@
       "photos": [
         "/fotos/por-carpeta/orion/nik_5819.jpg",
         "/fotos/por-carpeta/orion/nik_5975.jpg"
-      ]
+      ],
+      "notes": "En otros eventos de la Triple W hace de árbitro."
     },
     {
       "slug": "erik-de-la-cruz",
@@ -546,26 +554,12 @@
       ]
     },
     {
-      "slug": "macho-flaco-morales",
-      "name": "Macho Flaco Morales",
-      "division": "levelone",
-      "provisional": [
-        "division"
-      ],
-      "photo": "/fotos/por-carpeta/macho-flaco-morales/nik_5567.jpg",
-      "photoPos": "center 20%",
-      "photos": [
-        "/fotos/por-carpeta/macho-flaco-morales/nik_5673.jpg",
-        "/fotos/por-carpeta/macho-flaco-morales/nik_5784.jpg",
-        "/fotos/por-carpeta/macho-flaco-morales/nik_6012.jpg"
-      ]
-    },
-    {
       "slug": "orion-arbitro",
-      "name": "Orion",
+      "name": "Orión",
       "division": "arbitros",
       "photo": "/fotos/por-carpeta/referees-orion/orion_referee.jpg",
-      "photoPos": "22% 20%"
+      "photoPos": "22% 20%",
+      "notes": "En otros eventos lucha como Orión, de los Súper Combo Bros."
     },
     {
       "slug": "jumark",

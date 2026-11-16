@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Poster from '../../components/Poster.astro';
 import FaceOff from '../../components/FaceOff.astro';
 import Galeria from '../../components/Galeria.astro';
+import VideoYT from '../../components/VideoYT.astro';
 import pages from '../../../../shared/data/paginas-triplew.json';
 import Provisional from '../../../../shared/components/Provisional.astro';
 import { allShows, venues, dateLong } from '../../../../shared/lib.js';
@@ -53,7 +54,14 @@ let n = 0;
       {s.results?.length
         ? <ol class="results">{s.results.map((r, k) => <li><b>{String(k + 1).padStart(2, '0')}</b><span>{r.text} {r.provisional && <Provisional label="Por confirmar" />}</span></li>)}</ol>
         : <p class="soon">Resultados pendientes de publicar.</p>}
-      <a class="btn ghost yt" href={s.video || pages.sitio.youtube}>{s.video ? 'Ver el show en YouTube' : 'Combates en nuestro canal de YouTube'} ↗</a>
+      <a class="btn ghost yt-link" href={s.video || pages.sitio.youtube}>{s.video ? 'Ver el show en YouTube' : 'Combates en nuestro canal de YouTube'} ↗</a>
+    </section>
+  )}
+
+  {s.videos?.length > 0 && (
+    <section class="section wrap gal-sec">
+      <h2 class="h-l">Vídeos</h2>
+      <div class="vid-grid">{s.videos.map((v) => <VideoYT id={v.youtube} title={v.title} color={s.color} />)}</div>
     </section>
   )}
 
@@ -101,7 +109,8 @@ let n = 0;
   .results li { display: grid; grid-template-columns: 3.2rem 1fr; gap: .9rem; align-items: baseline; padding: 1rem; border-bottom: 1px solid #1e1a1c; font-size: 1.05rem; line-height: 1.45; }
   .results b { font: 900 1.8rem/1 var(--font-display); color: var(--accent); font-variant-numeric: tabular-nums; }
   .gal-sec { padding-top: 0; }
-  .yt { margin-top: 1.6rem; }
+  .yt-link { margin-top: 1.6rem; }
+  .vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 1.5rem; margin-top: 1.5rem; max-width: 980px; }
   .gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: 1.5rem; }
   .gal figure { margin: 0; aspect-ratio: 1; overflow: hidden; background: #111; }
   .gal figure.wide { grid-column: 1 / -1; aspect-ratio: 16/9; }

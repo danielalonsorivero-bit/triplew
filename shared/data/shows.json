@@ -227,7 +227,17 @@
       ],
       "poster": "/carteles/level-one-young-wolves.jpg",
       "start": "18:00",
-      "doors": "17:30"
+      "doors": "17:30",
+      "videos": [
+        {
+          "youtube": "BDgH5ruJ5ig",
+          "title": "Newt Nova vs. Reaper",
+          "sides": [
+            "Newt Nova",
+            "Reaper"
+          ]
+        }
+      ]
     },
     {
       "slug": "total-rumble-2026",
