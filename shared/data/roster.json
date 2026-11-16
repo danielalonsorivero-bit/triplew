@@ -85,10 +85,7 @@
       "division": "levelone",
       "nickname": "Leyenda",
       "notes": "15 años en la Triple W.",
-      "team": "Super Franki y Orión",
-      "provisional": [
-        "team"
-      ]
+      "team": "Súper Combo Bros"
     },
     {
       "slug": "la-mujer-dominante",
@@ -239,10 +236,7 @@
       "name": "Orión",
       "emoji": "👾",
       "division": "levelone",
-      "team": "Super Franki y Orión",
-      "provisional": [
-        "team"
-      ]
+      "team": "Súper Combo Bros"
     },
     {
       "slug": "erik-de-la-cruz",
@@ -344,7 +338,12 @@
       "slug": "super-combo-bros",
       "name": "Súper Combo Bros",
       "emoji": "🎮",
-      "division": "parejas"
+      "division": "parejas",
+      "members": [
+        "super-franki",
+        "orion"
+      ],
+      "notes": "Pareja de Level One formada por Super Franki y Orión."
     },
     {
       "slug": "hector-del-bar",

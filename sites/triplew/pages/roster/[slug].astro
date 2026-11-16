@@ -23,6 +23,7 @@ const facts = {
   wrestler: [
     ['División', div.name],
     w.team && ['Equipo', w.team, prov.includes('team')],
+    w.members?.length && ['Integrantes', w.members.map((m) => roster.find((x) => x.slug === m)?.name).filter(Boolean).join(' y ')],
     ['Títulos', champ.length ? champ.map((t) => t.name).join(', ') : 'Ninguno ahora mismo'],
     ['Procedencia', w.hometown],
     ['Debut en Triple W', w.debut],
