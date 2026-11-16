@@ -67,14 +67,6 @@
       "photoPos": "65% 15%"
     },
     {
-      "slug": "david-ross",
-      "name": "David Ross",
-      "emoji": "💪",
-      "division": "absoluto",
-      "nickname": "El campeón más longevo",
-      "notes": "Campeón Absoluto con el reinado más largo de la historia."
-    },
-    {
       "slug": "pimp-ross",
       "name": "Pimp Ross",
       "emoji": "💼",
@@ -83,7 +75,8 @@
         "emoji"
       ],
       "photo": "/luchadores/pimp-ross.jpg",
-      "photoPos": "center 15%"
+      "photoPos": "center 15%",
+      "notes": "Campeón Absoluto con el reinado más largo de la historia."
     },
     {
       "slug": "super-franki",
