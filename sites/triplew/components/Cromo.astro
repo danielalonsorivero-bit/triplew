@@ -18,7 +18,6 @@ const champ = (w.titles || []).map(titleOf).filter(Boolean);
       </div>
     </div>
     <div class="c-face c-back">
-      <span class="c-emoji" aria-hidden="true">{w.emoji}</span>
       <span class="c-n">{w.name}</span>
       {w.nickname && <span class="c-nick">«{w.nickname}»</span>}
       {w.team && <span class="c-meta">Equipo: {w.team}</span>}
@@ -40,7 +39,6 @@ const champ = (w.titles || []).map(titleOf).filter(Boolean);
   .c-belt { position: absolute; top: .6rem; left: .6rem; font: 800 .82rem/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; background: #E8C547; color: #1a1400; padding: .35rem .5rem; }
   .c-back { transform: rotateY(180deg); padding: 1.1rem; display: flex; flex-direction: column; gap: .6rem; justify-content: center; text-align: center; align-items: center;
     background: var(--d); color: #0b0b0b; background-image: radial-gradient(circle, rgba(0,0,0,.12) 1px, transparent 1.5px); background-size: 6px 6px; }
-  .c-emoji { font-size: 2.6rem; line-height: 1; }
   .c-nick { font: 800 1.15rem/1 var(--font-display); text-transform: uppercase; }
   .c-meta { font-size: .9rem; line-height: 1.35; }
   .c-more { font: 800 .85rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .1em; margin-top: .4rem; border-bottom: 2px solid; }
