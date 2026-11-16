@@ -1,0 +1,39 @@
+{
+  "_nota": "Textos y fotos de la portada de Triple W que no salen de shows, roster ni campeonatos. Editable desde el panel de administración. Las fotos se guardan en public/triplew/fotos/.",
+  "inversa": {
+    "lines": ["Entra gratis.", "Paga al salir."],
+    "text": "Los shows en el Gimnasio Lucharama funcionan con entrada inversa: no hay taquilla a la entrada. Ves el show completo y, al terminar, aportas lo que consideres que ha valido.",
+    "note": "Los eventos especiales en salas (como Top 1 en Sala Revi) tienen entrada anticipada."
+  },
+  "sequence": {
+    "lines": ["Cinco minutos", "que se te pasan", "volando."],
+    "photos": [
+      { "src": "/fotos/f45.jpg", "alt": "Secuencia de un combate, fotograma a fotograma" },
+      { "src": "/fotos/f46.jpg", "alt": "" },
+      { "src": "/fotos/f47.jpg", "alt": "" },
+      { "src": "/fotos/f48.jpg", "alt": "" }
+    ]
+  },
+  "gallery": {
+    "link": "https://www.instagram.com/wrestlingphotoshow/",
+    "linkLabel": "@wrestlingphotoshow",
+    "photos": [
+      { "src": "/fotos/f72.jpg", "alt": "Varo Díaz en un show de la Triple W", "shape": "wide" },
+      { "src": "/fotos/f70.jpg", "alt": "Joro en un show de la Triple W", "shape": "tall" },
+      { "src": "/fotos/f58.jpg", "alt": "Foto de un show de la Triple W", "shape": "" },
+      { "src": "/fotos/f43.jpg", "alt": "Newt Nova en un show de la Triple W", "shape": "tall" },
+      { "src": "/fotos/f64.jpg", "alt": "Foto de un show de la Triple W", "shape": "" },
+      { "src": "/fotos/f49.jpg", "alt": "Foto de un show de la Triple W", "shape": "wide" },
+      { "src": "/fotos/f71.jpg", "alt": "Foto de un show de la Triple W", "shape": "tall" },
+      { "src": "/fotos/f66.jpg", "alt": "Foto de un show de la Triple W", "shape": "" },
+      { "src": "/fotos/f81.jpg", "alt": "Foto de un show de la Triple W", "shape": "wide" },
+      { "src": "/fotos/f44.jpg", "alt": "Newt Nova en un show de la Triple W", "shape": "" }
+    ]
+  },
+  "school": {
+    "lines": ["¿Quieres", "subirte", "al ring?"],
+    "text": "Todo el roster de la Triple W ha pasado por Lucharama, nuestra escuela en Carabanchel. Desde 14 años, sin experiencia previa. La primera clase es gratis.",
+    "cta": "Conoce Lucharama"
+  },
+  "rosterFeatured": ["rizo", "trevor-de-vries", "jon-valow", "pimp-ross", "shallow", "hades", "joro", "newt-nova", "ochoa", "varo-diaz"]
+}
