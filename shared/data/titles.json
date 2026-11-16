@@ -2,7 +2,7 @@
   "_nota": "Campeonatos según las destacadas de @latriplew: ABSOLUTO, LEVEL ONE, PAREJAS, EXTREMO y Salón de la Fama. Historiales PROVISIONALES.",
   "titles": [
     { "slug": "absoluto", "name": "Campeonato Absoluto", "short": "Absoluto", "holder": "rizo", "color": "#E8C547", "history": [ { "name": "Rizo", "note": "Campeón actual" }, { "name": "David Ross", "note": "Reinado más largo de la historia" } ], "provisionalHistory": true },
-    { "slug": "levelone", "name": "Campeonato de Level One", "short": "Level One", "holder": "joro", "color": "#2BD46A", "history": [ { "name": "Joro", "note": "Campeón actual, desde Kilómetro Cero (17 oct. 2026)" }, { "name": "Ochoa" }, { "name": "La Mujer Dominante" } ], "provisionalHistory": true },
+    { "slug": "levelone", "name": "Campeonato de Level One", "short": "Level One", "holder": "joro", "color": "#2BD46A", "history": [ { "name": "Joro", "note": "Campeón actual, desde Kilómetro Cero (17 oct. 2026)" }, { "name": "Ochoa" } ], "provisionalHistory": true },
     { "slug": "parejas", "name": "Campeonatos de Parejas", "short": "Parejas", "holder": "la-nueva-ola", "color": "#F59E2B", "history": [ { "name": "La Nueva Ola", "note": "Campeones actuales" } ], "provisionalHistory": true },
     { "slug": "extremo", "name": "Campeonato Extremo", "short": "Extremo", "holder": null, "color": "#E11D48", "history": [], "provisionalHistory": true }
   ],

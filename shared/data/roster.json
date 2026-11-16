@@ -98,7 +98,9 @@
       "name": "La Mujer Dominante",
       "emoji": "🦙",
       "division": "absoluto",
-      "notes": "Excampeona de Level One."
+      "provisional": [
+        "division"
+      ]
     },
     {
       "slug": "alexa",
