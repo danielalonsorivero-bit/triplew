@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Poster from '../components/Poster.astro';
 import Cromo from '../components/Cromo.astro';
 import FaceOff from '../components/FaceOff.astro';
+import Entrada from '../components/Entrada.astro';
 import PhotoSlot from '../../../shared/components/PhotoSlot.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
 import { nextShow, upcomingShows, pastShows, venues, dateLong, ticketLabel, titles, wrestler, roster, urls, initials } from '../../../shared/lib.js';
@@ -12,33 +13,10 @@ const v = venues[s.venue];
 const lastShow = pastShows.find((p) => p.results?.length);
 // Primero los que ya tienen retrato; el resto completa hasta 8.
 const featured = [...roster.filter((w) => w.photo), ...['jon-valow', 'super-franki', 'la-nueva-ola'].map(wrestler)].slice(0, 8);
-const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
 ---
-<Base>
-  <!-- PORTADA: el próximo show manda en el color de toda la web -->
-  <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <PhotoSlot src="/fotos/f76.jpg" alt="Luchador lanzándose en plancha bajo luz azul en el Gimnasio Lucharama" tone="#0b0b0b" ink={s.color} ratio="auto" pos="70% 40%" eager />
-    </div>
-    <div class="wrap hero-in">
-      <p class="kicker">Próximo show</p>
-      <h1 class="hero-title">{s.name.split(' ').map((w) => <span>{w} </span>)}</h1>
-      <p class="hero-tag">{s.tagline}</p>
-      <dl class="hero-meta">
-        <div><dt>Fecha</dt><dd>{dateLong(s.date)}</dd></div>
-        <div><dt>Hora</dt><dd>{s.doors ? `Puertas ${s.doors} · ` : ''}Inicio {s.start}</dd></div>
-        <div><dt>Lugar</dt><dd><a href={v.map}>{v.name}</a></dd></div>
-      </dl>
-      <div class="countdown" data-start={startISO} aria-label="Cuenta atrás">
-        <span><b data-u="d">--</b>días</span><span><b data-u="h">--</b>horas</span><span><b data-u="m">--</b>min</span><span><b data-u="s">--</b>seg</span>
-      </div>
-      <div class="hero-cta">
-        {s.ticket?.type === 'venta' && <a class="btn" href={s.ticket.url}>Compra tu entrada →</a>}
-        {s.ticket?.type === 'inversa' && <a class="btn" href="#entrada-inversa">Entrada inversa: pagas al salir</a>}
-        <a class="btn ghost" href={`/shows/${s.slug}/`}>Ver cartelera</a>
-      </div>
-    </div>
-  </section>
+<Base overlayHead>
+  <!-- PORTADA: la entrada de los luchadores del próximo show -->
+  <Entrada show={s} />
 
   <!-- CARTELERA -->
   {s.card?.length > 0 && (
@@ -157,16 +135,6 @@ const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
 </Base>
 
 <script>
-  const el = document.querySelector('.countdown');
-  if (el) {
-    const t = new Date(el.dataset.start).getTime();
-    const set = (u, v) => { const n = el.querySelector(`[data-u="${u}"]`); if (n) n.textContent = String(v).padStart(2, '0'); };
-    const tick = () => {
-      let d = Math.max(0, t - Date.now()) / 1000;
-      set('d', Math.floor(d / 86400)); d %= 86400; set('h', Math.floor(d / 3600)); d %= 3600; set('m', Math.floor(d / 60)); set('s', Math.floor(d % 60));
-    };
-    tick(); setInterval(tick, 1000);
-  }
   const seq = document.querySelector('.seq');
   if (seq) {
     const frames = seq.querySelectorAll('.seq-frames img');
@@ -183,21 +151,6 @@ const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
 </script>
 
 <style>
-  .hero { position: relative; min-height: min(92vh, 900px); display: grid; align-items: end; overflow: hidden; border-bottom: 6px solid var(--accent); }
-  .hero-bg { position: absolute; inset: 0; }
-  .hero-bg :global(.slot) { height: 100%; }
-  .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,.7) 45%, color-mix(in srgb, var(--accent) 25%, transparent) 100%), linear-gradient(0deg, #0b0b0b 0%, transparent 40%); }
-  .hero-in { position: relative; padding-block: 5rem 3rem; }
-  .hero-title { font-size: clamp(3.6rem, 13vw, 11rem); line-height: .8; max-width: 14ch; color: var(--accent); }
-  .hero-title span:nth-child(even) { color: var(--fg); }
-  .hero-tag { font-size: clamp(1.05rem, 1.6vw, 1.3rem); max-width: 40ch; margin-top: 1.4rem; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 1rem 2.5rem; margin: 2rem 0 1.5rem; }
-  .hero-meta dt { font: 700 .62rem/1 var(--font-text); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
-  .hero-meta dd { margin: 0; font: 800 1.35rem/1 var(--font-display); text-transform: uppercase; }
-  .countdown { display: flex; gap: .5rem; margin-bottom: 2rem; }
-  .countdown span { display: grid; text-align: center; min-width: 4.4rem; padding: .6rem .4rem; border: 1px solid var(--line); background: rgba(0,0,0,.4); font: 700 .58rem/1 var(--font-text); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  .countdown b { font: 900 2.2rem/1 var(--font-display); color: var(--fg); margin-bottom: .2rem; font-variant-numeric: tabular-nums; }
-  .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; }
 
 
   .seq { height: 320vh; position: relative; }

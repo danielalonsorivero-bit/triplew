@@ -42,3 +42,33 @@ export const urls = {
   triplew: process.env.PUBLIC_TRIPLEW_URL || 'https://triplew-prototipo.vercel.app',
   lucharama: process.env.PUBLIC_LUCHARAMA_URL || 'https://lucharama-prototipo.vercel.app',
 };
+
+// Diapositivas de la portada ("la entrada"): una por luchador del próximo show que tenga foto.
+// Se sacan solas de la cartelera del show. Si el show trae "hero" (lista de
+// { wrestler: slug, text?, photo? }), se usa esa lista en ese orden y manda sobre lo automático.
+export function heroSlides(show) {
+  const card = show?.card ?? [];
+  const slides = [];
+  if (show?.hero?.length) {
+    for (const h of show.hero) {
+      const w = wrestler(h.wrestler);
+      if (!w || !(h.photo || w.photo)) continue;
+      const m = card.find((c) => c.sides?.includes(w.name));
+      const opp = m?.sides?.filter((s) => s !== w.name) ?? [];
+      slides.push({ w, photo: h.photo || w.photo, pos: h.photoPos || w.photoPos, match: m?.title, opponents: opp, text: h.text ?? m?.note });
+    }
+  } else {
+    for (const m of card) {
+      for (const name of m.sides ?? []) {
+        const w = findByName(name);
+        if (!w?.photo || slides.some((s) => s.w.slug === w.slug)) continue;
+        slides.push({ w, photo: w.photo, pos: w.photoPos, match: m.title, opponents: m.sides.filter((s) => s !== name), text: m.note, provisional: m.provisional });
+      }
+    }
+  }
+  // Sin cartelera con fotos: los campeones y luchadores con retrato.
+  if (!slides.length) {
+    for (const w of roster.filter((x) => x.photo).slice(0, 5)) slides.push({ w, photo: w.photo, pos: w.photoPos, text: w.nickname });
+  }
+  return slides;
+}

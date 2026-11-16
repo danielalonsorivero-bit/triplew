@@ -1,0 +1,254 @@
+---
+// Portada "La entrada": cada luchador del próximo show entra a escena como en un show.
+// Todo sale de los datos (shows.json y roster.json): no hay textos escritos a mano aquí.
+import { venues, dateLong, heroSlides } from '../../../shared/lib.js';
+const { show } = Astro.props;
+const v = venues[show.venue];
+const slides = heroSlides(show);
+const startISO = `${show.date}T${show.start || '18:00'}:00+01:00`;
+const vs = (s) => s.opponents?.length ? s.opponents : [];
+const nameLines = (n) => { const p = n.split(' '); return p.length === 1 ? [n] : [p[0], p.slice(1).join(' ')]; };
+const isSale = show.ticket?.type === 'venta';
+---
+<section class="ent" style={`--show:${show.color};--show-ink:${show.ink}`} aria-roledescription="carrusel" aria-label={`Luchadores de ${show.name}`} data-count={slides.length}>
+  <div class="ent-stage" aria-hidden="true">
+    {slides.map((s, i) => (
+      <figure class:list={['ent-ph', { on: i === 0 }]} data-i={i}>
+        <img src={s.photo} alt="" style={`object-position:${s.pos || 'center 20%'}`} loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'low'} decoding="async" />
+      </figure>
+    ))}
+    <div class="ent-shade"></div>
+    <div class="ent-rig">
+      <span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span>
+    </div>
+    <div class="ent-haze"></div>
+    <div class="ent-flash"></div>
+  </div>
+
+  <div class="wrap ent-copy">
+    {slides.map((s, i) => (
+      <div class:list={['ent-who', { on: i === 0 }]} data-i={i} role="group" aria-roledescription="diapositiva" aria-label={`${i + 1} de ${slides.length}: ${s.w.name}`} aria-hidden={i === 0 ? undefined : 'true'}>
+        <a class="ent-name" href={`/roster/${s.w.slug}/`}>
+          {nameLines(s.w.name).map((l, k) => <span class:list={['ln', { o: k > 0 }]} style={`--k:${k}`}>{l}</span>)}
+        </a>
+        {vs(s).length > 0 && <p class="ent-vs">contra <b>{vs(s).join(' y ')}</b></p>}
+        {(s.match || s.text) && <p class="ent-why">{[s.match, s.text].filter(Boolean).join('. ')}{s.provisional && ' (por confirmar)'}</p>}
+      </div>
+    ))}
+  </div>
+
+  {slides.length > 1 && (
+    <div class="wrap ent-rail">
+      <div class="ent-tabs" role="tablist" aria-label="Elegir luchador">
+        {slides.map((s, i) => (
+          <button type="button" role="tab" class:list={['ent-tab', { on: i === 0 }]} data-i={i} aria-selected={i === 0 ? 'true' : 'false'}>
+            <span class="t-name">{s.w.name}</span><span class="t-bar"><i></i></span>
+          </button>
+        ))}
+      </div>
+      <button type="button" class="ent-pause" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="i-pause" d="M7 5h3v14H7zM14 5h3v14h-3z" /><path class="i-play" d="M8 5l11 7-11 7z" /></svg>
+        <span class="sr-only">Pausar el carrusel</span>
+      </button>
+    </div>
+  )}
+
+  <div class="ent-led">
+    <div class="wrap led-in">
+      <div class="led-show">
+        <p class="led-k">Próximo show</p>
+        <a class="led-t" href={`/shows/${show.slug}/`}>{show.name}</a>
+      </div>
+      <p class="led-when">
+        {dateLong(show.date)} · {show.start}{show.doors && ` (puertas ${show.doors})`}<br />
+        <a href={v.map}>{v.name}</a><br />
+        <strong>{isSale ? 'Entradas a la venta' : 'Entra gratis, paga al salir'}</strong>
+      </p>
+      <div class="led-clock" data-start={startISO} aria-label="Cuenta atrás hasta el show">
+        <span><b data-u="d">--</b>d</span><span><b data-u="h">--</b>h</span><span><b data-u="m">--</b>m</span><span><b data-u="s">--</b>s</span>
+      </div>
+      <div class="led-cta">
+        {isSale
+          ? <a class="btn" href={show.ticket.url}>Compra tu entrada</a>
+          : <a class="btn" href={v.map}>Cómo llegar</a>}
+        <a class="btn ghost" href={`/shows/${show.slug}/`}>Cartelera</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector('.ent');
+  if (root) {
+    const DUR = 6500;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const phs = [...root.querySelectorAll('.ent-ph')];
+    const whos = [...root.querySelectorAll('.ent-who')];
+    const tabs = [...root.querySelectorAll('.ent-tab')];
+    const pauseBtn = root.querySelector('.ent-pause');
+    const n = phs.length;
+    let i = 0, timer = 0, paused = reduce, hold = false;
+    root.style.setProperty('--dur', `${DUR}ms`);
+
+    const go = (to, user = false) => {
+      if (to === i || n < 2) return;
+      const from = i; i = (to + n) % n;
+      phs[from].classList.remove('on'); phs[from].classList.add('off');
+      setTimeout(() => phs[from].classList.remove('off'), 1100);
+      phs[i].classList.add('on');
+      whos.forEach((w, k) => { w.classList.toggle('on', k === i); w.setAttribute('aria-hidden', k === i ? 'false' : 'true'); });
+      tabs.forEach((t, k) => { t.classList.toggle('on', k === i); t.setAttribute('aria-selected', String(k === i)); });
+      if (!reduce) { root.classList.remove('hit'); void root.offsetWidth; root.classList.add('hit'); }
+      // precarga la siguiente
+      const nx = phs[(i + 1) % n]?.querySelector('img'); if (nx) nx.loading = 'eager';
+      schedule();
+    };
+    const schedule = () => {
+      clearTimeout(timer);
+      root.classList.toggle('paused', paused || hold);
+      if (!paused && !hold) timer = setTimeout(() => go(i + 1), DUR);
+    };
+    tabs.forEach((t, k) => t.addEventListener('click', () => go(k, true)));
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') go(i + 1, true);
+      if (e.key === 'ArrowLeft') go(i - 1, true);
+    });
+    pauseBtn?.addEventListener('click', () => {
+      paused = !paused; pauseBtn.setAttribute('aria-pressed', String(paused));
+      pauseBtn.querySelector('.sr-only').textContent = paused ? 'Reanudar el carrusel' : 'Pausar el carrusel';
+      schedule();
+    });
+    // se para mientras navegas con el teclado dentro
+    root.addEventListener('focusin', () => { hold = true; schedule(); });
+    root.addEventListener('focusout', () => { hold = false; schedule(); });
+    document.addEventListener('visibilitychange', () => { hold = document.hidden; schedule(); });
+    // deslizar en el móvil
+    let x0 = null;
+    root.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) go(i + (dx < 0 ? 1 : -1), true); x0 = null; });
+    // las luces siguen al ratón
+    if (!reduce && matchMedia('(pointer: fine)').matches) {
+      root.addEventListener('pointermove', (e) => {
+        const r = root.getBoundingClientRect();
+        root.style.setProperty('--mx', ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+      });
+    }
+    schedule();
+
+    // cuenta atrás
+    const clock = root.querySelector('.led-clock');
+    const t = new Date(clock.dataset.start).getTime();
+    const set = (u, val) => { const el = clock.querySelector(`[data-u="${u}"]`); if (el) el.textContent = String(val).padStart(2, '0'); };
+    const tick = () => { let d = Math.max(0, t - Date.now()) / 1000; set('d', Math.floor(d / 86400)); d %= 86400; set('h', Math.floor(d / 3600)); d %= 3600; set('m', Math.floor(d / 60)); set('s', Math.floor(d % 60)); };
+    tick(); setInterval(tick, 1000);
+  }
+</script>
+
+<style>
+  .ent { --led: color-mix(in srgb, var(--show) 70%, #ffd27a); --mx: 0; position: relative; min-height: max(640px, calc(100svh - 34px)); display: grid; grid-template-rows: 1fr auto auto; overflow: hidden; background: #050506; isolation: isolate; margin-top: -72px; padding-top: 72px; }
+  .ent-stage { position: absolute; inset: 0; z-index: -1; }
+
+  /* Fotos */
+  .ent-ph { position: absolute; inset: 0 0 0 30%; margin: 0; opacity: 0; }
+  .ent-ph img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.22) brightness(.92); transform: scale(1.04); }
+  .ent-ph.on { opacity: 1; z-index: 2; animation: ph-in 1s cubic-bezier(.7, 0, .15, 1) both; }
+  .ent-ph.on img { animation: kb var(--dur, 6.5s) linear both, ph-burn 1.1s ease-out both; }
+  .ent-ph.off { opacity: 1; z-index: 1; animation: ph-out 1s ease-in both; }
+  @keyframes ph-in { from { clip-path: polygon(110% 0, 140% 0, 110% 100%, 80% 100%); } to { clip-path: polygon(-40% 0, 140% 0, 110% 100%, -70% 100%); } }
+  @keyframes ph-out { to { opacity: 0; transform: scale(.96); filter: blur(6px); } }
+  @keyframes kb { from { transform: scale(1.14) translateX(1.5%); } to { transform: scale(1.02) translateX(0); } }
+  @keyframes ph-burn { from { filter: grayscale(1) contrast(1.6) brightness(2.4); } to { filter: grayscale(1) contrast(1.22) brightness(.92); } }
+  .ent-shade { position: absolute; inset: 0; z-index: 3; background:
+    linear-gradient(90deg, #050506 0%, #050506 28%, rgba(5,5,6,.75) 42%, rgba(5,5,6,0) 68%),
+    linear-gradient(0deg, #050506 0%, rgba(5,5,6,0) 38%),
+    linear-gradient(180deg, rgba(5,5,6,.7) 0%, rgba(5,5,6,0) 22%); }
+
+  /* Luces: tres cañones que barren, siguen al ratón y golpean al cambiar de luchador */
+  .ent-rig { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: screen; transform: translateX(calc(var(--mx) * 60px)); transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
+  .beam { position: absolute; top: -12%; width: 26vw; min-width: 240px; height: 135%; transform-origin: 50% 0; background: linear-gradient(180deg, color-mix(in srgb, var(--led) 60%, transparent) 0%, color-mix(in srgb, var(--led) 18%, transparent) 45%, transparent 80%); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); filter: blur(10px); opacity: .55; }
+  .b1 { left: 38%; animation: sweep 9s ease-in-out infinite alternate, flick 5.3s steps(1) infinite; }
+  .b2 { left: 58%; rotate: -12deg; animation: sweep2 11s ease-in-out infinite alternate; opacity: .42; }
+  .b3 { left: 74%; animation: sweep 7.5s ease-in-out -3s infinite alternate-reverse; opacity: .32; background: linear-gradient(180deg, rgba(255,255,255,.55), transparent 70%); }
+  @keyframes sweep { from { rotate: 18deg; } to { rotate: -14deg; } }
+  @keyframes sweep2 { from { rotate: -20deg; } to { rotate: 10deg; } }
+  @keyframes flick { 0%, 100% { opacity: .55; } 61% { opacity: .2; } 62% { opacity: .6; } 64% { opacity: .25; } 65% { opacity: .55; } }
+  .hit .beam { animation: hit .9s cubic-bezier(.2, .9, .2, 1) both; }
+  .hit .b2 { animation-delay: .06s; } .hit .b3 { animation-delay: .12s; }
+  @keyframes hit { 0% { rotate: 0deg; opacity: 1; filter: blur(4px) brightness(1.8); } 100% { opacity: .5; } }
+  .ent-haze { position: absolute; inset: -20%; z-index: 5; pointer-events: none; opacity: .22; mix-blend-mode: screen;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    background-size: 1400px 1400px; animation: drift 40s linear infinite; }
+  @keyframes drift { to { transform: translate3d(-12%, -4%, 0); } }
+  .ent-flash { position: absolute; inset: 0; z-index: 6; background: #fff; opacity: 0; pointer-events: none; }
+  .hit .ent-flash { animation: strobe .45s steps(1) both; }
+  @keyframes strobe { 0% { opacity: .5; } 20% { opacity: 0; } 40% { opacity: .28; } 60%, 100% { opacity: 0; } }
+
+  /* Nombre */
+  .ent-copy { position: relative; z-index: 2; display: grid; align-items: end; padding-bottom: 1.5rem; }
+  .ent-who { grid-area: 1 / 1; visibility: hidden; }
+  .ent-who.on { visibility: visible; }
+  .ent-name { display: block; text-decoration: none; font: 900 clamp(4.6rem, 14.5vw, 14.5rem)/.8 var(--font-display); text-transform: uppercase; letter-spacing: -.01em; width: fit-content; }
+  .ln { display: block; }
+  .ln.o { color: transparent; -webkit-text-stroke: clamp(1.5px, .18vw, 2.5px) var(--fg); }
+  .ent-name:hover .ln.o { color: var(--show); -webkit-text-stroke-color: var(--show); }
+  .ent-who.on .ln { animation: slam .85s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(.18s + var(--k) * .09s); }
+  @keyframes slam { from { opacity: 0; transform: scale(1.32) translateX(-3%); filter: blur(14px); } to { opacity: 1; transform: none; filter: none; } }
+  .ent-vs { font: 800 clamp(1.4rem, 2.4vw, 2.1rem)/1 var(--font-display); text-transform: uppercase; margin: 1.2rem 0 .5rem; color: #d9d3c7; }
+  .ent-vs b { color: var(--show); }
+  .ent-why { font-size: 1.05rem; line-height: 1.45; max-width: 44ch; color: #c9c2b5; margin: 0; }
+  .ent-who.on .ent-vs, .ent-who.on .ent-why { animation: up .7s cubic-bezier(.16, 1, .3, 1) .4s both; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+
+  /* Selector de luchadores */
+  .ent-rail { position: relative; z-index: 2; display: flex; align-items: end; gap: 1rem; padding-bottom: 1.2rem; }
+  .ent-tabs { display: flex; gap: .4rem; flex: 1; }
+  .ent-tab { flex: 1; max-width: 190px; background: none; border: 0; padding: .6rem 0 0; color: #a8a196; text-align: left; cursor: pointer; font: 700 .95rem/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+  .ent-tab:hover, .ent-tab.on { color: var(--fg); }
+  .t-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: .55rem; }
+  .t-bar { display: block; height: 3px; background: rgba(242,240,234,.2); }
+  .t-bar i { display: block; height: 100%; width: 100%; background: var(--show); transform-origin: left; transform: scaleX(0); }
+  .ent-tab.on .t-bar i { animation: fill var(--dur, 6.5s) linear both; }
+  .paused .ent-tab.on .t-bar i { animation-play-state: paused; }
+  @keyframes fill { to { transform: scaleX(1); } }
+  .ent-pause { flex: none; width: 44px; height: 44px; display: grid; place-items: center; background: rgba(0,0,0,.35); border: 1px solid rgba(242,240,234,.3); color: var(--fg); cursor: pointer; border-radius: 2px; }
+  .ent-pause .i-play { display: none; } .ent-pause[aria-pressed='true'] .i-play { display: block; } .ent-pause[aria-pressed='true'] .i-pause { display: none; }
+  .ent-pause path { fill: currentColor; }
+
+  /* Marcador LED con el próximo show */
+  .ent-led { position: relative; z-index: 2; border-top: 2px solid var(--led); background-color: #0c0a08; background-image: radial-gradient(color-mix(in srgb, var(--led) 16%, transparent) 1.1px, transparent 1.3px); background-size: 5px 5px; }
+  .led-in { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto; gap: 1.5rem 2.5rem; align-items: center; padding-block: 1.4rem; }
+  .led-k { font: 700 .9rem/1 var(--font-text); color: var(--led); margin: 0 0 .45rem; }
+  .led-t { font: 900 clamp(1.9rem, 3vw, 2.9rem)/.9 var(--font-display); text-transform: uppercase; color: var(--led); text-decoration: none; text-shadow: 0 0 18px color-mix(in srgb, var(--led) 55%, transparent); text-wrap: balance; }
+  .led-when { margin: 0; font-size: 1rem; line-height: 1.45; color: #e7dccb; }
+  .led-when a { text-underline-offset: 3px; }
+  .led-clock { display: flex; gap: .7rem; font: 600 .95rem/1 var(--font-text); color: color-mix(in srgb, var(--led) 70%, #fff); }
+  .led-clock b { font: 900 2.4rem/1 var(--font-display); color: var(--led); font-variant-numeric: tabular-nums; text-shadow: 0 0 14px color-mix(in srgb, var(--led) 50%, transparent); margin-right: .1rem; }
+  .led-cta { display: flex; gap: .6rem; }
+  .led-cta .btn { background: var(--show); color: var(--show-ink); }
+  .led-cta .btn.ghost { background: transparent; color: var(--fg); }
+
+  @media (max-width: 1100px) {
+    .led-in { grid-template-columns: 1fr 1fr; }
+    .led-clock { order: 3; } .led-cta { order: 4; justify-content: end; }
+  }
+  @media (max-width: 720px) {
+    .ent { min-height: 0; grid-template-rows: auto auto auto; }
+    .ent-stage { bottom: auto; height: 68svh; }
+    .ent-ph { inset: 0; }
+    .ent-shade { background: linear-gradient(0deg, #050506 6%, rgba(5,5,6,.35) 45%, rgba(5,5,6,.1) 70%, rgba(5,5,6,.55) 100%); }
+    .beam { width: 60vw; }
+    .ent-copy { min-height: calc(68svh - 72px); padding-bottom: 1rem; }
+    .ent-name { font-size: clamp(4rem, 21vw, 6.5rem); }
+    .ent-why { font-size: 1rem; }
+    .t-name { display: none; }
+    .ent-tab { padding-top: 0; }
+    .ent-tabs { align-items: center; }
+    .led-in { grid-template-columns: 1fr; gap: 1rem; }
+    .led-clock { order: 0; }
+    .led-cta { order: 0; justify-content: stretch; } .led-cta .btn { flex: 1; justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ent-ph.on { animation: none; } .ent-ph.on img { animation: none; transform: none; }
+    .ent-tab.on .t-bar i { animation: none; transform: scaleX(1); }
+  }
+</style>

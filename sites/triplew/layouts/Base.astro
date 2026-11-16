@@ -2,7 +2,7 @@
 import '../../../shared/styles/base.css';
 import '../styles/triplew.css';
 import { nextShow, urls } from '../../../shared/lib.js';
-const { title, description = 'Triple W · WhiteWolf Wrestling. Lucha libre en Madrid desde 2009.', accent = nextShow.color, accentInk = nextShow.ink } = Astro.props;
+const { title, description = 'Triple W · WhiteWolf Wrestling. Lucha libre en Madrid desde 2009.', accent = nextShow.color, accentInk = nextShow.ink, overlayHead = false } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
   { href: '/shows/', label: 'Shows' },
@@ -24,7 +24,7 @@ const nav = [
 </head>
 <body style={`--accent:${accent};--accent-ink:${accentInk}`}>
   <div class="proto-bar"><b>Prototipo</b> · Lo marcado como <b>provisional</b> está pendiente de confirmar por la Triple W.</div>
-  <header class="site-head">
+  <header class:list={['site-head', { overlay: overlayHead }]}>
     <div class="wrap head-in">
       <a class="brand" href="/" aria-label="Triple W, inicio">
         <img class="brand-logo" src="/logo/whitewolf-blanco.svg" alt="" width="44" height="43" />
@@ -40,6 +40,11 @@ const nav = [
     </div>
   </header>
   <main><slot /></main>
+  {overlayHead && <script>
+    const h = document.querySelector('.site-head.overlay');
+    const on = () => h.classList.toggle('solid', scrollY > 40);
+    addEventListener('scroll', on, { passive: true }); on();
+  </script>}
   <footer class="site-foot">
     <div class="wrap foot-in">
       <div>
