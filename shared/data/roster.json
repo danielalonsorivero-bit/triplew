@@ -64,7 +64,11 @@
       "division": "absoluto",
       "nickname": "El Animal",
       "photo": "/luchadores/jon-valow.jpg",
-      "photoPos": "65% 15%"
+      "photoPos": "65% 15%",
+      "photos": [
+        "/luchadores/jon-valow/accion-01.jpg",
+        "/luchadores/jon-valow/accion-02.jpg"
+      ]
     },
     {
       "slug": "pimp-ross",

@@ -143,7 +143,9 @@
           "text": "Main event: Rizo vs. Pimp Ross por el Campeonato Absoluto. Resultado pendiente de confirmar.",
           "provisional": true
         }
-      ]
+      ],
+      "poster": "/carteles/instinto-animal.jpg",
+      "doors": "17:30"
     },
     {
       "slug": "kilometro-cero",
@@ -170,7 +172,9 @@
           "text": "Resto de resultados pendientes de pasar desde Instagram.",
           "provisional": true
         }
-      ]
+      ],
+      "poster": "/carteles/kilometro-cero.jpg",
+      "doors": "17:30"
     },
     {
       "slug": "level-one-young-wolves",
@@ -203,14 +207,17 @@
         "/fotos/f85.jpg",
         "/fotos/f86.jpg"
       ],
-      "galleryProvisional": true
+      "galleryProvisional": true,
+      "poster": "/carteles/level-one-young-wolves.jpg",
+      "start": "18:00",
+      "doors": "17:30"
     },
     {
       "slug": "total-rumble-2026",
       "name": "Total Rumble 2026",
       "brand": "triplew",
       "date": "2026-06-27",
-      "venue": "lucharama",
+      "venue": "revi",
       "color": "#C8102E",
       "ink": "#140204",
       "tagline": "Todos contra todos.",
@@ -221,7 +228,13 @@
         {
           "text": "La Nueva Ola venció a Greedy Souls."
         }
-      ]
+      ],
+      "poster": "/carteles/total-rumble-2026.jpg",
+      "start": "18:00",
+      "doors": "17:30",
+      "ticket": {
+        "type": "venta"
+      }
     },
     {
       "slug": "level-up-vii",
@@ -232,7 +245,12 @@
       "color": "#2BD46A",
       "ink": "#04140A",
       "tagline": "Level One.",
-      "provisional": true
+      "poster": "/carteles/level-up-vii.jpg",
+      "start": "18:00",
+      "doors": "17:30",
+      "ticket": {
+        "type": "inversa"
+      }
     },
     {
       "slug": "ultima-parada",
@@ -243,7 +261,12 @@
       "color": "#8B5CF6",
       "ink": "#0E0720",
       "tagline": "Fin de trayecto.",
-      "provisional": true
+      "poster": "/carteles/ultima-parada.jpg",
+      "start": "18:00",
+      "doors": "17:30",
+      "ticket": {
+        "type": "inversa"
+      }
     },
     {
       "slug": "dominio",
