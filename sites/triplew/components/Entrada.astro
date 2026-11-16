@@ -19,7 +19,8 @@ const isSale = show.ticket?.type === 'venta';
     ))}
     <div class="ent-shade"></div>
     <div class="ent-rig">
-      <span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span>
+      <span class="beam b1"><i></i></span><span class="beam b2"><i></i></span><span class="beam b3"><i></i></span>
+      <span class="beam gel g1"><i></i></span><span class="beam gel g2"><i></i></span>
     </div>
     <div class="ent-haze"></div>
     <div class="ent-flash"></div>
@@ -163,18 +164,30 @@ const isSale = show.ticket?.type === 'venta';
     linear-gradient(0deg, #050506 0%, rgba(5,5,6,0) 38%),
     linear-gradient(180deg, rgba(5,5,6,.7) 0%, rgba(5,5,6,0) 22%); }
 
-  /* Luces: tres cañones que barren, siguen al ratón y golpean al cambiar de luchador */
-  .ent-rig { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: screen; transform: translateX(calc(var(--mx) * 60px)); transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
-  .beam { position: absolute; top: -12%; width: 26vw; min-width: 240px; height: 135%; transform-origin: 50% 0; background: linear-gradient(180deg, color-mix(in srgb, var(--led) 60%, transparent) 0%, color-mix(in srgb, var(--led) 18%, transparent) 45%, transparent 80%); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); filter: blur(10px); opacity: .55; }
-  .b1 { left: 38%; animation: sweep 9s ease-in-out infinite alternate, flick 5.3s steps(1) infinite; }
-  .b2 { left: 58%; rotate: -12deg; animation: sweep2 11s ease-in-out infinite alternate; opacity: .42; }
-  .b3 { left: 74%; animation: sweep 7.5s ease-in-out -3s infinite alternate-reverse; opacity: .32; background: linear-gradient(180deg, rgba(255,255,255,.55), transparent 70%); }
+  /* Luces. Dos familias:
+     - cañones (b1-b3): luz blanca/cálida en modo "trama" (screen), con el cono muy difuminado;
+     - gelatinas (g1-g2): haces de color en modo "color", que tiñen la foto en blanco y negro al pasar.
+     g1 usa el color del show; g2 su complementario (mismo color girado 180°). */
+  .ent-rig { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+  .beam { position: absolute; top: -14%; width: 30vw; min-width: 280px; height: 140%; transform-origin: 50% 0; translate: calc(var(--mx) * 70px) 0; transition: translate .9s cubic-bezier(.2, .8, .2, 1); mix-blend-mode: screen; filter: blur(clamp(18px, 2vw, 34px)); opacity: .75; }
+  .beam i { position: absolute; inset: 0; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+    background: radial-gradient(ellipse 60% 90% at 50% 0%, color-mix(in srgb, var(--led) 75%, #fff) 0%, color-mix(in srgb, var(--led) 35%, transparent) 40%, transparent 85%); }
+  .b1 { left: 36%; animation: sweep 9s ease-in-out infinite alternate, flick 5.3s steps(1) infinite; }
+  .b2 { left: 56%; animation: sweep2 11s ease-in-out infinite alternate; opacity: .45; }
+  .b3 { left: 74%; animation: sweep 7.5s ease-in-out -3s infinite alternate-reverse; opacity: .38; }
+  .b3 i { background: radial-gradient(ellipse 60% 90% at 50% 0%, rgba(255,255,255,.75) 0%, rgba(255,255,255,.2) 45%, transparent 85%); }
+  .gel { mix-blend-mode: color; opacity: .8; width: 32vw; filter: blur(clamp(24px, 2.6vw, 44px)); }
+  .gel i { clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); background: linear-gradient(180deg, var(--show) 0%, var(--show) 55%, transparent 95%); }
+  .g1 { left: 48%; animation: sweep3 13s ease-in-out infinite alternate; }
+  .g2 { left: 70%; animation: sweep2 10s ease-in-out -4s infinite alternate-reverse; opacity: .75; }
+  .g2 i { filter: hue-rotate(180deg) saturate(1.4); }
   @keyframes sweep { from { rotate: 18deg; } to { rotate: -14deg; } }
   @keyframes sweep2 { from { rotate: -20deg; } to { rotate: 10deg; } }
-  @keyframes flick { 0%, 100% { opacity: .55; } 61% { opacity: .2; } 62% { opacity: .6; } 64% { opacity: .25; } 65% { opacity: .55; } }
-  .hit .beam { animation: hit .9s cubic-bezier(.2, .9, .2, 1) both; }
+  @keyframes sweep3 { from { rotate: 26deg; } to { rotate: -8deg; } }
+  @keyframes flick { 0%, 100% { opacity: .6; } 61% { opacity: .22; } 62% { opacity: .65; } 64% { opacity: .28; } 65% { opacity: .6; } }
+  .hit .beam:not(.gel) { animation: hit .9s cubic-bezier(.2, .9, .2, 1) both; }
   .hit .b2 { animation-delay: .06s; } .hit .b3 { animation-delay: .12s; }
-  @keyframes hit { 0% { rotate: 0deg; opacity: 1; filter: blur(4px) brightness(1.8); } 100% { opacity: .5; } }
+  @keyframes hit { 0% { rotate: 0deg; opacity: 1; } 100% { opacity: .55; } }
   .ent-haze { position: absolute; inset: -20%; z-index: 5; pointer-events: none; opacity: .22; mix-blend-mode: screen;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
     background-size: 1400px 1400px; animation: drift 40s linear infinite; }
@@ -236,7 +249,7 @@ const isSale = show.ticket?.type === 'venta';
     .ent-stage { bottom: auto; height: 68svh; }
     .ent-ph { inset: 0; }
     .ent-shade { background: linear-gradient(0deg, #050506 6%, rgba(5,5,6,.35) 45%, rgba(5,5,6,.1) 70%, rgba(5,5,6,.55) 100%); }
-    .beam { width: 60vw; }
+    .beam { width: 70vw; } .gel { width: 85vw; }
     .ent-copy { min-height: calc(68svh - 72px); padding-bottom: 1rem; }
     .ent-name { font-size: clamp(4rem, 21vw, 6.5rem); }
     .ent-why { font-size: 1rem; }
