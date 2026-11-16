@@ -7,6 +7,7 @@ const v = venues[show.venue];
 const slides = heroSlides(show);
 const startISO = `${show.date}T${show.start || '18:00'}:00+01:00`;
 const vs = (s) => s.opponents?.length ? s.opponents : [];
+const chars = (t) => [...t];
 const nameLines = (n) => { const p = n.split(' '); return p.length === 1 ? [n] : [p[0], p.slice(1).join(' ')]; };
 const isSale = show.ticket?.type === 'venta';
 ---
@@ -20,7 +21,6 @@ const isSale = show.ticket?.type === 'venta';
     <div class="ent-shade"></div>
     <div class="ent-rig">
       <span class="beam b1"><i></i></span><span class="beam b2"><i></i></span><span class="beam b3"><i></i></span>
-      <span class="beam gel g1"><i></i></span><span class="beam gel g2"><i></i></span>
     </div>
     <div class="ent-haze"></div>
     <div class="ent-flash"></div>
@@ -29,10 +29,12 @@ const isSale = show.ticket?.type === 'venta';
   <div class="wrap ent-copy">
     {slides.map((s, i) => (
       <div class:list={['ent-who', { on: i === 0 }]} data-i={i} role="group" aria-roledescription="diapositiva" aria-label={`${i + 1} de ${slides.length}: ${s.w.name}`} aria-hidden={i === 0 ? undefined : 'true'}>
-        <a class="ent-name" href={`/roster/${s.w.slug}/`}>
-          {nameLines(s.w.name).map((l, k) => <span class:list={['ln', { o: k > 0 }]} style={`--k:${k}`}>{l}</span>)}
+        <a class="ent-name" href={`/roster/${s.w.slug}/`} aria-label={s.w.name}>
+          {(() => { let c = 0; return nameLines(s.w.name).map((l, k) => (
+            <span class:list={['ln', { o: k > 0 }]} aria-hidden="true">{chars(l).map((ch) => <span class="ch" style={`--c:${c++}`}>{ch === ' ' ? '\u00a0' : ch}</span>)}</span>
+          )); })()}
         </a>
-        {vs(s).length > 0 && <p class="ent-vs">contra <b>{vs(s).join(' y ')}</b></p>}
+        {vs(s).length > 0 && <p class="ent-vs"><span>contra</span> <b>{vs(s).join(' y ')}</b></p>}
         {(s.match || s.text) && <p class="ent-why">{[s.match, s.text].filter(Boolean).join('. ')}{s.provisional && ' (por confirmar)'}</p>}
       </div>
     ))}
@@ -93,6 +95,7 @@ const isSale = show.ticket?.type === 'venta';
 
     const go = (to, user = false) => {
       if (to === i || n < 2) return;
+      root.classList.add('ran');
       const from = i; i = (to + n) % n;
       phs[from].classList.remove('on'); phs[from].classList.add('off');
       setTimeout(() => phs[from].classList.remove('off'), 1100);
@@ -156,7 +159,7 @@ const isSale = show.ticket?.type === 'venta';
   .ent-ph.on img { animation: kb var(--dur, 6.5s) linear both, ph-burn 1.1s ease-out both; }
   .ent-ph.off { opacity: 1; z-index: 1; animation: ph-out 1s ease-in both; }
   @keyframes ph-in { from { clip-path: polygon(110% 0, 140% 0, 110% 100%, 80% 100%); } to { clip-path: polygon(-40% 0, 140% 0, 110% 100%, -70% 100%); } }
-  @keyframes ph-out { to { opacity: 0; transform: scale(.96); filter: blur(6px); } }
+  @keyframes ph-out { to { opacity: 0; transform: scale(1.08); filter: blur(8px); } }
   @keyframes kb { from { transform: scale(1.14) translateX(1.5%); } to { transform: scale(1.02) translateX(0); } }
   @keyframes ph-burn { from { filter: grayscale(1) contrast(1.6) brightness(2.4); } to { filter: grayscale(1) contrast(1.22) brightness(.92); } }
   .ent-shade { position: absolute; inset: 0; z-index: 3; background:
@@ -164,10 +167,8 @@ const isSale = show.ticket?.type === 'venta';
     linear-gradient(0deg, #050506 0%, rgba(5,5,6,0) 38%),
     linear-gradient(180deg, rgba(5,5,6,.7) 0%, rgba(5,5,6,0) 22%); }
 
-  /* Luces. Dos familias:
-     - cañones (b1-b3): luz blanca/cálida en modo "trama" (screen), con el cono muy difuminado;
-     - gelatinas (g1-g2): haces de color en modo "color", que tiñen la foto en blanco y negro al pasar.
-     g1 usa el color del show; g2 su complementario (mismo color girado 180°). */
+  /* Luces: tres cañones en modo "trama" (screen), con el cono muy difuminado.
+     El cono se recorta en el <i> interior y el desenfoque va en el exterior, para que el borde quede suave. */
   .ent-rig { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
   .beam { position: absolute; top: -14%; width: 30vw; min-width: 280px; height: 140%; transform-origin: 50% 0; translate: calc(var(--mx) * 70px) 0; transition: translate .9s cubic-bezier(.2, .8, .2, 1); mix-blend-mode: screen; filter: blur(clamp(18px, 2vw, 34px)); opacity: .75; }
   .beam i { position: absolute; inset: 0; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
@@ -176,22 +177,22 @@ const isSale = show.ticket?.type === 'venta';
   .b2 { left: 56%; animation: sweep2 11s ease-in-out infinite alternate; opacity: .45; }
   .b3 { left: 74%; animation: sweep 7.5s ease-in-out -3s infinite alternate-reverse; opacity: .38; }
   .b3 i { background: radial-gradient(ellipse 60% 90% at 50% 0%, rgba(255,255,255,.75) 0%, rgba(255,255,255,.2) 45%, transparent 85%); }
-  .gel { mix-blend-mode: color; opacity: .8; width: 32vw; filter: blur(clamp(24px, 2.6vw, 44px)); }
-  .gel i { clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); background: linear-gradient(180deg, var(--show) 0%, var(--show) 55%, transparent 95%); }
-  .g1 { left: 48%; animation: sweep3 13s ease-in-out infinite alternate; }
-  .g2 { left: 70%; animation: sweep2 10s ease-in-out -4s infinite alternate-reverse; opacity: .75; }
-  .g2 i { filter: hue-rotate(180deg) saturate(1.4); }
   @keyframes sweep { from { rotate: 18deg; } to { rotate: -14deg; } }
   @keyframes sweep2 { from { rotate: -20deg; } to { rotate: 10deg; } }
-  @keyframes sweep3 { from { rotate: 26deg; } to { rotate: -8deg; } }
-  @keyframes flick { 0%, 100% { opacity: .6; } 61% { opacity: .22; } 62% { opacity: .65; } 64% { opacity: .28; } 65% { opacity: .6; } }
-  .hit .beam:not(.gel) { animation: hit .9s cubic-bezier(.2, .9, .2, 1) both; }
+    @keyframes flick { 0%, 100% { opacity: .6; } 61% { opacity: .22; } 62% { opacity: .65; } 64% { opacity: .28; } 65% { opacity: .6; } }
+  /* Al cargar la página, los cañones se encienden uno a uno con un parpadeo, y luego entra el nombre. */
+  .beam i { animation: power .7s steps(1) both; }
+  .b1 i { animation-delay: .05s; } .b2 i { animation-delay: .3s; } .b3 i { animation-delay: .5s; }
+  @keyframes power { 0% { opacity: 0; } 30% { opacity: 1; } 40% { opacity: .1; } 55% { opacity: 1; } 65% { opacity: .3; } 75%, 100% { opacity: 1; } }
+  .ent:not(.ran) .ent-who { --d0: .95s; }
+  .ent:not(.ran) .ent-ph.on img { animation-delay: 0s, .6s; }
+  .hit .beam { animation: hit .9s cubic-bezier(.2, .9, .2, 1) both; }
   .hit .b2 { animation-delay: .06s; } .hit .b3 { animation-delay: .12s; }
   @keyframes hit { 0% { rotate: 0deg; opacity: 1; } 100% { opacity: .55; } }
   .ent-haze { position: absolute; inset: -20%; z-index: 5; pointer-events: none; opacity: .22; mix-blend-mode: screen;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-    background-size: 1400px 1400px; animation: drift 40s linear infinite; }
-  @keyframes drift { to { transform: translate3d(-12%, -4%, 0); } }
+    background-size: 100% 100%; background-repeat: no-repeat; animation: drift 30s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translate3d(4%, 2%, 0) scale(1.05); } to { transform: translate3d(-6%, -3%, 0) scale(1); } }
   .ent-flash { position: absolute; inset: 0; z-index: 6; background: #fff; opacity: 0; pointer-events: none; }
   .hit .ent-flash { animation: strobe .45s steps(1) both; }
   @keyframes strobe { 0% { opacity: .5; } 20% { opacity: 0; } 40% { opacity: .28; } 60%, 100% { opacity: 0; } }
@@ -204,12 +205,21 @@ const isSale = show.ticket?.type === 'venta';
   .ln { display: block; }
   .ln.o { color: transparent; -webkit-text-stroke: clamp(1.5px, .18vw, 2.5px) var(--fg); }
   .ent-name:hover .ln.o { color: var(--show); -webkit-text-stroke-color: var(--show); }
-  .ent-who.on .ln { animation: slam .85s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(.18s + var(--k) * .09s); }
-  @keyframes slam { from { opacity: 0; transform: scale(1.32) translateX(-3%); filter: blur(14px); } to { opacity: 1; transform: none; filter: none; } }
+  /* Entrada del nombre: cada letra cae de golpe desde la cámara, desenfocada,
+     y un destello del color del show la recorre de izquierda a derecha. */
+  .ch { display: inline-block; }
+  .ent-who.on .ch { animation: slam .7s cubic-bezier(.16, 1, .3, 1) both, glint .9s ease-out both; animation-delay: calc(var(--d0, .25s) + var(--c) * .045s), calc(var(--d0, .25s) + .35s + var(--c) * .045s); }
+  @keyframes slam { 0% { opacity: 0; transform: translateY(-.12em) scale(2.4); filter: blur(18px); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; filter: none; } }
+  @keyframes glint { 0% { color: var(--glint, var(--fg)); text-shadow: 0 0 .25em color-mix(in srgb, var(--show) 80%, transparent); -webkit-text-stroke-color: var(--show); } 100% { text-shadow: none; } }
+  .ln:not(.o) .ch { --glint: color-mix(in srgb, var(--show) 55%, #fff); }
+  .ent-who.on .ent-name { animation: shake .45s steps(2) both; animation-delay: calc(var(--d0, .25s) + .12s); }
+  @keyframes shake { 0% { transform: translate(0, 0); } 25% { transform: translate(-.012em, .01em); } 50% { transform: translate(.01em, -.008em); } 75% { transform: translate(-.006em, .004em); } 100% { transform: none; } }
   .ent-vs { font: 800 clamp(1.4rem, 2.4vw, 2.1rem)/1 var(--font-display); text-transform: uppercase; margin: 1.2rem 0 .5rem; color: #d9d3c7; }
   .ent-vs b { color: var(--show); }
   .ent-why { font-size: 1.05rem; line-height: 1.45; max-width: 44ch; color: #c9c2b5; margin: 0; }
-  .ent-who.on .ent-vs, .ent-who.on .ent-why { animation: up .7s cubic-bezier(.16, 1, .3, 1) .4s both; }
+  .ent-who.on .ent-vs { animation: wipe .6s cubic-bezier(.7, 0, .2, 1) both; animation-delay: calc(var(--d0, .25s) + .55s); }
+  .ent-who.on .ent-why { animation: up .7s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--d0, .25s) + .75s); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-.4em); } to { clip-path: inset(0 -5% 0 0); transform: none; } }
   @keyframes up { from { opacity: 0; transform: translateY(14px); } }
 
   /* Selector de luchadores */
@@ -249,7 +259,7 @@ const isSale = show.ticket?.type === 'venta';
     .ent-stage { bottom: auto; height: 68svh; }
     .ent-ph { inset: 0; }
     .ent-shade { background: linear-gradient(0deg, #050506 6%, rgba(5,5,6,.35) 45%, rgba(5,5,6,.1) 70%, rgba(5,5,6,.55) 100%); }
-    .beam { width: 70vw; } .gel { width: 85vw; }
+    .beam { width: 70vw; }
     .ent-copy { min-height: calc(68svh - 72px); padding-bottom: 1rem; }
     .ent-name { font-size: clamp(4rem, 21vw, 6.5rem); }
     .ent-why { font-size: 1rem; }
