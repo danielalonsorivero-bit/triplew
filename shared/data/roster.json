@@ -1,5 +1,5 @@
 {
-  "_nota": "Roster sacado de las publicaciones de @latriplew y @lucharamabytriplew (nov. 2026). Divisiones, apodos sin comillas en origen y biografías son PROVISIONALES hasta que la Triple W los confirme.",
+  "_nota": "Roster sacado de las publicaciones de @latriplew y @lucharamabytriplew (nov. 2026). Divisiones, apodos sin comillas en origen y biografías son PROVISIONALES hasta que la Triple W los confirme. Retratos: carpeta src de Daniel (nov. 2026), en public/triplew/luchadores/.",
   "divisions": {
     "absoluto": {
       "name": "Triple W",
@@ -30,6 +30,11 @@
       "nickname": "El campeón",
       "provisional": [
         "nickname"
+      ],
+      "photo": "/luchadores/rizo.jpg",
+      "photoPos": "center 25%",
+      "photos": [
+        "/luchadores/rizo-cinturon.jpg"
       ]
     },
     {
@@ -38,7 +43,9 @@
       "emoji": "🕶️",
       "division": "absoluto",
       "nickname": "El Rey de los Canallas",
-      "notes": "Ganador de la Total Rumble 2026."
+      "notes": "Ganador de la Total Rumble 2026.",
+      "photo": "/luchadores/trevor-de-vries.jpg",
+      "photoPos": "center 25%"
     },
     {
       "slug": "jon-valow",
@@ -133,6 +140,18 @@
       "nickname": "Machoflaco"
     },
     {
+      "slug": "hades",
+      "name": "Hades",
+      "emoji": "⛓️",
+      "division": "absoluto",
+      "photo": "/luchadores/hades.jpg",
+      "photoPos": "center 25%",
+      "provisional": [
+        "emoji",
+        "division"
+      ]
+    },
+    {
       "slug": "joro",
       "name": "Joro",
       "emoji": "☄️",
@@ -142,7 +161,9 @@
       ],
       "nickname": "La joven promesa",
       "notes": "Ganador del torneo Young Wolves 2026.",
-      "instagram": "its_joroo5"
+      "instagram": "its_joroo5",
+      "photo": "/luchadores/joro.jpg",
+      "photoPos": "center 20%"
     },
     {
       "slug": "newt-nova",
@@ -150,7 +171,12 @@
       "emoji": "⭐",
       "division": "levelone",
       "nickname": "La Estrella",
-      "instagram": "newtnova"
+      "instagram": "newtnova",
+      "photo": "/luchadores/newt-nova.jpg",
+      "photoPos": "center 20%",
+      "photos": [
+        "/fotos/f44.jpg"
+      ]
     },
     {
       "slug": "ochoa",
@@ -163,7 +189,9 @@
         "/fotos/f07.jpg",
         "/fotos/f11.jpg",
         "/fotos/f15.jpg"
-      ]
+      ],
+      "photo": "/luchadores/ochoa.jpg",
+      "photoPos": "35% 30%"
     },
     {
       "slug": "reaper",
@@ -179,7 +207,9 @@
       "emoji": "🔒",
       "division": "levelone",
       "notes": "Primer clasificado para la escalera de Top 1.",
-      "instagram": "soyvaroydiaz"
+      "instagram": "soyvaroydiaz",
+      "photo": "/luchadores/varo-diaz.jpg",
+      "photoPos": "center 25%"
     },
     {
       "slug": "rocha",

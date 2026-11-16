@@ -27,7 +27,7 @@ const past = new Date(s.date) < today;
         </dl>
         {!past && s.ticket?.type === 'venta' && <a class="btn" href={s.ticket.url}>Compra tu entrada →</a>}
       </div>
-      <div class="poster-col"><Poster show={s} size="l" /><p class="muted small">Aquí va el cartel real del show.</p></div>
+      <div class="poster-col"><Poster show={s} size="l" />{!s.poster && <p class="muted small">Aquí va el cartel real del show.</p>}</div>
     </div>
   </section>
 

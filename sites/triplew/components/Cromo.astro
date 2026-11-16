@@ -9,7 +9,7 @@ const champ = (w.titles || []).map(titleOf).filter(Boolean);
 <a class="cromo" href={`/roster/${w.slug}/`} style={`--d:${div.color}`}>
   <div class="c-inner">
     <div class="c-face c-front">
-      <PhotoSlot initials={initials(w.name)} tone="#1b1b1b" ink={div.color} ratio="3/4" label="Retrato pendiente" />
+      <PhotoSlot src={w.photo} pos={w.photoPos} alt={w.name} initials={initials(w.name)} tone="#1b1b1b" ink={div.color} ratio="3/4" label="" />
       {champ.length > 0 && <span class="c-belt">Campeón · {champ.map((t) => t.short).join(' / ')}</span>}
       <div class="c-name">
         {n && <span class="c-num">#{String(n).padStart(2, '0')}</span>}

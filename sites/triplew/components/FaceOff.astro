@@ -11,13 +11,13 @@ const link = (name) => { const w = findByName(name); return w ? `/roster/${w.slu
   <header class="fo-title">{match.title} {match.provisional && <Provisional />}</header>
   <div class="fo-grid">
     <div class="fo-side fo-a">
-      <PhotoSlot initials={initials(a)} tone="#141414" ink={color} ratio="1/1" label="" />
+      <PhotoSlot src={findByName(a)?.photo} pos={findByName(a)?.photoPos} alt={a} initials={initials(a)} tone="#141414" ink={color} ratio="1/1" label="" />
       {link(a) ? <a href={link(a)} class="fo-name">{a}</a> : <span class="fo-name">{a}</span>}
     </div>
     {b && <span class="fo-vs">VS</span>}
     {b && (
       <div class="fo-side fo-b">
-        <PhotoSlot initials={initials(b)} tone="#141414" ink={color} ratio="1/1" label="" />
+        <PhotoSlot src={findByName(b)?.photo} pos={findByName(b)?.photoPos} alt={b} initials={initials(b)} tone="#141414" ink={color} ratio="1/1" label="" />
         {link(b) ? <a href={link(b)} class="fo-name">{b}</a> : <span class="fo-name">{b}</span>}
       </div>
     )}

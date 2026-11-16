@@ -13,7 +13,7 @@ const appearances = allShows.filter((s) => JSON.stringify([s.card, s.results]).i
 <Base title={w.name} accent={div.color} accentInk="#0b0b0b">
   <section class="wrap prof">
     <div class="photo">
-      <PhotoSlot initials={initials(w.name)} tone="#141414" ink={div.color} ratio="3/4" label="Retrato pendiente" />
+      <PhotoSlot src={w.photo} pos={w.photoPos} alt={w.name} eager initials={initials(w.name)} tone="#141414" ink={div.color} ratio="3/4" label="Retrato pendiente" />
       <span class="emoji" aria-hidden="true">{w.emoji}</span>
     </div>
     <div class="info">

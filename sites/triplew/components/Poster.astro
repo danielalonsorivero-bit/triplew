@@ -1,7 +1,8 @@
 ---
 // Cartel tipográfico generado con el color del show. Sustituible por el cartel real (prop "image").
 import { dayNum, monthShort, venues } from '../../../shared/lib.js';
-const { show, image, size = 'm' } = Astro.props;
+const { show, size = 'm' } = Astro.props;
+const image = Astro.props.image ?? show.poster;
 const words = show.name.split(' ');
 const longest = Math.max(...words.map((w) => w.length));
 const fs = Math.min(26, 150 / Math.max(longest, 4), 70 / words.length);

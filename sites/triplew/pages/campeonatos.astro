@@ -13,7 +13,7 @@ import { titles, wrestler, initials } from '../../../shared/lib.js';
         const h = t.holder && wrestler(t.holder);
         return (
           <article class="title" style={`--t:${t.color}`}>
-            <div class="belt-img"><PhotoSlot tone="#121212" ink={t.color} ratio="16/9" label="Foto del cinturón" /></div>
+            <div class="belt-img"><PhotoSlot src={h?.photos?.find((p) => p.includes('cinturon')) ?? h?.photo} pos={h?.photoPos} alt={h ? `${h.name} con el ${t.name}` : ''} tone="#121212" ink={t.color} ratio="16/9" label="Foto del cinturón" /></div>
             <div class="t-body">
               <h2 class="h-l">{t.name}</h2>
               <p class="holder">{h ? <>Campeón actual: <a href={`/roster/${h.slug}/`}>{h.name}</a></> : <>Campeón actual: por confirmar <Provisional /></>}</p>

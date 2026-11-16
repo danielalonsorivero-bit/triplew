@@ -10,7 +10,8 @@ import { nextShow, upcomingShows, pastShows, venues, dateLong, ticketLabel, titl
 const s = nextShow;
 const v = venues[s.venue];
 const lastShow = pastShows.find((p) => p.results?.length);
-const featured = ['rizo', 'trevor-de-vries', 'jon-valow', 'joro', 'newt-nova', 'ochoa', 'super-franki', 'la-nueva-ola'].map(wrestler);
+// Primero los que ya tienen retrato; el resto completa hasta 8.
+const featured = [...roster.filter((w) => w.photo), ...['jon-valow', 'super-franki', 'la-nueva-ola'].map(wrestler)].slice(0, 8);
 const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
 ---
 <Base>
@@ -94,7 +95,7 @@ const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
           const h = t.holder && wrestler(t.holder);
           return (
             <a class="champ" href={h ? `/roster/${h.slug}/` : '/campeonatos/'} style={`--t:${t.color}`}>
-              <PhotoSlot initials={h ? initials(h.name) : '?'} tone="#121212" ink={t.color} ratio="4/5" label="Foto con el cinturón" />
+              <PhotoSlot src={h?.photos?.find((p) => p.includes('cinturon')) ?? h?.photo} pos={h?.photoPos} alt={h?.name ?? ''} initials={h ? initials(h.name) : '?'} tone="#121212" ink={t.color} ratio="4/5" label="Foto con el cinturón" />
               <div class="champ-txt">
                 <span class="champ-t">{t.name}</span>
                 <span class="champ-n">{h ? h.name : 'Vacante / por confirmar'}</span>
@@ -119,8 +120,8 @@ const startISO = `${s.date}T${s.start || '18:00'}:00+01:00`;
   <section class="section wrap">
     <div class="sec-head"><div><p class="kicker">Desde ringside</p><h2 class="h-l">Galería</h2></div><a href="https://www.instagram.com/wrestlingphotoshow/">@wrestlingphotoshow ↗</a></div>
     <div class="mosaic">
-      {[['f72','w'],['f70','t'],['f58',''],['f43','t'],['f64',''],['f49','w'],['f71','t'],['f66',''],['f81','w'],['f44','']].map(([f, c]) => (
-        <figure class={`m ${c}`}><img src={`/fotos/${f}.jpg`} alt="Foto de un show de la Triple W" loading="lazy" /></figure>
+      {[['f72','w','Varo Díaz'],['f70','t','Joro'],['f58',''],['f43','t','Newt Nova'],['f64',''],['f49','w'],['f71','t'],['f66',''],['f81','w'],['f44','','Newt Nova']].map(([f, c, who]) => (
+        <figure class={`m ${c}`}><img src={`/fotos/${f}.jpg`} alt={who ? `${who} en un show de la Triple W` : 'Foto de un show de la Triple W'} loading="lazy" /></figure>
       ))}
     </div>
   </section>
