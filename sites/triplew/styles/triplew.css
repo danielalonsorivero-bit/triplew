@@ -57,3 +57,4 @@ body { background-color: var(--bg); background-image: url("data:image/svg+xml,%3
 /* Legibilidad mínima de las etiquetas "provisional" en Triple W */
 .provisional { font-size: .75rem !important; }
 p { text-wrap: pretty; }
+@media (max-width: 420px) { .brand-sub { display: none; } }

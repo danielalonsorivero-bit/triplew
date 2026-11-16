@@ -7,9 +7,8 @@ const order = ['absoluto', 'levelone', 'parejas', 'staff'];
 ---
 <Base title="Roster">
   <section class="section wrap">
-    <p class="kicker">Luchadores, equipos y staff</p>
     <h1 class="h-xl">Roster</h1>
-    <p class="intro muted">Lista sacada de los últimos shows. Las divisiones y apodos están pendientes de confirmar <Provisional />. Los retratos se harán en una sesión con fondo y luz uniformes.</p>
+    <p class="intro">{roster.length} luchadores, equipos y staff de Triple W y Level One. <Provisional label="Divisiones por confirmar" /></p>
     <div class="filters" role="group" aria-label="Filtrar por división">
       <button data-f="all" aria-pressed="true">Todos</button>
       {order.map((d) => <button data-f={d} aria-pressed="false" style={`--d:${divisions[d].color}`}>{divisions[d].name}</button>)}
@@ -30,7 +29,7 @@ const order = ['absoluto', 'levelone', 'parejas', 'staff'];
   }));
 </script>
 <style>
-  .intro { max-width: 60ch; margin-top: 1rem; }
+  .intro { max-width: 60ch; margin-top: 1rem; font-size: 1.15rem; color: #c9c2b5; }
   .filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 2rem 0 1rem; }
   .filters button { font: 800 .95rem/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: .7rem 1rem; background: transparent; color: var(--fg); border: 1.5px solid var(--line); border-radius: 999px; cursor: pointer; }
   .filters button[aria-pressed="true"] { background: var(--fg); color: #0b0b0b; border-color: var(--fg); }

@@ -1,63 +1,166 @@
 ---
+// Ficha de luchador: su propia "entrada" (retrato bajo los focos y nombre que cae letra a letra),
+// ficha técnica en marcador LED para promotoras, fotos en acción y sus shows.
+// Todo sale de roster.json, titles.json y shows.json. Campos opcionales que se muestran si existen:
+// bio, hometown, debut, finisher, instagram, video, photos.
 import Base from '../../layouts/Base.astro';
-import PhotoSlot from '../../../../shared/components/PhotoSlot.astro';
 import Provisional from '../../../../shared/components/Provisional.astro';
-import { roster, divisions, titleOf, initials, allShows, dateLong } from '../../../../shared/lib.js';
+import { roster, divisions, titleOf, allShows, dateLong, venues } from '../../../../shared/lib.js';
 export function getStaticPaths() { return roster.map((w) => ({ params: { slug: w.slug }, props: { w } })); }
 const { w } = Astro.props;
 const div = divisions[w.division];
 const champ = (w.titles || []).map(titleOf).filter(Boolean);
 const prov = w.provisional || [];
-const appearances = allShows.filter((s) => JSON.stringify([s.card, s.results]).includes(w.name));
+const mentions = (s) => JSON.stringify([s.card, s.results]).includes(w.name);
+const shows = allShows.filter(mentions).reverse();
+const lines = (n) => { const p = n.split(' '); return p.length === 1 ? [n] : [p[0], p.slice(1).join(' ')]; };
+let c = 0;
+const facts = [
+  ['División', div.name],
+  w.team && ['Equipo', w.team, prov.includes('team')],
+  ['Títulos', champ.length ? champ.map((t) => t.name).join(', ') : 'Ninguno ahora mismo'],
+  ['Procedencia', w.hometown],
+  ['Debut en Triple W', w.debut],
+  ['Movimiento final', w.finisher],
+].filter(Boolean);
+const gallery = (w.photos || []).filter((p) => p !== w.photo);
+const same = roster.filter((x) => x.division === w.division);
+const i = same.indexOf(w);
+const prev = same[(i - 1 + same.length) % same.length];
+const next = same[(i + 1) % same.length];
+const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación: ${w.name}`)}`;
 ---
-<Base title={w.name} accent={div.color} accentInk="#0b0b0b">
-  <section class="wrap prof">
-    <div class="photo">
-      <PhotoSlot src={w.photo} pos={w.photoPos} alt={w.name} eager initials={initials(w.name)} tone="#141414" ink={div.color} ratio="3/4" label="Retrato pendiente" />
-      <span class="emoji" aria-hidden="true">{w.emoji}</span>
+<Base title={w.name} accent={div.color} accentInk="#0b0b0b" overlayHead>
+  <section class="pro" style={`--d:${div.color}`}>
+    <div class="pro-stage" aria-hidden="true">
+      {w.photo && <img src={w.photo} alt="" style={`object-position:${(w.photoPos || 'center 20%').split(' ')[0]} 6%`} fetchpriority="high" />}
+      <div class="pro-shade"></div>
+      <span class="beam b1"><i></i></span><span class="beam b2"><i></i></span>
     </div>
-    <div class="info">
-      <p class="kicker">{div.name}</p>
-      <h1 class="h-xl">{w.name}</h1>
-      {w.nickname && <p class="nick">«{w.nickname}» {prov.includes('nickname') && <Provisional />}</p>}
-      {champ.map((t) => <p class="belt" style={`--t:${t.color}`}>Campeón actual · {t.name}</p>)}
-      <dl class="facts">
-        {w.team && <div><dt>Equipo</dt><dd>{w.team} {prov.includes('team') && <Provisional />}</dd></div>}
-        <div><dt>Debut en Triple W</dt><dd>— <Provisional /></dd></div>
-        <div><dt>Movimiento final</dt><dd>— <Provisional /></dd></div>
+    <div class="wrap pro-in">
+      {champ.map((t) => <p class="belt" style={`--t:${t.color}`}>Campeón · {t.name}</p>)}
+      <h1 class="pro-name" aria-label={w.name}>
+        {lines(w.name).map((l, k) => <span class:list={['ln', { o: k > 0 }]} aria-hidden="true">{[...l].map((ch) => <span class="ch" style={`--c:${c++}`}>{ch === ' ' ? ' ' : ch}</span>)}</span>)}
+      </h1>
+      {w.nickname && <p class="pro-nick">«{w.nickname}» {prov.includes('nickname') && <Provisional label="Por confirmar" />}</p>}
+      <p class="pro-div">{div.name}</p>
+    </div>
+  </section>
+
+  <section class="wrap tape">
+    <div>
+      <h2 class="h-m">Ficha técnica</h2>
+      <dl class="board">
+        {facts.map(([k, v, p]) => (
+          <div><dt>{k}</dt><dd class:list={{ empty: !v }}>{v || 'Por confirmar'} {p && <Provisional label="Por confirmar" />}</dd></div>
+        ))}
         {w.instagram && <div><dt>Instagram</dt><dd><a href={`https://www.instagram.com/${w.instagram}/`}>@{w.instagram}</a></dd></div>}
       </dl>
-      <div class="bio">
-        {w.notes && <p>{w.notes}</p>}
-        <p class="muted">Biografía pendiente: dos o tres frases en la voz del personaje. <Provisional /></p>
+    </div>
+    <div class="tape-side">
+      {(w.bio || w.notes) && <p class="bio">{w.bio || w.notes}</p>}
+      {w.video && <a class="btn ghost" href={w.video}>Ver su entrada en vídeo ↗</a>}
+      <div class="book">
+        <h2 class="h-m">¿Quieres a {w.name} en tu cartel?</h2>
+        <p>Promotoras y eventos: escríbenos y te pasamos disponibilidad y condiciones.</p>
+        <a class="btn" href={mail}>Contactar con Triple W</a>
       </div>
-      {appearances.length > 0 && (
-        <div class="apps">
-          <h2 class="h-m">Apariciones recientes</h2>
-          <ul>{appearances.reverse().map((s) => <li><a href={`/shows/${s.slug}/`} style={`--c:${s.color}`}>{s.name}</a> <span class="muted">· {dateLong(s.date)}</span></li>)}</ul>
-        </div>
-      )}
     </div>
   </section>
-  <section class="wrap seq">
-    <h2 class="h-m">En acción</h2>
-    {!w.photos && <p class="muted">Aquí irán fotos de sus combates, idealmente una secuencia de un mismo movimiento.</p>}
-    <div class="strip">{(w.photos || Array.from({ length: 5 }).map(() => null)).map((src, i) => <PhotoSlot src={src} alt={`${w.name} en combate`} tone="#141414" ink={div.color} ratio="4/5" label={`Fotograma ${i + 1}`} />)}</div>
-  </section>
+
+  {gallery.length > 0 && (
+    <section class="wrap action">
+      <h2 class="h-m">En acción</h2>
+      <div class="strip">{gallery.map((src) => <figure><img src={src} alt={`${w.name} en un show de la Triple W`} loading="lazy" /></figure>)}</div>
+    </section>
+  )}
+
+  {shows.length > 0 && (
+    <section class="wrap apps">
+      <h2 class="h-m">Sus shows</h2>
+      <ul>
+        {shows.map((s) => (
+          <li style={`--c:${s.color}`}>
+            <a href={`/shows/${s.slug}/`}>{s.name}</a>
+            <span>{dateLong(s.date)} · {venues[s.venue]?.name}</span>
+            {(s.results || []).filter((r) => r.text.includes(w.name)).map((r) => <span class="res">{r.text}</span>)}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <nav class="wrap pager" aria-label="Más luchadores">
+    <a href={`/roster/${prev.slug}/`}><span>Anterior</span>{prev.name}</a>
+    <a href="/roster/" class="all">Todo el roster</a>
+    <a href={`/roster/${next.slug}/`} class="nx"><span>Siguiente</span>{next.name}</a>
+  </nav>
 </Base>
+
 <style>
-  .prof { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4rem); padding-block: 4rem; align-items: start; }
-  .photo { position: relative; border-top: 6px solid var(--accent); }
-  .emoji { position: absolute; right: -.6rem; top: -1.4rem; font-size: 3rem; }
-  .info h1 { overflow-wrap: anywhere; }
-  .nick { font: 800 1.6rem/1 var(--font-display); text-transform: uppercase; color: var(--accent); margin-top: .8rem; }
-  .belt { display: inline-block; font: 800 .9rem/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; background: var(--t); color: #111; padding: .5rem .7rem; margin-top: .5rem; }
-  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0; padding-block: 1.5rem; border-block: 1px solid var(--line); }
-  .facts dt { font: 700 .62rem/1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
-  .facts dd { margin: 0; font-weight: 600; }
-  .apps ul { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .5rem; }
-  .apps a { font: 800 1.2rem/1 var(--font-display); text-transform: uppercase; text-decoration: none; color: var(--c); }
-  @media (max-width: 820px) { .prof { grid-template-columns: 1fr; } .photo { max-width: 420px; } }
-  .seq { padding-bottom: 2rem; }
-  .strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(180px, 1fr); gap: .5rem; overflow-x: auto; margin-top: 1rem; padding-bottom: .5rem; }
+  /* Cabecera: el luchador bajo los focos */
+  .pro { position: relative; min-height: min(88svh, 860px); display: grid; align-items: end; overflow: hidden; margin-top: -65px; padding-top: 65px; isolation: isolate; background: #050506; }
+  .pro-stage { position: absolute; inset: 0; z-index: -1; }
+  .pro-stage img { position: absolute; inset: 0 0 0 32%; width: 68%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.2) brightness(.95); animation: pro-in 1.6s cubic-bezier(.16, 1, .3, 1) both; transform-origin: 50% 0; }
+  @keyframes pro-in { from { transform: scale(1.12); filter: grayscale(1) contrast(1.6) brightness(2.2); } }
+  .pro-shade { position: absolute; inset: 0; background: linear-gradient(90deg, #050506 0%, #050506 30%, rgba(5,5,6,.7) 44%, rgba(5,5,6,0) 70%), linear-gradient(0deg, #050506 0%, rgba(5,5,6,0) 40%), linear-gradient(180deg, rgba(5,5,6,.7), rgba(5,5,6,0) 22%); }
+  .beam { position: absolute; top: -14%; width: 30vw; min-width: 260px; height: 140%; transform-origin: 50% 0; mix-blend-mode: screen; filter: blur(clamp(18px, 2vw, 34px)); opacity: .7; }
+  .beam i { position: absolute; inset: 0; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); background: radial-gradient(ellipse 60% 90% at 50% 0%, color-mix(in srgb, var(--d) 40%, #fff) 0%, color-mix(in srgb, var(--d) 30%, transparent) 40%, transparent 85%); animation: power .7s steps(1) both; }
+  .b1 { left: 44%; animation: sweep 10s ease-in-out infinite alternate; }
+  .b2 { left: 66%; animation: sweep 8s ease-in-out -3s infinite alternate-reverse; opacity: .45; }
+  .b2 i { animation-delay: .3s; }
+  @keyframes sweep { from { rotate: 16deg; } to { rotate: -12deg; } }
+  @keyframes power { 0% { opacity: 0; } 30% { opacity: 1; } 40% { opacity: .1; } 55%, 100% { opacity: 1; } }
+  .pro-in { position: relative; padding-block: 3rem; }
+  .belt { display: inline-block; font: 800 1rem/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; background: var(--t); color: #111; padding: .5rem .7rem; margin: 0 0 1rem; }
+  .pro-name { font: 900 clamp(4.2rem, 13vw, 13rem)/.8 var(--font-display); text-transform: uppercase; display: grid; }
+  .ln { display: block; }
+  .ln.o { color: transparent; -webkit-text-stroke: clamp(1.5px, .18vw, 2.5px) var(--fg); }
+  .ch { display: inline-block; animation: slam .7s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(.6s + var(--c) * .045s); }
+  @keyframes slam { 0% { opacity: 0; transform: translateY(-.12em) scale(2.4); filter: blur(18px); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; filter: none; } }
+  .pro-nick { font: 800 clamp(1.4rem, 2.6vw, 2.2rem)/1.05 var(--font-display); text-transform: uppercase; color: #e9e3d6; margin: 1.2rem 0 .4rem; }
+  .pro-div { font: 700 1rem/1 var(--font-text); color: var(--d); margin: 0; }
+  @media (max-width: 720px) {
+    .pro { min-height: 82svh; }
+    .pro-stage img { inset: 0; width: 100%; }
+    .pro-shade { background: linear-gradient(0deg, #050506 12%, rgba(5,5,6,.3) 55%, rgba(5,5,6,.55) 100%); }
+    .beam { width: 70vw; }
+  }
+
+  /* Ficha técnica en marcador LED */
+  .tape { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(2rem, 5vw, 4rem); padding-block: clamp(3rem, 6vw, 5rem); align-items: start; }
+  .board { margin: 1.2rem 0 0; border-top: 2px solid var(--d); background-color: #0b0b0c; background-image: radial-gradient(color-mix(in srgb, var(--d) 14%, transparent) 1.1px, transparent 1.3px); background-size: 5px 5px; }
+  .board div { display: grid; grid-template-columns: minmax(9rem, .8fr) 1.2fr; gap: 1rem; padding: .9rem 1rem; border-bottom: 1px solid #1d1d20; align-items: baseline; }
+  .board dt { font: 600 .95rem/1.2 var(--font-text); color: #b9b3a8; }
+  .board dd { margin: 0; font: 800 1.35rem/1.05 var(--font-display); text-transform: uppercase; color: var(--fg); }
+  .board dd.empty { color: #77736c; font-weight: 700; }
+  .board a { color: var(--d); text-decoration: none; }
+  .tape-side { display: grid; gap: 1.6rem; }
+  .bio { font-size: 1.15rem; line-height: 1.55; color: #e2dccf; max-width: 52ch; margin: 0; }
+  .book { border: 1px solid #26262a; padding: 1.4rem; background: radial-gradient(ellipse 70% 90% at 50% 0%, color-mix(in srgb, var(--d) 14%, transparent), transparent 75%), #0a0a0b; }
+  .book h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); }
+  .book p { color: #c9c2b5; margin: .7rem 0 1.1rem; }
+  @media (max-width: 820px) { .tape { grid-template-columns: 1fr; } .board div { grid-template-columns: 1fr; gap: .3rem; } }
+
+  .action { padding-bottom: clamp(2rem, 5vw, 4rem); }
+  .strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: .5rem; overflow-x: auto; margin-top: 1.2rem; padding-bottom: .5rem; }
+  .strip figure { margin: 0; aspect-ratio: 4/5; overflow: hidden; background: #111; }
+  .strip img { width: 100%; height: 100%; object-fit: cover; }
+
+  .apps { padding-bottom: clamp(2rem, 5vw, 4rem); }
+  .apps ul { list-style: none; padding: 0; margin: 1.2rem 0 0; display: grid; gap: 0; border-top: 1px solid #1d1d20; }
+  .apps li { display: grid; gap: .3rem; padding: 1rem 0 1rem 1rem; border-bottom: 1px solid #1d1d20; position: relative; }
+  .apps li::before { content: ''; position: absolute; left: 0; top: 1rem; bottom: 1rem; width: 3px; background: var(--c); }
+  .apps a { font: 800 1.6rem/1 var(--font-display); text-transform: uppercase; text-decoration: none; color: var(--fg); }
+  .apps a:hover { color: var(--c); }
+  .apps span { color: #b9b3a8; }
+  .apps .res { color: #e2dccf; }
+
+  .pager { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; padding-block: 2rem 1rem; border-top: 1px solid #1d1d20; }
+  .pager a { text-decoration: none; font: 900 clamp(1.4rem, 2.6vw, 2.2rem)/1 var(--font-display); text-transform: uppercase; display: grid; gap: .3rem; }
+  .pager a span { font: 600 .95rem/1 var(--font-text); text-transform: none; color: #b9b3a8; }
+  .pager a:hover { color: var(--d, var(--accent)); }
+  .pager .all { font-size: 1rem; border-bottom: 2px solid var(--accent); padding-bottom: .3rem; }
+  .pager .nx { text-align: right; }
+  @media (max-width: 600px) { .pager { grid-template-columns: 1fr 1fr; } .pager .all { grid-column: 1 / -1; grid-row: 2; justify-self: center; } }
 </style>
