@@ -559,6 +559,20 @@
         "/fotos/por-carpeta/macho-flaco-morales/nik_5784.jpg",
         "/fotos/por-carpeta/macho-flaco-morales/nik_6012.jpg"
       ]
+    },
+    {
+      "slug": "orion-arbitro",
+      "name": "Orion",
+      "division": "arbitros",
+      "photo": "/fotos/por-carpeta/referees-orion/orion_referee.jpg",
+      "photoPos": "22% 20%"
+    },
+    {
+      "slug": "jumark",
+      "name": "Jumark",
+      "division": "arbitros",
+      "photo": "/fotos/por-carpeta/referees-jumark/nik_5948.jpg",
+      "photoPos": "62% 10%"
     }
   ]
 }
