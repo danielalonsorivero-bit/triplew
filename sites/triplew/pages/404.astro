@@ -129,7 +129,7 @@ import Base from '../layouts/Base.astro';
   const W = 320, H = 180, FLOOR = 160, TIME = 30;
   const CELL = 96, AX = 44, AY = 88; // ancla de los pies dentro de cada celda del sprite
   const ROWS = { idle: 0, walk: 1, golpe: 2, patada: 3, especial: 4, victoria: 5, derrota: 6 };
-  const FRAMES = { idle: 8, walk: 6, golpe: 6, patada: 14, especial: 11, victoria: 9, derrota: 9 }; // patada = dropkick a dos piernas + levantarse
+  const FRAMES = { idle: 8, walk: 6, golpe: 7, patada: 14, especial: 11, victoria: 9, derrota: 9 }; // patada = dropkick a dos piernas + levantarse
   const FIGHTERS = {
     lobo: { name: 'El Lobo', speed: 82, golpe: 11, patada: 22, especial: [18, 60], golpeMs: 55, kickRange: 34 },
     loba: { name: 'La Loba', speed: 100, golpe: 8, patada: 19, especial: [16, 50], golpeMs: 42, kickRange: 40 },
