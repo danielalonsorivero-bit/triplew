@@ -93,7 +93,7 @@ const champOf = (t) => t.holder && wrestler(t.holder);
 
   <!-- GALERÍA: cada foto se revela con un fogonazo de flash al aparecer -->
   <section class="section wrap">
-    <div class="sec-head lit"><h2 class="h-l">Galería</h2><a href={home.gallery.link}>{home.gallery.linkLabel} ↗</a></div>
+    <div class="sec-head lit"><h2 class="h-l">Galería</h2><a href={home.gallery.link}>{home.gallery.linkLabel} <span class="arr" aria-hidden="true"></span></a></div>
     <div class="mosaic">
       {home.gallery.photos.map((f) => (
         <figure class:list={['m', 'wm', { w: f.shape === 'wide', t: f.shape === 'tall' }]}><img src={f.src} alt={f.alt} loading="lazy" /></figure>
@@ -122,7 +122,7 @@ const champOf = (t) => t.holder && wrestler(t.holder);
       <span class="tv-txt">
         <span class="tv-h">{home.youtube.lines.map((l, k) => <span class:list={{ o: k > 0 }}>{l}</span>)}</span>
         <span class="tv-p">{home.youtube.text}</span>
-        <span class="btn">{home.youtube.cta} ↗</span>
+        <span class="btn">{home.youtube.cta} <span class="arr" aria-hidden="true"></span></span>
       </span>
     </a>
   </section>
@@ -194,8 +194,8 @@ const champOf = (t) => t.holder && wrestler(t.holder);
   /* Próximos shows: carteles colgados, cada uno con su foco */
   .poster-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: clamp(1.5rem, 3vw, 2.5rem); }
   .pr-hang { position: relative; padding-top: 2.4rem; }
-  .pr-hang::before { content: ''; position: absolute; z-index: 2; inset: 0 0 30% 0; pointer-events: none; mix-blend-mode: screen; opacity: .5; transition: opacity .4s;
-    background: radial-gradient(ellipse 50% 70% at 50% 0%, color-mix(in srgb, var(--c) 50%, #fff) 0%, transparent 70%); }
+  .pr-hang::before { content: ''; position: absolute; z-index: 2; inset: 0 6% 30%; pointer-events: none; mix-blend-mode: screen; opacity: .55; transition: opacity .4s; filter: blur(22px);
+    background: radial-gradient(ellipse 42% 58% at 50% 15%, color-mix(in srgb, var(--c) 50%, #fff) 0%, transparent 72%); }
   .pr-item:hover .pr-hang::before { opacity: .9; }
   .pr-date { font: 800 1.4rem/1 var(--font-display); text-transform: uppercase; margin: 1rem 0 .35rem; color: var(--c); }
   .pr-meta { font-size: 1rem; color: #b9b3a8; margin: 0; }

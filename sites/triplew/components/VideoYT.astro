@@ -10,7 +10,7 @@ const { id, title = 'Vídeo', color = 'var(--accent)' } = Astro.props;
     <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
     <span class="yt-play" aria-hidden="true"></span>
   </button>
-  <figcaption>{title} <a href={`https://www.youtube.com/watch?v=${id}`} rel="noopener">Ver en YouTube ↗</a></figcaption>
+  <figcaption>{title} <a href={`https://www.youtube.com/watch?v=${id}`} rel="noopener">Ver en YouTube <span class="arr" aria-hidden="true"></span></a></figcaption>
 </figure>
 
 <script>

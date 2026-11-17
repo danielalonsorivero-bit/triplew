@@ -65,3 +65,9 @@ p { text-wrap: pretty; }
 /* Marca de agua: logo del lobo sobre las fotos de las galerías públicas */
 .wm { position: relative; }
 .wm::after { content: ''; position: absolute; right: 4%; bottom: 4%; width: clamp(34px, 12%, 64px); aspect-ratio: 150/146; background: url(/logo/whitewolf-blanco.svg) center / contain no-repeat; opacity: .6; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); z-index: 2; }
+
+/* Flecha de enlace externo dibujada (el carácter ↗ sale como emoji azul en iPhone) */
+.arr { display: inline-block; flex-shrink: 0; width: .72em; height: .72em; vertical-align: -.02em; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 2h7v7M10 2 2 10' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 2h7v7M10 2 2 10' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat; }
+.btn { line-height: 1.15; text-align: left; }

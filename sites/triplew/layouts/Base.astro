@@ -37,7 +37,7 @@ const nav = [
       <label for="navt" class="nav-btn" aria-label="Menú"><span></span><span></span></label>
       <nav class="nav">
         {nav.map((n) => <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>)}
-        <a class="nav-school" href={urls.lucharama}>Escuela Lucharama ↗</a>
+        <a class="nav-school" href={urls.lucharama}>Escuela Lucharama <span class="arr" aria-hidden="true"></span></a>
       </nav>
     </div>
   </header>

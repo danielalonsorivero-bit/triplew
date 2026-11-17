@@ -72,7 +72,7 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
       </h1>
       {w.nickname && <p class="pro-nick">«{w.nickname}» {prov.includes('nickname') && <Provisional label="Por confirmar" />}</p>}
       <p class="pro-div">{div.name}</p>
-      {social.length > 0 && <ul class="pro-social" aria-label={`Redes de ${w.name}`}>{social.map((x) => <li><a href={x.url} rel="noopener">{x.label} ↗</a></li>)}</ul>}
+      {social.length > 0 && <ul class="pro-social" aria-label={`Redes de ${w.name}`}>{social.map((x) => <li><a href={x.url} rel="noopener">{x.label} <span class="arr" aria-hidden="true"></span></a></li>)}</ul>}
     </div>
   </section>
 
@@ -87,7 +87,7 @@ const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación
     </div>
     <div class="tape-side">
       {(w.bio || w.notes) && <p class="bio">{w.bio || w.notes}</p>}
-      {w.video && <a class="btn ghost" href={w.video}>Ver su entrada en vídeo ↗</a>}
+      {w.video && <a class="btn ghost" href={w.video}>Ver su entrada en vídeo <span class="arr" aria-hidden="true"></span></a>}
       {kind === 'wrestler' && <div class="book">
         <h2 class="h-m">¿Quieres a {w.name} en tu cartel?</h2>
         <p>Promotoras y eventos: escríbenos y te pasamos disponibilidad y condiciones.</p>
