@@ -50,7 +50,13 @@
         "text": "Total Rumble, Young Wolves, Kilómetro Cero, Instinto Animal… y Top 1 en Sala Revi.",
         "photo": "/fotos/f73.jpg"
       }
-    ]
+    ],
+    "cierre": {
+      "title": "La historia continúa",
+      "text": "Cada show añade un capítulo. Conoce a quienes ya forman parte de la leyenda y ven a vivir el siguiente desde el borde del ring.",
+      "hofLink": "Salón de la Fama",
+      "showLink": "Próximo show"
+    }
   },
   "sitio": {
     "_nota": "Redes de la Triple W y créditos del pie de página.",
