@@ -123,13 +123,28 @@ export function cronicaBlocks(text) {
     }
     return h;
   };
-  return text.normalize('NFKC').replace(/\r/g, '').split(/\n\s*\n/).flatMap((para) => {
-    const lines = para.split('\n').map((l) => l.trim()).filter(Boolean);
+  // Limpieza para que encaje con la web: fuera emojis y banderas, comillas rectas a «», espacios sobrantes.
+  const clean = (t) => t
+    .replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\u{FE0F}\u{200D}\u{20E3}\u{1F3FB}-\u{1F3FF}]/gu, '')
+    .replace(/"([^"]+)"/g, '«$1»')
+    .replace(/\s+([,.;:)])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+  const RES = /(v[ií]a (pin|sumisi[oó]n|rendici[oó]n|cuenta)|descalificaci[oó]n|se impus(o|ieron)|venci[oó]|se llev[oó] la victoria|retener su)/i;
+  const blocks = text.normalize('NFKC').replace(/\r/g, '').split(/\n\s*\n/).flatMap((para) => {
+    const lines = para.split('\n').map(clean).filter(Boolean);
     const out = [];
     if (lines.length && lines[0].length < 40 && lines[0] === lines[0].toUpperCase() && /\p{Lu}/u.test(lines[0])) {
       out.push({ kind: 'h', html: esc(lines.shift()) });
     }
-    if (lines.length) out.push({ kind: 'p', html: link(lines.join(' ')) });
+    if (lines.length) {
+      const t = lines.join(' ');
+      out.push({ kind: RES.test(t) ? 'res' : 'p', html: link(t) });
+    }
     return out;
   });
+  // Primer párrafo = entrada destacada; último, si es una exclamación de cierre, = frase final.
+  const firstP = blocks.find((b) => b.kind === 'p');
+  if (firstP) firstP.kind = 'lead';
+  const last = blocks[blocks.length - 1];
+  if (last && last.kind === 'p' && /^¡/.test(last.html)) last.kind = 'close';
+  return blocks;
 }

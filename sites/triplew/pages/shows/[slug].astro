@@ -13,7 +13,22 @@ const v = venues[s.venue];
 const today = new Date(new Date().toISOString().slice(0, 10));
 const past = new Date(s.date) < today;
 const words = s.name.split(' ');
+// Fondo del hero: heroPhoto (o heroVideo, un MP4 corto en bucle) si se define en shows.json;
+// si no, la primera foto de la galería; si no hay fotos, el cartel difuminado de siempre.
+const heroBg = s.heroPhoto || s.gallery?.[0];
 const cronica = cronicaBlocks(s.cronica);
+// Crónica maquetada por capítulos: cada capítulo termina en un resultado y lleva al lado
+// una foto pequeña de la galería. Los subtítulos y la frase final ocupan todo el ancho.
+const cronPool = (s.gallery || []).filter((_, k) => k % 4 === 2);
+const chapters = [];
+{ let cur = [];
+  const flush = () => { if (cur.length) chapters.push({ kind: 'ch', items: cur, photo: cronPool[chapters.filter((c) => c.kind === 'ch').length] }); cur = []; };
+  for (const b of cronica) {
+    if (b.kind === 'h' || b.kind === 'close') { flush(); chapters.push(b); continue; }
+    cur.push(b);
+    if (b.kind === 'res') flush();
+  }
+  flush(); }
 // Pestañas bajo los resultados: galería, vídeos y crónica, solo las que tengan contenido.
 const tabs = [
   s.gallery?.length > 0 && { id: 'galeria', label: 'Galería', n: Math.min(s.gallery.length, 30) },
@@ -24,7 +39,9 @@ let n = 0;
 ---
 <Base title={s.name} accent={s.color} accentInk={s.ink} overlayHead>
   <section class="top" style={`--c:${s.color}`}>
-    <div class="top-bg" aria-hidden="true">{s.poster && <img src={s.poster} alt="" />}<span class="beam b1"><i></i></span><span class="beam b2"><i></i></span></div>
+    <div class:list={['top-bg', { photo: !!heroBg || !!s.heroVideo }]} aria-hidden="true">{s.heroVideo
+      ? <video src={s.heroVideo} poster={heroBg} autoplay muted loop playsinline></video>
+      : heroBg ? <img src={heroBg} alt="" style={s.heroPos ? `object-position:${s.heroPos}` : undefined} /> : s.poster && <img src={s.poster} alt="" />}<span class="beam b1"><i></i></span><span class="beam b2"><i></i></span></div>
     <div class="wrap top-in">
       <div>
         <p class="brand-line">{s.brand === 'levelone' ? 'Level One' : 'WhiteWolf Wrestling'} {past ? 'presentó' : 'presenta'}</p>
@@ -75,7 +92,17 @@ let n = 0;
           <h2 class="panel-h">{t.label}</h2>
           {t.id === 'galeria' && <>{s.galleryProvisional && <p class="soon"><Provisional label="Fotos por confirmar en este show" /></p>}<Galeria photos={s.gallery} alt={`Foto de ${s.name}`} max={30} /></>}
           {t.id === 'videos' && <div class="vid-grid">{s.videos.map((v) => <VideoYT id={v.youtube} title={v.title} color={s.color} />)}</div>}
-          {t.id === 'cronica' && <div class="cron">{cronica.map((b) => b.kind === 'h' ? <h3 set:html={b.html} /> : <p set:html={b.html} />)}</div>}
+          {t.id === 'cronica' && (
+            <article class="cron">
+              {chapters.map((c) =>
+                c.kind === 'h' ? <h3 class="cr-h" set:html={c.html} />
+                : c.kind === 'close' ? <p class="cr-close" set:html={c.html} />
+                : <section class:list={['cr-ch', { solo: !c.photo }]}>
+                    <div class="cr-txt">{c.items.map((b) => <p class={`cr-${b.kind}`} set:html={b.html} />)}</div>
+                    {c.photo && <figure class="cr-ph wm"><img src={c.photo} alt={`Foto de ${s.name}`} loading="lazy" /></figure>}
+                  </section>)}
+            </article>
+          )}
         </div>
       ))}
     </section>
@@ -108,6 +135,9 @@ let n = 0;
   .top { position: relative; overflow: hidden; isolation: isolate; margin-top: -65px; padding-top: 65px; background: #050506; border-bottom: 2px solid var(--c); }
   .top-bg { position: absolute; inset: 0; z-index: -1; }
   .top-bg img { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(40px) saturate(1.2) brightness(.35); }
+  .top-bg.photo img, .top-bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15) brightness(.5); transform: scale(1.04); animation: bg-drift 24s ease-in-out infinite alternate; }
+  @keyframes bg-drift { to { transform: scale(1.1) translateX(-1.5%); } }
+  @media (prefers-reduced-motion: reduce) { .top-bg.photo img, .top-bg video { animation: none; } }
   .top-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,5,6,.92) 0%, rgba(5,5,6,.6) 55%, rgba(5,5,6,.3) 100%); }
   .beam { position: absolute; z-index: 1; top: -14%; width: 28vw; min-width: 240px; height: 140%; transform-origin: 50% 0; mix-blend-mode: screen; filter: blur(clamp(18px, 2vw, 34px)); opacity: .6; }
   .beam i { position: absolute; inset: 0; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); background: radial-gradient(ellipse 60% 90% at 50% 0%, color-mix(in srgb, var(--c) 45%, #fff) 0%, color-mix(in srgb, var(--c) 25%, transparent) 40%, transparent 85%); }
@@ -159,12 +189,26 @@ let n = 0;
   .js-tabs .panel-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .js-tabs .panel:not([hidden]) { animation: panel-in .5s cubic-bezier(.16, 1, .3, 1); }
   @keyframes panel-in { from { opacity: 0; transform: translateY(10px); } }
-  .cron { max-width: 68ch; margin-top: 1.5rem; border-left: 2px solid var(--accent); padding-left: clamp(1rem, 3vw, 2rem); }
-  .cron p { font-size: 1.1rem; line-height: 1.65; color: #ddd6c8; margin: 0 0 1.1rem; }
-  .cron h3 { font: 900 clamp(1.6rem, 3vw, 2.2rem)/1 var(--font-display); text-transform: uppercase; color: var(--accent); margin: 2rem 0 .8rem; }
+  /* Crónica como reportaje: entrada grande, resultados como marcador, fotos intercaladas */
+  .cron { max-width: 1100px; margin-top: 1.5rem; }
+  .cron p { font-size: 1.12rem; line-height: 1.7; color: #d6cfbf; margin: 0 0 1.3rem; max-width: 62ch; }
+  .cron .cr-lead { font: 700 clamp(1.3rem, 2.2vw, 1.75rem)/1.4 var(--font-text); color: var(--fg); max-width: 40ch; margin-bottom: 2rem; padding-left: 1.1rem; border-left: 3px solid var(--accent); }
+  .cron .cr-res { font: 800 clamp(1.15rem, 1.8vw, 1.45rem)/1.2 var(--font-display); text-transform: uppercase; letter-spacing: .01em; color: var(--fg); padding: 1rem 1.1rem; margin: .4rem 0 1.8rem; border-top: 2px solid var(--accent); background-color: #0c0a0b; background-image: radial-gradient(color-mix(in srgb, var(--accent) 14%, transparent) 1.1px, transparent 1.3px); background-size: 5px 5px; max-width: 46ch; }
+  .cron .cr-res :global(a) { text-decoration: none; color: var(--accent); }
+  .cr-h { clear: both; display: flex; align-items: center; gap: 1rem; font: 900 clamp(2.6rem, 6vw, 4.8rem)/.9 var(--font-display); text-transform: uppercase; color: transparent; -webkit-text-stroke: 1.5px var(--accent); margin: 3rem 0 1.4rem; }
+  .cr-h::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .cron .cr-close { clear: both; font: 900 clamp(1.8rem, 4vw, 3.2rem)/.95 var(--font-display); text-transform: uppercase; color: var(--fg); max-width: 22ch; margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid #26262a; }
+  .cr-ch { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; padding: 1.6rem 0; border-top: 1px solid #1d1d20; }
+  .cr-ch:first-of-type { border-top: 0; padding-top: 0; }
+  .cr-ch.solo { grid-template-columns: minmax(0, 1fr); }
+  .cr-txt > :last-child { margin-bottom: 0; }
+  .cr-ph { margin: 0; aspect-ratio: 4/3; overflow: hidden; background: #111; position: sticky; top: 90px; }
+  .cr-ph img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1) brightness(.85); transition: filter .5s; }
+  .cr-ph:hover img { filter: none; }
   .cron :global(a) { color: var(--fg); font-weight: 700; text-decoration-color: var(--accent); text-underline-offset: .18em; }
   .cron :global(a:hover) { color: var(--accent); }
-  .vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 1.5rem; margin-top: 1.5rem; max-width: 980px; }
+  @media (max-width: 760px) { .cr-ch { grid-template-columns: 1fr; } .cr-ph { position: static; order: -1; } }
+  .vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
   .gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: 1.5rem; }
   .gal figure { margin: 0; aspect-ratio: 1; overflow: hidden; background: #111; }
   .gal figure.wide { grid-column: 1 / -1; aspect-ratio: 16/9; }
