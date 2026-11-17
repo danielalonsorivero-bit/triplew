@@ -400,7 +400,11 @@
       "slug": "sangre-pagana",
       "name": "Sangre Pagana",
       "emoji": "🩸",
-      "division": "parejas"
+      "division": "parejas",
+      "members": [
+        "guido",
+        "kassius"
+      ]
     },
     {
       "slug": "la-senda-luminosa",
@@ -486,7 +490,7 @@
     },
     {
       "slug": "aaron-smile",
-      "name": "Aaron Smile",
+      "name": "Aarón Smile",
       "division": "levelone",
       "provisional": [
         "division"
@@ -511,14 +515,16 @@
     },
     {
       "slug": "guido",
-      "name": "Guido",
-      "division": "absoluto",
+      "name": "Guido Kingtana",
+      "division": "levelone",
       "provisional": [
         "division"
       ],
       "photo": "/fotos/por-carpeta/guido/_an_0759.jpg",
       "photoPos": "center 20%",
-      "photos": []
+      "photos": [],
+      "team": "Sangre Pagana",
+      "hometown": "Paraguay"
     },
     {
       "slug": "jedu",
@@ -551,7 +557,8 @@
       "photos": [
         "/fotos/por-carpeta/kassius/nik_5922.jpg",
         "/fotos/por-carpeta/kassius/nik_6103.jpg"
-      ]
+      ],
+      "team": "Sangre Pagana"
     },
     {
       "slug": "orion-arbitro",

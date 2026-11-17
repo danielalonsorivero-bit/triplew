@@ -6,13 +6,14 @@ import Galeria from '../../components/Galeria.astro';
 import VideoYT from '../../components/VideoYT.astro';
 import pages from '../../../../shared/data/paginas-triplew.json';
 import Provisional from '../../../../shared/components/Provisional.astro';
-import { allShows, venues, dateLong } from '../../../../shared/lib.js';
+import { allShows, venues, dateLong, cronicaBlocks } from '../../../../shared/lib.js';
 export function getStaticPaths() { return allShows.map((s) => ({ params: { slug: s.slug }, props: { s: s } })); }
 const { s } = Astro.props;
 const v = venues[s.venue];
 const today = new Date(new Date().toISOString().slice(0, 10));
 const past = new Date(s.date) < today;
 const words = s.name.split(' ');
+const cronica = cronicaBlocks(s.cronica);
 let n = 0;
 ---
 <Base title={s.name} accent={s.color} accentInk={s.ink} overlayHead>
@@ -55,6 +56,13 @@ let n = 0;
         ? <ol class="results">{s.results.map((r, k) => <li><b>{String(k + 1).padStart(2, '0')}</b><span>{r.text} {r.provisional && <Provisional label="Por confirmar" />}</span></li>)}</ol>
         : <p class="soon">Resultados pendientes de publicar.</p>}
       <a class="btn ghost yt-link" href={s.video || pages.sitio.youtube}>{s.video ? 'Ver el show en YouTube' : 'Ve todos los combates en nuestro canal de YouTube'} <span class="arr" aria-hidden="true"></span></a>
+    </section>
+  )}
+
+  {cronica.length > 0 && (
+    <section class="section wrap cron-sec">
+      <h2 class="h-l">Crónica</h2>
+      <div class="cron">{cronica.map((b) => b.kind === 'h' ? <h3 set:html={b.html} /> : <p set:html={b.html} />)}</div>
     </section>
   )}
 
@@ -110,6 +118,12 @@ let n = 0;
   .results b { font: 900 1.8rem/1 var(--font-display); color: var(--accent); font-variant-numeric: tabular-nums; }
   .gal-sec { padding-top: 0; }
   .yt-link { margin-top: 1.6rem; }
+  .cron-sec { padding-top: 0; }
+  .cron { max-width: 68ch; margin-top: 1.5rem; border-left: 2px solid var(--accent); padding-left: clamp(1rem, 3vw, 2rem); }
+  .cron p { font-size: 1.1rem; line-height: 1.65; color: #ddd6c8; margin: 0 0 1.1rem; }
+  .cron h3 { font: 900 clamp(1.6rem, 3vw, 2.2rem)/1 var(--font-display); text-transform: uppercase; color: var(--accent); margin: 2rem 0 .8rem; }
+  .cron :global(a) { color: var(--fg); font-weight: 700; text-decoration-color: var(--accent); text-underline-offset: .18em; }
+  .cron :global(a:hover) { color: var(--accent); }
   .vid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 1.5rem; margin-top: 1.5rem; max-width: 980px; }
   .gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: 1.5rem; }
   .gal figure { margin: 0; aspect-ratio: 1; overflow: hidden; background: #111; }
