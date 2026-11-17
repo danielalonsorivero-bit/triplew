@@ -1,0 +1,440 @@
+---
+// Página 404: minijuego. Elige luchador y destruye el 404 a golpes en 30 segundos.
+// Sprites generados con Pixellab y guardados en public/triplew/juego404/ (la web no depende de Pixellab).
+import Base from '../layouts/Base.astro';
+---
+<Base title="Página no encontrada">
+  <section class="g404" id="g404">
+    <div class="g404-lights" aria-hidden="true"></div>
+    <div class="wrap g404-in">
+      <header class="g404-head">
+        <p class="kicker">Error 404</p>
+        <h1 class="h-l">Esta página ha caído a la lona</h1>
+        <p class="muted">La dirección no existe. Puedes <a href="/">volver a la portada</a>, o subir al ring y acabar con el 404 en 30 segundos.</p>
+      </header>
+
+      <div class="g404-stage" data-screen="select">
+        <canvas id="g404c" width="320" height="180" aria-label="Minijuego: destruye el número 404"></canvas>
+
+        <!-- Selección de luchador -->
+        <div class="g404-ov g404-select">
+          <p class="g404-title">Elige luchador</p>
+          <div class="g404-picks">
+            <button class="g404-pick" data-who="lobo" type="button">
+              <img src="/juego404/lobo-retrato.png" alt="" width="64" height="64" />
+              <span class="g404-name">El Lobo</span><span class="g404-sub">Fuerza bruta</span>
+            </button>
+            <button class="g404-pick" data-who="loba" type="button">
+              <img src="/juego404/loba-retrato.png" alt="" width="64" height="64" />
+              <span class="g404-name">La Loba</span><span class="g404-sub">Velocidad</span>
+            </button>
+          </div>
+          <p class="g404-help g404-kb">← → mover · <b>J</b> golpe · <b>K</b> patada voladora · mantén <b>L</b> para cargar el especial</p>
+        </div>
+
+        <!-- Final -->
+        <div class="g404-ov g404-end">
+          <p class="g404-title" id="g404-endt"></p>
+          <p class="g404-help" id="g404-ends"></p>
+          <div class="g404-btns">
+            <button class="btn" type="button" id="g404-again">Volver a jugar</button>
+            <a class="btn ghost" href="/">Ir a la portada</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mandos táctiles -->
+      <div class="g404-pad" aria-hidden="true">
+        <div class="g404-dir">
+          <button type="button" data-k="left">◀</button>
+          <button type="button" data-k="right">▶</button>
+        </div>
+        <div class="g404-atk">
+          <button type="button" data-k="golpe">Golpe</button>
+          <button type="button" data-k="patada">Patada</button>
+          <button type="button" data-k="especial" class="sp">Especial<small>mantén</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .g404 { position: relative; overflow: hidden; padding-block: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem); isolation: isolate; }
+  .g404-lights { position: absolute; inset: -10% -10% auto; height: 120%; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(40% 55% at 22% 0%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 70%),
+      radial-gradient(35% 50% at 80% 0%, rgba(140,200,255,.22), transparent 70%),
+      radial-gradient(60% 40% at 50% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 75%);
+    filter: blur(20px); }
+  .g404-in { display: grid; gap: 1.6rem; }
+  .g404-head { max-width: 46rem; }
+  .g404-head h1 { margin-bottom: .8rem; }
+  .g404-head a { color: var(--fg); text-decoration-color: var(--accent); text-underline-offset: .2em; }
+  .g404-stage { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16 / 9; margin-inline: auto; border-radius: 4px; overflow: hidden;
+    box-shadow: 0 0 0 1px var(--line), 0 30px 80px -20px color-mix(in srgb, var(--accent) 45%, transparent); background: #070708; }
+  .g404-stage canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+  .g404-ov { position: absolute; inset: 0; display: none; place-content: center; justify-items: center; gap: clamp(.6rem, 2vw, 1.2rem); padding: 1rem; text-align: center;
+    background: radial-gradient(60% 70% at 50% 50%, rgba(7,7,8,.55), rgba(7,7,8,.88)); }
+  .g404-stage[data-screen="select"] .g404-select, .g404-stage[data-screen="end"] .g404-end { display: grid; }
+  .g404-title { font: 800 clamp(1.6rem, 5vw, 3.4rem)/.9 var(--font-display); text-transform: uppercase; letter-spacing: .02em; text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 70%, transparent); margin: 0; }
+  .g404-help { font-size: clamp(.75rem, 1.6vw, .95rem); color: var(--muted); max-width: 36rem; margin: 0; }
+  .g404-help b { color: var(--fg); }
+  .g404-picks { display: flex; gap: clamp(.6rem, 2vw, 1.4rem); }
+  .g404-pick { display: grid; justify-items: center; gap: .15rem; width: clamp(110px, 18vw, 170px); padding: clamp(.5rem, 1.5vw, 1rem); cursor: pointer; color: var(--fg);
+    background: rgba(255,255,255,.04); border: 1.5px solid var(--line); border-radius: 3px; transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .g404-pick:hover, .g404-pick:focus-visible { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 0 30px -6px var(--accent); }
+  .g404-pick img { width: clamp(64px, 11vw, 128px); height: auto; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(160,210,255,.35)); }
+  .g404-name { font: 800 clamp(1.1rem, 2.4vw, 1.6rem)/1 var(--font-display); text-transform: uppercase; }
+  .g404-sub { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+  .g404-btns { display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; }
+
+  .g404-pad { display: none; justify-content: space-between; align-items: center; gap: 1rem; user-select: none; -webkit-user-select: none; }
+  .g404-pad button { -webkit-tap-highlight-color: transparent; touch-action: none; color: var(--fg); background: rgba(255,255,255,.06); border: 1.5px solid var(--line); border-radius: 999px;
+    font: 800 .95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
+  .g404-pad button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .g404-dir { display: flex; gap: .6rem; }
+  .g404-dir button { width: 64px; height: 64px; font-size: 1.3rem; }
+  .g404-atk { display: flex; gap: .5rem; }
+  .g404-atk button { width: 70px; height: 70px; display: grid; place-content: center; font-size: .85rem; }
+  .g404-atk .sp { box-shadow: 0 0 18px -4px var(--accent); }
+  .g404-atk small { font: 600 .55rem/1 var(--font-text); opacity: .7; margin-top: .2rem; }
+  @media (hover: none) and (pointer: coarse) { .g404-pad { display: flex; } .g404-kb { display: none; } }
+  @media (max-width: 420px) { .g404-dir button { width: 54px; height: 54px; } .g404-atk button { width: 60px; height: 60px; font-size: .75rem; } }
+</style>
+
+<script>
+  // ——— Ajustes del juego ———
+  const W = 320, H = 180, FLOOR = 160, TIME = 30;
+  const CELL = 96, AX = 44, AY = 88; // ancla de los pies dentro de cada celda del sprite
+  const ROWS = { idle: 0, walk: 1, golpe: 2, patada: 3, especial: 4 };
+  const FRAMES = { idle: 8, walk: 6, golpe: 6, patada: 6, especial: 11 };
+  const FIGHTERS = {
+    lobo: { name: 'El Lobo', speed: 82, golpe: 11, patada: 17, especial: [18, 60], golpeMs: 55, kickRange: 34 },
+    loba: { name: 'La Loba', speed: 100, golpe: 8, patada: 15, especial: [16, 50], golpeMs: 42, kickRange: 40 },
+  };
+  const DIGIT_HP = 150, BLOCK = 10;
+  const GLYPH = {
+    '4': ['10001', '10001', '10001', '11111', '00001', '00001', '00001'],
+    '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'],
+  };
+
+  const stage = document.querySelector('.g404-stage');
+  const cv = document.getElementById('g404c');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#E8432E';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const sheets = {};
+  for (const k of Object.keys(FIGHTERS)) { const im = new Image(); im.src = `/juego404/${k}.png`; sheets[k] = im; }
+
+  // ——— Estado ———
+  let S = null; // partida en curso
+  const keys = { left: false, right: false, especial: false };
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  function makeDigit(ch, cx) {
+    const g = GLYPH[ch], w = 5 * BLOCK, h = 7 * BLOCK, x = cx - w / 2, y = FLOOR - h;
+    const blocks = [];
+    g.forEach((row, r) => [...row].forEach((c, col) => { if (c === '1') blocks.push({ x: x + col * BLOCK, y: y + r * BLOCK }); }));
+    // grietas: líneas quebradas que aparecen por fases
+    const cracks = Array.from({ length: 6 }, () => {
+      const pts = [[rnd(x + 6, x + w - 6), rnd(y + 4, y + h - 4)]];
+      for (let i = 0; i < 4; i++) { const [px, py] = pts[pts.length - 1]; pts.push([px + rnd(-12, 12), py + rnd(-12, 12)]); }
+      return pts;
+    });
+    return { ch, x, y, w, h, hp: DIGIT_HP, blocks, cracks, shake: 0, flash: 0, dead: false };
+  }
+
+  function newGame(who) {
+    S = {
+      who, f: FIGHTERS[who], t: TIME, count: 1.6, over: false,
+      p: { x: 46, y: FLOOR, vx: 0, vy: 0, dir: 1, anim: 'idle', fr: 0, ft: 0, busy: false, hit: false, charge: 0, charging: false },
+      digits: [makeDigit('4', 160), makeDigit('0', 222), makeDigit('4', 284)],
+      parts: [], waves: [], shake: 0, flashScreen: 0, popups: [],
+    };
+    stage.dataset.screen = 'play';
+  }
+
+  // ——— Entrada ———
+  const keymap = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', j: 'golpe', J: 'golpe', z: 'golpe', Z: 'golpe', k: 'patada', K: 'patada', x: 'patada', X: 'patada', l: 'especial', L: 'especial', c: 'especial', C: 'especial' };
+  function press(k) {
+    if (!S || S.over || S.count > 0) { if (k === 'left' || k === 'right') keys[k] = true; return; }
+    if (k === 'left' || k === 'right') { keys[k] = true; return; }
+    const p = S.p;
+    if (k === 'especial') keys.especial = true;
+    if (p.busy) { p.queue = { k, at: performance.now() }; return; } // se guarda y sale en cuanto acabe el movimiento
+    p.queue = null;
+    if (k === 'golpe') start('golpe');
+    if (k === 'patada') { start('patada'); p.vy = -150; p.vx = 130 * p.dir; }
+    if (k === 'especial') { start('especial'); p.charging = keys.especial; p.charge = 0; }
+  }
+  function release(k) {
+    if (k === 'left' || k === 'right') keys[k] = false;
+    if (k === 'especial') { keys.especial = false; if (S) S.p.charging = false; }
+  }
+  function start(a) { const p = S.p; p.anim = a; p.fr = 0; p.ft = 0; p.busy = true; p.hit = false; }
+  addEventListener('keydown', (e) => { const k = keymap[e.key]; if (!k || stage.dataset.screen !== 'play') return; e.preventDefault(); if (!e.repeat) press(k); });
+  addEventListener('keyup', (e) => { const k = keymap[e.key]; if (k) release(k); });
+  document.querySelectorAll('.g404-pad button').forEach((b) => {
+    const k = b.dataset.k;
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); press(k); });
+    const up = () => { b.classList.remove('on'); release(k); };
+    b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+  });
+  document.querySelectorAll('.g404-pick').forEach((b) => b.addEventListener('click', () => newGame(b.dataset.who)));
+  document.getElementById('g404-again').addEventListener('click', () => { stage.dataset.screen = 'select'; S = null; });
+
+  // ——— Golpes ———
+  function hitbox() {
+    const p = S.p, a = p.anim;
+    const reach = a === 'golpe' ? 30 : a === 'patada' ? S.f.kickRange : 46;
+    const x0 = p.dir > 0 ? p.x + 4 : p.x - reach, x1 = p.dir > 0 ? p.x + reach : p.x - 4;
+    return { x0, x1, y0: p.y - 52, y1: p.y - 10 };
+  }
+  function doHit(dmg, big) {
+    const hb = hitbox(); let any = false;
+    for (const d of S.digits) {
+      if (d.dead || hb.x1 < d.x || hb.x0 > d.x + d.w || hb.y1 < d.y || hb.y0 > d.y + d.h) continue;
+      any = true; damage(d, dmg, big, S.p.dir > 0 ? d.x + 3 : d.x + d.w - 3, rnd(hb.y0 + 8, hb.y1 - 4));
+      if (!big) break; // los golpes normales solo dan a una cifra; el especial atraviesa
+    }
+    if (big) { S.waves.push({ x: S.p.x + S.p.dir * 26, y: S.p.y - 26, r: 6, a: 1 }); S.flashScreen = .5; }
+    return any;
+  }
+  function damage(d, dmg, big, hx, hy) {
+    d.hp = Math.max(0, d.hp - dmg); d.shake = big ? 6 : 3; d.flash = 1;
+    S.shake = Math.max(S.shake, big ? 7 : 3);
+    S.popups.push({ x: hx, y: hy - 10, v: dmg, t: .7 });
+    const n = big ? 26 : 10;
+    for (let i = 0; i < n; i++) S.parts.push({ x: hx, y: hy, vx: rnd(-40, 40) - S.p.dir * -rnd(20, 90), vy: rnd(-120, -20), g: 300, life: rnd(.3, .7), t: 0, c: Math.random() < .5 ? '#ffffff' : (Math.random() < .5 ? accent : '#9fd8ff'), s: Math.random() < .3 ? 2 : 1, glow: true });
+    if (d.hp === 0) explode(d);
+  }
+  function explode(d) {
+    d.dead = true; S.shake = 10; S.flashScreen = 1;
+    for (const b of d.blocks) {
+      for (let i = 0; i < 4; i++) S.parts.push({ x: b.x + rnd(0, BLOCK), y: b.y + rnd(0, BLOCK), vx: rnd(-140, 140), vy: rnd(-220, -40), g: 420, life: rnd(.8, 1.6), t: 0, c: i ? '#dfe9f5' : accent, s: i ? 3 : 2, glow: !i, block: true });
+    }
+    for (let i = 0; i < 40; i++) S.parts.push({ x: d.x + d.w / 2, y: d.y + d.h / 2, vx: rnd(-200, 200), vy: rnd(-200, 100), g: 0, life: rnd(.3, .6), t: 0, c: '#fff6d0', s: 1, glow: true });
+    S.waves.push({ x: d.x + d.w / 2, y: d.y + d.h / 2, r: 4, a: 1 });
+  }
+
+  // ——— Bucle ———
+  function update(dt) {
+    if (!S) return;
+    S.shake = Math.max(0, S.shake - dt * 30); S.flashScreen = Math.max(0, S.flashScreen - dt * 3);
+    for (const d of S.digits) { d.shake = Math.max(0, d.shake - dt * 30); d.flash = Math.max(0, d.flash - dt * 6); }
+    S.parts = S.parts.filter((q) => (q.t += dt) < q.life);
+    for (const q of S.parts) { q.vy += q.g * dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.block && q.y > FLOOR + 6) { q.y = FLOOR + 6; q.vy *= -.35; q.vx *= .7; } }
+    S.waves = S.waves.filter((w) => (w.a -= dt * 2.2) > 0); for (const w of S.waves) w.r += dt * 160;
+    S.popups = S.popups.filter((u) => (u.t -= dt) > 0); for (const u of S.popups) u.y -= dt * 22;
+    if (S.over) return;
+    if (S.count > 0) { S.count -= dt; return; }
+
+    S.t = Math.max(0, S.t - dt);
+    const p = S.p, f = S.f;
+    // movimiento
+    if (!p.busy) {
+      const mv = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      if (mv) { p.dir = mv; p.vx = mv * f.speed; if (p.anim !== 'walk') { p.anim = 'walk'; p.fr = 0; } }
+      else { p.vx = 0; if (p.anim !== 'idle') { p.anim = 'idle'; p.fr = 0; } }
+    }
+    if (p.anim === 'golpe') p.vx = 0;
+    // gravedad (patada voladora)
+    if (p.y < FLOOR || p.vy < 0) { p.vy += 520 * dt; p.y += p.vy * dt; if (p.y >= FLOOR) { p.y = FLOOR; p.vy = 0; if (p.anim === 'patada') p.vx = 0; } }
+    p.x += p.vx * dt;
+    // las cifras son sólidas
+    for (const d of S.digits) if (!d.dead) {
+      if (p.dir > 0 && p.x + 14 > d.x && p.x < d.x + d.w / 2) p.x = d.x - 14;
+      if (p.dir < 0 && p.x - 14 < d.x + d.w && p.x > d.x + d.w / 2) p.x = d.x + d.w + 14;
+    }
+    p.x = Math.max(16, Math.min(W - 16, p.x));
+
+    // animación
+    p.ft += dt * 1000;
+    const ms = p.anim === 'golpe' ? f.golpeMs : p.anim === 'patada' ? 75 : p.anim === 'especial' ? 70 : p.anim === 'walk' ? 110 : 120;
+    while (p.ft >= ms) {
+      p.ft -= ms;
+      if (p.anim === 'especial' && p.charging && p.fr >= 6) { p.fr = 6; continue; } // mantener la carga
+      p.fr++;
+      if (p.anim === 'golpe' && p.fr === 4 && !p.hit) { p.hit = true; doHit(f.golpe, false); }
+      if (p.anim === 'patada' && (p.fr === 2 || p.fr === 3) && !p.hit) { p.hit = doHit(f.patada, false); }
+      if (p.anim === 'especial' && p.fr === 8 && !p.hit) {
+        p.hit = true; const pw = Math.min(1, p.charge);
+        p.x += p.dir * 10; doHit(Math.round(f.especial[0] + (f.especial[1] - f.especial[0]) * pw), true);
+      }
+      if (p.fr >= FRAMES[p.anim]) {
+        p.fr = 0;
+        if (p.busy && p.y >= FLOOR) {
+          p.busy = false; p.anim = 'idle';
+          if (p.queue && performance.now() - p.queue.at < 350) { const q = p.queue.k; p.queue = null; press(q); break; }
+          p.queue = null;
+        } else if (p.busy) p.fr = FRAMES[p.anim] - 1;
+      }
+    }
+    if (p.anim === 'especial' && p.charging) {
+      p.charge = Math.min(1, p.charge + dt);
+      if (Math.random() < .6) { const a = rnd(0, Math.PI * 2); S.parts.push({ x: p.x + Math.cos(a) * 24, y: p.y - 28 + Math.sin(a) * 24, vx: -Math.cos(a) * 60, vy: -Math.sin(a) * 60, g: 0, life: .35, t: 0, c: p.charge >= 1 ? '#ffffff' : accent, s: 1, glow: true }); }
+    }
+
+    // fin
+    if (S.digits.every((d) => d.dead)) finish(true);
+    else if (S.t <= 0) finish(false);
+  }
+  function finish(win) {
+    S.over = true;
+    setTimeout(() => {
+      document.getElementById('g404-endt').textContent = win ? '¡404 a la lona!' : 'Se acabó el tiempo';
+      const left = S.digits.filter((d) => !d.dead).length;
+      document.getElementById('g404-ends').textContent = win
+        ? `${S.f.name} ha destruido el 404 con ${S.t.toFixed(1)} segundos de sobra.`
+        : `Han quedado ${left} ${left === 1 ? 'cifra' : 'cifras'} en pie. Prueba otra vez o vuelve a la portada.`;
+      stage.dataset.screen = 'end';
+    }, win ? 1100 : 600);
+  }
+
+  // ——— Dibujo ———
+  function drawBg(time) {
+    ctx.fillStyle = '#070708'; ctx.fillRect(0, 0, W, H);
+    // focos
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const beams = [[60, accent, .16], [W / 2, '#9fd8ff', .10], [W - 50, accent, .14]];
+    beams.forEach(([bx, c, a], i) => {
+      const sway = reduce ? 0 : Math.sin(time / 1400 + i * 2) * 18;
+      const g = ctx.createLinearGradient(bx, 0, bx + sway, FLOOR);
+      g.addColorStop(0, c); g.addColorStop(1, 'transparent');
+      ctx.globalAlpha = a; ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(bx - 6, -2); ctx.lineTo(bx + 6, -2); ctx.lineTo(bx + sway + 60, FLOOR); ctx.lineTo(bx + sway - 60, FLOOR); ctx.fill();
+    });
+    ctx.restore();
+    // público al fondo (siluetas)
+    ctx.fillStyle = '#0d0d10';
+    for (let x = 0; x < W; x += 9) { const h = 10 + ((x * 37) % 9); ctx.fillRect(x, 92 - h, 8, h + 4); ctx.beginPath(); ctx.arc(x + 4, 92 - h - 3, 3.5, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#0b0b0d'; ctx.fillRect(0, 92, W, 30);
+    // flashes de cámaras del público
+    if (!reduce && Math.random() < .05) { ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(rnd(0, W), rnd(70, 88), 2, 2); }
+    // cuerdas
+    const ropes = [[100, accent], [114, '#e9e6df'], [128, accent]];
+    for (const [y, c] of ropes) { ctx.fillStyle = c; ctx.globalAlpha = .85; ctx.fillRect(0, y, W, 2); ctx.globalAlpha = .25; ctx.fillRect(0, y + 2, W, 1); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#2a2a2e'; ctx.fillRect(6, 94, 5, 70); ctx.fillRect(W - 11, 94, 5, 70);
+    // lona
+    const lona = ctx.createLinearGradient(0, FLOOR - 26, 0, H);
+    lona.addColorStop(0, '#1b1b20'); lona.addColorStop(1, '#0e0e11');
+    ctx.fillStyle = lona; ctx.fillRect(0, FLOOR - 26, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(0, FLOOR - 26, W, 1);
+    // halo de luz en la lona
+    const spot = ctx.createRadialGradient(W / 2, FLOOR, 4, W / 2, FLOOR, 150);
+    spot.addColorStop(0, 'rgba(255,255,255,.10)'); spot.addColorStop(1, 'transparent');
+    ctx.fillStyle = spot; ctx.fillRect(0, FLOOR - 40, W, 60);
+  }
+
+  function drawDigit(d) {
+    if (d.dead) return;
+    const sx = d.shake ? rnd(-d.shake, d.shake) / 2 : 0;
+    const dmg = 1 - d.hp / DIGIT_HP;
+    ctx.save(); ctx.translate(sx, 0);
+    // resplandor
+    ctx.shadowColor = accent; ctx.shadowBlur = 12;
+    for (const b of d.blocks) {
+      const base = d.flash > .3 ? '#ffffff' : dmg > .66 ? '#b9c2cf' : dmg > .33 ? '#d4dce6' : '#eef3f8';
+      ctx.fillStyle = base; ctx.fillRect(b.x, b.y, BLOCK - 1, BLOCK - 1);
+    }
+    ctx.shadowBlur = 0;
+    for (const b of d.blocks) {
+      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(b.x, b.y, BLOCK - 1, 1); ctx.fillRect(b.x, b.y, 1, BLOCK - 1);
+      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(b.x, b.y + BLOCK - 2, BLOCK - 1, 1); ctx.fillRect(b.x + BLOCK - 2, b.y, 1, BLOCK - 1);
+    }
+    // grietas, recortadas a la forma de la cifra
+    const n = Math.floor(dmg * 7);
+    if (n) {
+      ctx.save(); ctx.beginPath(); for (const b of d.blocks) ctx.rect(b.x, b.y, BLOCK - 1, BLOCK - 1); ctx.clip();
+      for (let i = 0; i < Math.min(n, d.cracks.length); i++) {
+        const pts = d.cracks[i];
+        ctx.strokeStyle = '#0b0b0d'; ctx.lineWidth = 1.5; ctx.beginPath(); pts.forEach(([x, y], j) => j ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+        ctx.strokeStyle = accent; ctx.lineWidth = .6; ctx.globalAlpha = .9; ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+    // vida
+    const bw = d.w;
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(d.x, d.y - 8, bw, 3);
+    ctx.fillStyle = accent; ctx.fillRect(d.x, d.y - 8, bw * d.hp / DIGIT_HP, 3);
+  }
+
+  function drawFighter() {
+    const p = S.p, im = sheets[S.who];
+    if (!im.complete) return;
+    // sombra
+    ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.ellipse(p.x, FLOOR + 1, 16 - (FLOOR - p.y) / 6, 3, 0, 0, 7); ctx.fill();
+    ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); if (p.dir < 0) ctx.scale(-1, 1);
+    // aura de carga
+    if (p.anim === 'especial' && (p.charging || p.fr < 9)) {
+      ctx.globalCompositeOperation = 'lighter';
+      const r = 18 + p.charge * 18 + (reduce ? 0 : Math.sin(performance.now() / 50) * 2);
+      const g = ctx.createRadialGradient(0, -28, 2, 0, -28, r);
+      g.addColorStop(0, p.charge >= 1 ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.25)'); g.addColorStop(.5, accent); g.addColorStop(1, 'transparent');
+      ctx.globalAlpha = .55; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -28, r, 0, 7); ctx.fill();
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+    ctx.drawImage(im, p.fr * CELL, ROWS[p.anim] * CELL, CELL, CELL, -AX, -AY, CELL, CELL);
+    ctx.restore();
+  }
+
+  function drawFx() {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const w of S.waves) { ctx.strokeStyle = `rgba(255,255,255,${w.a})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(w.x, w.y, w.r, w.r * .6, 0, 0, 7); ctx.stroke(); }
+    for (const q of S.parts) {
+      const a = 1 - q.t / q.life; ctx.globalAlpha = a;
+      if (q.glow) { ctx.shadowColor = q.c; ctx.shadowBlur = 6; } else ctx.shadowBlur = 0;
+      ctx.fillStyle = q.c; ctx.fillRect(q.x, q.y, q.s, q.s);
+    }
+    ctx.restore();
+    ctx.font = '700 9px "Big Shoulders Display Variable", sans-serif'; ctx.textAlign = 'center';
+    for (const u of S.popups) { ctx.globalAlpha = Math.min(1, u.t * 2); ctx.fillStyle = '#fff'; ctx.fillText(u.v, u.x, u.y); }
+    ctx.globalAlpha = 1;
+    if (S.flashScreen) { ctx.fillStyle = `rgba(255,255,255,${S.flashScreen * .25})`; ctx.fillRect(0, 0, W, H); }
+  }
+
+  function drawHud() {
+    ctx.textAlign = 'center';
+    const t = Math.ceil(S.t), low = S.t < 10 && !S.over;
+    ctx.font = '800 22px "Big Shoulders Display Variable", sans-serif';
+    ctx.shadowColor = low ? '#ff3b30' : accent; ctx.shadowBlur = 10;
+    ctx.fillStyle = low && Math.floor(S.t * 4) % 2 ? '#ff6a5f' : '#ffffff';
+    ctx.fillText(String(t).padStart(2, '0'), W / 2, 24); ctx.shadowBlur = 0;
+    ctx.textAlign = 'left'; ctx.font = '700 9px "Big Shoulders Display Variable", sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.75)';
+    ctx.fillText(S.f.name.toUpperCase(), 10, 16);
+    // barra de carga del especial
+    if (S.p.charge > 0 && S.p.anim === 'especial') { ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(10, 20, 50, 3); ctx.fillStyle = S.p.charge >= 1 ? '#fff' : accent; ctx.fillRect(10, 20, 50 * S.p.charge, 3); }
+    if (S.count > 0) {
+      ctx.textAlign = 'center'; ctx.font = '800 34px "Big Shoulders Display Variable", sans-serif';
+      ctx.shadowColor = accent; ctx.shadowBlur = 16; ctx.fillStyle = '#fff';
+      ctx.fillText(S.count > .5 ? '¿LISTOS?' : '¡A LUCHAR!', W / 2, 78); ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawIdle(time) {
+    drawBg(time);
+    // 404 de adorno detrás de la selección
+    for (const [ch, cx] of [['4', 98], ['0', 160], ['4', 222]]) {
+      const d = makeDigit(ch, cx); ctx.shadowColor = accent; ctx.shadowBlur = 10; ctx.fillStyle = 'rgba(238,243,248,.18)';
+      for (const b of d.blocks) ctx.fillRect(b.x, b.y - 30, BLOCK - 1, BLOCK - 1);
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (S) {
+      update(dt);
+      ctx.save(); if (S.shake && !reduce) ctx.translate(rnd(-S.shake, S.shake) / 2, rnd(-S.shake, S.shake) / 2);
+      drawBg(now); S.digits.forEach(drawDigit); drawFighter(); drawFx(); ctx.restore(); drawHud();
+    } else drawIdle(now);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
