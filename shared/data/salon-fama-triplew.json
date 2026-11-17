@@ -1,0 +1,121 @@
+{
+  "_nota": "Salón de la Fama de Triple W. Lista PROVISIONAL: sesión de fotos de 2016 que aportó Daniel; la Triple W debe confirmar quién entra (y quién sigue en activo). Nombres tomados de los nombres de archivo: ortografía por confirmar. Campos: name, photo, photoPos (encuadre), years (opcional, p. ej. '2012–2018'), note (opcional), provisional.",
+  "title": "Salón de la Fama",
+  "intro": "Las leyendas que hicieron grande la Triple W. Pasaron por el ring, dejaron su marca y aquí se quedan.",
+  "members": [
+    {
+      "name": "A-Kid",
+      "photo": "/fotos/salon-fama/a-kid.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Adam Chase",
+      "photo": "/fotos/salon-fama/adam-chase.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Alexander",
+      "photo": "/fotos/salon-fama/alexander.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Dorian",
+      "photo": "/fotos/salon-fama/dorian.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Joey Fox",
+      "photo": "/fotos/salon-fama/joey-fox.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Michelle M",
+      "photo": "/fotos/salon-fama/michelle-m.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Morgan Knight",
+      "photo": "/fotos/salon-fama/morgan-knight.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Nathan Young",
+      "photo": "/fotos/salon-fama/nathan-young.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Nicky",
+      "photo": "/fotos/salon-fama/nicky.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Orión",
+      "photo": "/fotos/salon-fama/orion.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Padre Paolo",
+      "photo": "/fotos/salon-fama/padre-paolo.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Pelayo",
+      "photo": "/fotos/salon-fama/pelayo.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Ruky",
+      "photo": "/fotos/salon-fama/ruky.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Sarah León",
+      "photo": "/fotos/salon-fama/sarah-leon.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Thrashman",
+      "photo": "/fotos/salon-fama/thrashman.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Valuro",
+      "photo": "/fotos/salon-fama/valuro.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Xenon",
+      "photo": "/fotos/salon-fama/xenon.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Yunke",
+      "photo": "/fotos/salon-fama/yunke.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    },
+    {
+      "name": "Zayas",
+      "photo": "/fotos/salon-fama/zayas.jpg",
+      "photoPos": "center 20%",
+      "provisional": true
+    }
+  ]
+}

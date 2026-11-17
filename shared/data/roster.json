@@ -93,7 +93,8 @@
       "photos": [
         "/fotos/por-carpeta/pimp-ross/_an_0261.jpg",
         "/fotos/por-carpeta/pimp-ross/_an_0399.jpg",
-        "/fotos/por-carpeta/pimp-ross/_an_0400.jpg"
+        "/fotos/por-carpeta/pimp-ross/_an_0400.jpg",
+        "/fotos/por-carpeta/pimp-ross/estudio-2016.jpg"
       ]
     },
     {
@@ -220,7 +221,9 @@
         "/fotos/por-carpeta/hades/_an_0293.jpg",
         "/fotos/por-carpeta/hades/_an_0363.jpg",
         "/fotos/por-carpeta/hades/_an_1170.jpg",
-        "/fotos/por-carpeta/hades/_an_1315.jpg"
+        "/fotos/por-carpeta/hades/_an_1315.jpg",
+        "/fotos/por-carpeta/hades/estudio-2016.jpg",
+        "/fotos/por-carpeta/hades/estudio-2016-b.jpg"
       ]
     },
     {
@@ -477,9 +480,11 @@
       "provisional": [
         "nickname"
       ],
-      "photo": "/fotos/por-carpeta/coajim-echevarria/_an_0403.jpg",
+      "photo": "/fotos/por-carpeta/coajim-echevarria/estudio-2016.jpg",
       "photoPos": "center 20%",
-      "photos": [],
+      "photos": [
+        "/fotos/por-carpeta/coajim-echevarria/_an_0403.jpg"
+      ],
       "role": "Promotor de luchadores"
     },
     {
@@ -505,9 +510,10 @@
       "provisional": [
         "division"
       ],
-      "photo": "/fotos/por-carpeta/elvis-harrison/_an_0693.jpg",
+      "photo": "/fotos/por-carpeta/elvis-harrison/estudio-2016.jpg",
       "photoPos": "center 20%",
       "photos": [
+        "/fotos/por-carpeta/elvis-harrison/_an_0693.jpg",
         "/fotos/por-carpeta/elvis-harrison/_an_1100.jpg",
         "/fotos/por-carpeta/elvis-harrison/_an_1106.jpg"
       ]

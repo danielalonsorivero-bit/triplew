@@ -5,8 +5,8 @@
     "hallOfFame": {
       "title": "Salón de la Fama",
       "text": "Las leyendas que hicieron grande la Triple W.",
-      "soon": "Próximamente",
-      "provisional": false
+      "provisional": false,
+      "link": "Ver el Salón de la Fama"
     }
   },
   "historia": {
