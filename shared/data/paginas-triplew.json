@@ -15,40 +15,74 @@
       {
         "year": "2009",
         "title": "Nace la Triple W",
-        "text": "WhiteWolf Wrestling empieza a organizar shows de lucha libre en Madrid.",
-        "photo": "/fotos/f38.jpg"
-      },
-      {
-        "year": "2009+",
-        "title": "La Tabacalera",
-        "text": "Los primeros años de shows en la legendaria Tabacalera de Embajadores, y después en algunas de las salas más reconocidas de la ciudad.",
-        "photo": "/fotos/f10.jpg",
-        "provisional": "Fechas exactas por confirmar"
+        "text": "Un grupo de amigos, aficionados al wrestling y a la lucha libre que veíamos de pequeños por televisión, decide crear su propia promoción."
       },
       {
         "year": "2011",
-        "title": "Llega Super Franki",
-        "text": "Debuta una de las leyendas de la promoción, que en 2026 celebra 15 años en la Triple W.",
-        "photo": "/fotos/f20.jpg"
+        "title": "Molino Rojo, Tabacalera",
+        "text": "Empiezan los shows en la nave Molino Rojo de la Tabacalera de Madrid. Ese mismo año, los shows se trasladan a la nave central.",
+        "photo": "/historia/2011-molino-rojo.jpg"
+      },
+      {
+        "year": "2013",
+        "title": "Debuta el Niño Anónimo",
+        "text": "Un jovencísimo (y aún desconocido) «Niño Anónimo» sube al ring por primera vez. Es el comienzo de la leyenda de A-Kid.",
+        "photo": "/historia/2013-nino-anonimo.jpg",
+        "photoPos": "50% 30%"
       },
       {
         "year": "2014",
-        "title": "Abre Lucharama",
-        "text": "La Triple W abre su propia escuela en Carabanchel para formar a las siguientes generaciones.",
-        "photo": "/fotos/f55.jpg"
+        "title": "Nace Level One",
+        "text": "Ante la llegada de nuevos luchadores al roster, nace Level One, una oportunidad para las nuevas promesas del wrestling. Desde entonces, los shows de Level One y Triple W se alternan.",
+        "photo": "/historia/2014-level-one.jpg"
+      },
+      {
+        "year": "2014",
+        "title": "Total Rumble IV",
+        "text": "Total Rumble IV hace historia por la cantidad de público que llena la nave central de la Tabacalera de Madrid.",
+        "photo": "/historia/2014-total-rumble-iv.jpg"
+      },
+      {
+        "year": "2015",
+        "title": "Arnold Classic",
+        "text": "La Triple W participa en el Arnold Classic, donde el mismísimo Arnold Schwarzenegger se acerca al ring a saludar a los luchadores.",
+        "photo": "/historia/2015-arnold-classic.jpg"
+      },
+      {
+        "year": "2017",
+        "title": "Fly High",
+        "text": "Fly High marca un hito en la trayectoria de la Triple W y de A-Kid al traer a la estrella internacional Ricochet.",
+        "photo": "/historia/2017-fly-high.jpg"
+      },
+      {
+        "year": "2018",
+        "title": "La Hora de la Verdad",
+        "text": "La Sala Shoko de Madrid acoge «La Hora de la Verdad», con estrellas internacionales como Aussie Open, entre otras.",
+        "photo": "/historia/2018-sala-shoko-aussie-open.jpg"
       },
       {
         "year": "2019",
-        "title": "De Lucharama a WWE",
-        "text": "A-Kid, formado en Lucharama, firma con WWE.",
-        "photo": "/fotos/f42.jpg",
-        "provisional": "Año por confirmar"
+        "title": "Total Rumble 9",
+        "text": "Celebrado en la sala Uñas Chun Li de Madrid, Total Rumble 9 vuelve a ser un referente y sirve de despegue para que A-Kid y Carlos Romo, del equipo WhiteWolf, fichen por NXT UK, la marca británica de WWE.",
+        "photo": "/historia/2019-total-rumble-9-unas-chun-li.jpg"
       },
       {
-        "year": "2026",
-        "title": "Temporada actual",
-        "text": "Total Rumble, Young Wolves, Kilómetro Cero, Instinto Animal… y Top 1 en Sala Revi.",
-        "photo": "/fotos/f73.jpg"
+        "year": "2020",
+        "title": "Cuenta Atrás",
+        "text": "Cuenta Atrás, el show previo a Total Rumble X, se celebra en la Sala Shoko justo antes de la pandemia. El espectáculo es un éxito, pero Total Rumble X tendrá que esperar…",
+        "photo": "/historia/2020-cuenta-atras-shoko.jpg"
+      },
+      {
+        "year": "2022",
+        "title": "Casa nueva: Lucharama",
+        "text": "Tras el cierre de la Tabacalera, Triple W y Level One trasladan sus eventos habituales a Lucharama, en Carabanchel.",
+        "photo": "/historia/2022-lucharama.jpg"
+      },
+      {
+        "year": "2024",
+        "title": "Total Rumble X",
+        "text": "Por fin llega Total Rumble X a la Sala Revi: homenajes y emociones que se liberan sobre el ring después de cuatro años de espera.",
+        "photo": "/historia/2024-total-rumble-x-sala-revi.jpg"
       }
     ],
     "cierre": {
