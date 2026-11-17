@@ -4,8 +4,9 @@
     "intro": "Cuatro cinturones. Quien los lleva entra el último y sale con el oro.",
     "hallOfFame": {
       "title": "Salón de la Fama",
-      "text": "La Triple W tiene un Salón de la Fama (aparece en sus historias destacadas de Instagram), pero todavía no tenemos la lista de miembros.",
-      "provisional": true
+      "text": "Las leyendas que hicieron grande la Triple W.",
+      "soon": "Próximamente",
+      "provisional": false
     }
   },
   "historia": {

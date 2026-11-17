@@ -1,10 +1,68 @@
 {
-  "_nota": "Campeonatos según las destacadas de @latriplew: ABSOLUTO, LEVEL ONE, PAREJAS, EXTREMO y Salón de la Fama. Historiales PROVISIONALES.",
+  "_nota": "Campeonatos según las destacadas de @latriplew: ABSOLUTO, LEVEL ONE, PAREJAS, EXTREMO. holder = slug del campeón actual en roster.json; since = fecha en que ganó (AAAA-MM-DD); wonAt = slug del show en shows.json. history = campeones ANTERIORES, del más reciente al más antiguo; cada uno admite name, slug, from, to, show y note (todo opcional salvo name). Historiales PROVISIONALES: pendientes de la asociación. team = true si el título es de parejas (cambia 'Campeón actual' por 'Campeones actuales').",
   "titles": [
-    { "slug": "absoluto", "name": "Campeonato Absoluto", "short": "Absoluto", "holder": "rizo", "color": "#E8C547", "history": [ { "name": "Rizo", "note": "Campeón actual" }, { "name": "Pimp Ross", "note": "Reinado más largo de la historia" } ], "provisionalHistory": true },
-    { "slug": "levelone", "name": "Campeonato de Level One", "short": "Level One", "holder": "joro", "color": "#2BD46A", "history": [ { "name": "Joro", "note": "Campeón actual, desde Kilómetro Cero (17 oct. 2026)" }, { "name": "Ochoa" } ], "provisionalHistory": true },
-    { "slug": "parejas", "name": "Campeonatos de Parejas", "short": "Parejas", "holder": "la-nueva-ola", "color": "#F59E2B", "history": [ { "name": "La Nueva Ola", "note": "Campeones actuales" } ], "provisionalHistory": true },
-    { "slug": "extremo", "name": "Campeonato Extremo", "short": "Extremo", "holder": null, "color": "#E11D48", "history": [], "provisionalHistory": true }
+    {
+      "slug": "absoluto",
+      "name": "Campeonato Absoluto",
+      "short": "Absoluto",
+      "holder": "rizo",
+      "color": "#E8C547",
+      "since": null,
+      "wonAt": null,
+      "history": [
+        {
+          "name": "Pimp Ross",
+          "slug": "pimp-ross",
+          "note": "Reinado más largo de la historia del título"
+        }
+      ],
+      "provisionalHistory": true,
+      "team": false
+    },
+    {
+      "slug": "levelone",
+      "name": "Campeonato de Level One",
+      "short": "Level One",
+      "holder": "joro",
+      "color": "#2BD46A",
+      "since": "2026-10-17",
+      "wonAt": "kilometro-cero",
+      "history": [
+        {
+          "name": "Ochoa",
+          "slug": "ochoa"
+        }
+      ],
+      "provisionalHistory": true,
+      "team": false
+    },
+    {
+      "slug": "parejas",
+      "name": "Campeonatos de Parejas",
+      "short": "Parejas",
+      "holder": "la-nueva-ola",
+      "color": "#F59E2B",
+      "since": null,
+      "wonAt": null,
+      "history": [],
+      "provisionalHistory": true,
+      "team": true
+    },
+    {
+      "slug": "extremo",
+      "name": "Campeonato Extremo",
+      "short": "Extremo",
+      "holder": null,
+      "color": "#E11D48",
+      "since": null,
+      "wonAt": null,
+      "history": [],
+      "provisionalHistory": true,
+      "team": false
+    }
   ],
-  "hallOfFame": { "provisional": true, "members": [] }
+  "hallOfFame": {
+    "provisional": true,
+    "members": []
+  }
 }

@@ -1,13 +1,18 @@
 ---
-// Campeonatos: cada cinturón es un escenario. El campeón bajo un foco del color del título,
-// su nombre entra de golpe al aparecer en pantalla y el linaje se lee en un marcador LED.
+// Campeonatos: cada cinturón es un escenario. El campeón bajo un foco blanco (como la portada),
+// su nombre entra de golpe al aparecer en pantalla, debajo los días de reinado y la lista de
+// campeones anteriores. El color de cada título solo tiñe su nombre y la línea del historial.
 // Textos: shared/data/paginas-triplew.json (campeonatos) y shared/data/titles.json.
 import Base from '../layouts/Base.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
-import { titles, wrestler } from '../../../shared/lib.js';
+import { titles, wrestler, allShows, dateShort } from '../../../shared/lib.js';
 import pages from '../../../shared/data/paginas-triplew.json';
 const txt = pages.campeonatos;
 const hof = txt.hallOfFame;
+const showOf = (slug) => slug && allShows.find((x) => x.slug === slug);
+const DAY = 86400000;
+const daysBetween = (a, b) => Math.max(0, Math.round((new Date(b) - new Date(a)) / DAY));
+const today = new Date().toISOString().slice(0, 10);
 ---
 <Base title="Campeonatos">
   <section class="head wrap">
@@ -29,15 +34,33 @@ const hof = txt.hallOfFame;
           </div>
           <div class="st-body">
             <h2 class="st-title">{t.name}</h2>
-            <p class="st-label">Campeón actual</p>
+            <p class="st-label">{t.team ? 'Campeones actuales' : 'Campeón actual'}</p>
             {h
               ? <a class="st-holder" href={`/roster/${h.slug}/`} aria-label={h.name}>{[...h.name].map((ch, k) => <span class="ch" style={`--k:${k}`} aria-hidden="true">{ch === ' ' ? ' ' : ch}</span>)}</a>
               : <p class="st-holder none">Vacante <Provisional label="Por confirmar" /></p>}
+            {h && (t.since
+              ? <p class="reign">
+                  <span class="reign-n"><b data-since={t.since}>{daysBetween(t.since, today)}</b> días de reinado</span>
+                  <span class="reign-m">Desde el {dateShort(t.since)}{showOf(t.wonAt) && <> · <a href={`/shows/${t.wonAt}/`}>{showOf(t.wonAt).name}</a></>}</span>
+                </p>
+              : <p class="reign"><span class="reign-m">Fecha del título <Provisional label="Por confirmar" /></span></p>)}
             <div class="lin">
-              <h3>Linaje {t.provisionalHistory && <Provisional label="Incompleto" />}</h3>
+              <h3>Campeones anteriores {t.provisionalHistory && <Provisional label="Incompleto" />}</h3>
               {t.history.length
-                ? <ol>{t.history.map((x, k) => <li><b>{String(k + 1).padStart(2, '0')}</b><span><strong>{x.name}</strong>{x.note && <small>{x.note}</small>}</span></li>)}</ol>
-                : <p class="lin-empty">Sin datos todavía.</p>}
+                ? <ol>{t.history.map((x) => {
+                    const w = x.slug && wrestler(x.slug);
+                    const sh = showOf(x.show);
+                    const meta = [
+                      x.from && (x.to ? `${dateShort(x.from)} – ${dateShort(x.to)}` : `Desde ${dateShort(x.from)}`),
+                      x.from && x.to && `${daysBetween(x.from, x.to)} días`,
+                    ].filter(Boolean);
+                    return <li>
+                      {w ? <a class="lin-n" href={`/roster/${w.slug}/`}>{x.name}</a> : <span class="lin-n">{x.name}</span>}
+                      {(meta.length > 0 || sh) && <span class="lin-m">{meta.join(' · ')}{sh && <>{meta.length > 0 && ' · '}<a href={`/shows/${sh.slug}/`}>{sh.name}</a></>}</span>}
+                      {x.note && <small>{x.note}</small>}
+                    </li>;
+                  })}</ol>
+                : <p class="lin-empty">Historial en preparación.</p>}
             </div>
           </div>
         </article>
@@ -47,7 +70,8 @@ const hof = txt.hallOfFame;
 
   <section class="hof wrap" data-reveal>
     <h2 class="hof-t">{[...hof.title].map((ch, k) => <span style={`--k:${k}`}>{ch === ' ' ? ' ' : ch}</span>)}</h2>
-    <p>{hof.text} {hof.provisional && <Provisional label="Por confirmar" />}</p>
+    <p>{hof.text}</p>
+    {hof.soon && <p class="hof-soon">{hof.soon}</p>}
   </section>
 </Base>
 
@@ -55,6 +79,11 @@ const hof = txt.hallOfFame;
   document.documentElement.classList.add('js');
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('lit-on'); io.unobserve(e.target); } }), { threshold: .3 });
   document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  // Días de reinado al día de hoy (la página se genera una vez; esto la mantiene al día sin volver a publicar)
+  document.querySelectorAll('[data-since]').forEach((el) => {
+    const d = Math.round((Date.now() - new Date(el.dataset.since).getTime()) / 86400000);
+    if (d >= 0) el.textContent = String(d);
+  });
 </script>
 
 <style>
@@ -69,13 +98,15 @@ const hof = txt.hallOfFame;
   .st-ph img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.2) brightness(.95); transition: filter 1.2s cubic-bezier(.16, 1, .3, 1), transform 1.6s cubic-bezier(.16, 1, .3, 1); }
   .st-ph::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, transparent 55%, #060607 100%); }
   .flip .st-ph::after { background: linear-gradient(270deg, transparent 55%, #060607 100%); }
-  .st-q { position: absolute; inset: 0; display: grid; place-items: center; font: 900 clamp(14rem, 30vw, 26rem)/1 var(--font-display); color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--t) 55%, #333); background: repeating-linear-gradient(135deg, #0c0c0e 0 14px, #101013 14px 28px); }
-  /* Foco cenital del color del cinturón: difuminado, se mece despacio */
+  .st-q { position: absolute; inset: 0; display: grid; place-items: center; font: 900 clamp(14rem, 30vw, 26rem)/1 var(--font-display); color: transparent; -webkit-text-stroke: 2px #3a3835; background: repeating-linear-gradient(135deg, #0c0c0e 0 14px, #101013 14px 28px); }
+  /* Foco cenital blanco cálido (mismo que la portada): difuminado, se mece despacio */
   .st-beam { position: absolute; z-index: 1; top: -12%; left: 50%; width: 80%; height: 125%; translate: -50% 0; transform-origin: 50% 0; mix-blend-mode: screen; filter: blur(clamp(16px, 2vw, 30px)); opacity: .8; transition: opacity 1s; animation: sway 9s ease-in-out infinite alternate; pointer-events: none; }
-  .st-beam i { position: absolute; inset: 0; clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); background: radial-gradient(ellipse 60% 85% at 50% 0%, color-mix(in srgb, var(--t) 50%, #fff) 0%, color-mix(in srgb, var(--t) 28%, transparent) 40%, transparent 85%); }
+  .st-beam i { position: absolute; inset: 0; clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); background: radial-gradient(ellipse 60% 85% at 50% 0%, rgba(255, 244, 225, .85) 0%, rgba(255, 238, 210, .26) 40%, transparent 85%); }
   @keyframes sway { from { rotate: 7deg; } to { rotate: -7deg; } }
 
-  .st-body { position: relative; z-index: 2; align-self: center; padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 5vw, 4.5rem); }
+  /* El texto siempre arrimado a la foto: a la derecha de ella o, si la foto va a la derecha, pegado a su borde izquierdo */
+  .st-body { position: relative; z-index: 2; align-self: center; justify-self: start; max-width: 100%; padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 4vw, 3.5rem); }
+  .flip .st-body { justify-self: end; }
   .st-title { font: 800 clamp(1.3rem, 2vw, 1.7rem)/1 var(--font-display); text-transform: uppercase; letter-spacing: .02em; color: var(--t); }
   .st-label { margin: 1.6rem 0 .3rem; font: 600 1rem/1 var(--font-text); color: #b9b3a8; }
   .st-holder { display: block; width: fit-content; font: 900 clamp(3.2rem, 7.5vw, 7rem)/.84 var(--font-display); text-transform: uppercase; color: var(--fg); text-decoration: none; margin: 0; }
@@ -84,13 +115,20 @@ const hof = txt.hallOfFame;
   .st-holder.none { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; color: transparent; -webkit-text-stroke: 2px var(--fg); }
   .st-holder.none :global(.provisional) { -webkit-text-stroke: 0; }
 
-  .lin { margin-top: clamp(1.8rem, 3vw, 2.6rem); max-width: 520px; }
+  .reign { margin: 1.1rem 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1.2rem; color: #c9c2b5; font-size: 1rem; }
+  .reign-n { font: 600 1rem/1 var(--font-text); color: #e9e3d6; }
+  .reign-n b { font: 900 clamp(1.8rem, 2.6vw, 2.3rem)/1 var(--font-display); color: var(--fg); margin-right: .25rem; font-variant-numeric: tabular-nums; }
+  .reign-m { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+  .reign a, .lin-m a { color: inherit; text-decoration: underline; text-decoration-color: var(--t); text-underline-offset: .2em; }
+  .reign a:hover, .lin-m a:hover { color: var(--fg); }
+  .lin { margin-top: clamp(1.8rem, 3vw, 2.6rem); width: 34rem; max-width: 100%; }
   .lin h3 { font: 700 1rem/1 var(--font-text); color: #e9e3d6; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; }
   .lin ol { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--t); background-color: #0b0a0a; background-image: radial-gradient(color-mix(in srgb, var(--t) 15%, transparent) 1.1px, transparent 1.3px); background-size: 5px 5px; }
-  .lin li { display: grid; grid-template-columns: 2.6rem 1fr; gap: .7rem; align-items: baseline; padding: .8rem .9rem; border-bottom: 1px solid #1e1c1c; }
-  .lin li b { font: 900 1.4rem/1 var(--font-display); color: var(--t); font-variant-numeric: tabular-nums; }
-  .lin li strong { font: 800 1.25rem/1 var(--font-display); text-transform: uppercase; }
-  .lin li small { display: block; font-size: .95rem; line-height: 1.35; color: #c9c2b5; margin-top: .3rem; }
+  .lin li { display: grid; gap: .3rem; padding: .85rem .95rem; border-bottom: 1px solid #1e1c1c; }
+  .lin-n { font: 800 1.35rem/1 var(--font-display); text-transform: uppercase; color: var(--fg); text-decoration: none; width: fit-content; }
+  a.lin-n:hover { color: var(--t); }
+  .lin-m { font-size: .95rem; color: #c9c2b5; }
+  .lin li small { display: block; font-size: .95rem; line-height: 1.35; color: #c9c2b5; }
   .lin-empty { color: #c9c2b5; font-size: 1rem; }
 
   /* Encendido al entrar en pantalla */
@@ -108,13 +146,15 @@ const hof = txt.hallOfFame;
   :global(.js) .hof.lit-on .hof-t span { animation: neon 1.3s steps(1) both; animation-delay: calc(var(--k) * .06s); }
   @keyframes neon { 0% { opacity: .12; } 20% { opacity: 1; text-shadow: 0 0 22px rgba(232, 197, 71, .7); } 30% { opacity: .2; } 45%, 100% { opacity: 1; text-shadow: 0 0 22px rgba(232, 197, 71, .45); } }
   .hof p { font-size: 1.1rem; max-width: 46ch; margin: 1.5rem auto 0; color: #d6cfbf; }
+  .hof .hof-soon { margin-top: 1.4rem; font: 700 .95rem/1 var(--font-text); letter-spacing: .28em; text-transform: uppercase; color: #E8C547; }
 
   @media (max-width: 820px) {
-    .stage, .stage.flip { grid-template-columns: 1fr; min-height: 0; }
+    .stage, .stage.flip { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+    .lin { width: auto; }
     .stage.flip .st-ph { order: 0; }
     .st-ph { aspect-ratio: 4/3; }
     .st-ph::after, .flip .st-ph::after { background: linear-gradient(0deg, #060607 0%, transparent 45%); }
-    .st-body { padding-top: 0; margin-top: -3.5rem; }
+    .st-body, .flip .st-body { justify-self: stretch; padding-top: 0; margin-top: -3.5rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .st-beam { animation: none; }
