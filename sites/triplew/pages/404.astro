@@ -108,10 +108,10 @@ import Base from '../layouts/Base.astro';
   const W = 320, H = 180, FLOOR = 160, TIME = 30;
   const CELL = 96, AX = 44, AY = 88; // ancla de los pies dentro de cada celda del sprite
   const ROWS = { idle: 0, walk: 1, golpe: 2, patada: 3, especial: 4 };
-  const FRAMES = { idle: 8, walk: 6, golpe: 6, patada: 6, especial: 11 };
+  const FRAMES = { idle: 8, walk: 6, golpe: 6, patada: 14, especial: 11 }; // patada = dropkick a dos piernas + levantarse
   const FIGHTERS = {
-    lobo: { name: 'El Lobo', speed: 82, golpe: 11, patada: 17, especial: [18, 60], golpeMs: 55, kickRange: 34 },
-    loba: { name: 'La Loba', speed: 100, golpe: 8, patada: 15, especial: [16, 50], golpeMs: 42, kickRange: 40 },
+    lobo: { name: 'El Lobo', speed: 82, golpe: 11, patada: 22, especial: [18, 60], golpeMs: 55, kickRange: 34 },
+    loba: { name: 'La Loba', speed: 100, golpe: 8, patada: 19, especial: [16, 50], golpeMs: 42, kickRange: 40 },
   };
   const DIGIT_HP = 150, BLOCK = 10;
   const GLYPH = {
@@ -167,7 +167,7 @@ import Base from '../layouts/Base.astro';
     if (p.busy) { p.queue = { k, at: performance.now() }; return; } // se guarda y sale en cuanto acabe el movimiento
     p.queue = null;
     if (k === 'golpe') start('golpe');
-    if (k === 'patada') { start('patada'); p.vy = -150; p.vx = 130 * p.dir; }
+    if (k === 'patada') { start('patada'); p.vy = -170; p.vx = 135 * p.dir; }
     if (k === 'especial') { start('especial'); p.charging = keys.especial; p.charge = 0; }
   }
   function release(k) {
@@ -253,13 +253,14 @@ import Base from '../layouts/Base.astro';
 
     // animación
     p.ft += dt * 1000;
-    const ms = p.anim === 'golpe' ? f.golpeMs : p.anim === 'patada' ? 75 : p.anim === 'especial' ? 70 : p.anim === 'walk' ? 110 : 120;
+    const ms = p.anim === 'golpe' ? f.golpeMs : p.anim === 'patada' ? 70 : p.anim === 'especial' ? 70 : p.anim === 'walk' ? 110 : 120;
     while (p.ft >= ms) {
       p.ft -= ms;
       if (p.anim === 'especial' && p.charging && p.fr >= 6) { p.fr = 6; continue; } // mantener la carga
+      if (p.anim === 'patada' && p.fr >= 6 && p.y < FLOOR) { p.fr = 6; continue; } // en el aire hasta caer a la lona
       p.fr++;
       if (p.anim === 'golpe' && p.fr === 4 && !p.hit) { p.hit = true; doHit(f.golpe, false); }
-      if (p.anim === 'patada' && (p.fr === 2 || p.fr === 3) && !p.hit) { p.hit = doHit(f.patada, false); }
+      if (p.anim === 'patada' && p.fr >= 2 && p.fr <= 6 && !p.hit) { p.hit = doHit(f.patada, false); }
       if (p.anim === 'especial' && p.fr === 8 && !p.hit) {
         p.hit = true; const pw = Math.min(1, p.charge);
         p.x += p.dir * 10; doHit(Math.round(f.especial[0] + (f.especial[1] - f.especial[0]) * pw), true);
