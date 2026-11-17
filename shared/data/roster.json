@@ -479,7 +479,8 @@
       ],
       "photo": "/fotos/por-carpeta/coajim-echevarria/_an_0403.jpg",
       "photoPos": "center 20%",
-      "photos": []
+      "photos": [],
+      "role": "Promotor de luchadores"
     },
     {
       "slug": "doctor-amor",
@@ -491,13 +492,11 @@
     {
       "slug": "aaron-smile",
       "name": "Aarón Smile",
-      "division": "levelone",
-      "provisional": [
-        "division"
-      ],
+      "division": "staff",
       "photo": "/fotos/por-carpeta/aaron-smile/nik_5548.jpg",
       "photoPos": "center 20%",
-      "photos": []
+      "photos": [],
+      "role": "Promotor de luchadores"
     },
     {
       "slug": "elvis-harrison",

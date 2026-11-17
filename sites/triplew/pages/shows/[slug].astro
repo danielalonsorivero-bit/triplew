@@ -14,6 +14,12 @@ const today = new Date(new Date().toISOString().slice(0, 10));
 const past = new Date(s.date) < today;
 const words = s.name.split(' ');
 const cronica = cronicaBlocks(s.cronica);
+// Pestañas bajo los resultados: galería, vídeos y crónica, solo las que tengan contenido.
+const tabs = [
+  s.gallery?.length > 0 && { id: 'galeria', label: 'Galería', n: Math.min(s.gallery.length, 30) },
+  s.videos?.length > 0 && { id: 'videos', label: 'Vídeos', n: s.videos.length },
+  cronica.length > 0 && { id: 'cronica', label: 'Crónica' },
+].filter(Boolean);
 let n = 0;
 ---
 <Base title={s.name} accent={s.color} accentInk={s.ink} overlayHead>
@@ -59,28 +65,45 @@ let n = 0;
     </section>
   )}
 
-  {cronica.length > 0 && (
-    <section class="section wrap cron-sec">
-      <h2 class="h-l">Crónica</h2>
-      <div class="cron">{cronica.map((b) => b.kind === 'h' ? <h3 set:html={b.html} /> : <p set:html={b.html} />)}</div>
-    </section>
-  )}
-
-  {s.videos?.length > 0 && (
-    <section class="section wrap gal-sec">
-      <h2 class="h-l">Vídeos</h2>
-      <div class="vid-grid">{s.videos.map((v) => <VideoYT id={v.youtube} title={v.title} color={s.color} />)}</div>
-    </section>
-  )}
-
-  {s.gallery?.length > 0 && (
-    <section class="section wrap gal-sec">
-      <h2 class="h-l">Galería</h2>
-      {s.galleryProvisional && <p class="soon"><Provisional label="Fotos por confirmar en este show" /></p>}
-      <Galeria photos={s.gallery} alt={`Foto de ${s.name}`} max={30} />
+  {tabs.length > 0 && (
+    <section class="section wrap tabs-sec" data-tabs>
+      <div class="tablist" role="tablist" aria-label={`Más de ${s.name}`}>
+        {tabs.map((t, k) => <button type="button" role="tab" id={`tab-${t.id}`} aria-controls={`panel-${t.id}`} aria-selected={k === 0 ? 'true' : 'false'} tabindex={k === 0 ? 0 : -1}>{t.label}{t.n && <small>{t.n}</small>}</button>)}
+      </div>
+      {tabs.map((t) => (
+        <div class="panel" role="tabpanel" id={`panel-${t.id}`} aria-labelledby={`tab-${t.id}`} tabindex="0">
+          <h2 class="panel-h">{t.label}</h2>
+          {t.id === 'galeria' && <>{s.galleryProvisional && <p class="soon"><Provisional label="Fotos por confirmar en este show" /></p>}<Galeria photos={s.gallery} alt={`Foto de ${s.name}`} max={30} /></>}
+          {t.id === 'videos' && <div class="vid-grid">{s.videos.map((v) => <VideoYT id={v.youtube} title={v.title} color={s.color} />)}</div>}
+          {t.id === 'cronica' && <div class="cron">{cronica.map((b) => b.kind === 'h' ? <h3 set:html={b.html} /> : <p set:html={b.html} />)}</div>}
+        </div>
+      ))}
     </section>
   )}
 </Base>
+
+<script>
+  // Pestañas accesibles: clic, flechas del teclado y enlace directo (#galeria, #videos, #cronica).
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((box) => {
+    const tabs = [...box.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+    const panels = [...box.querySelectorAll<HTMLElement>('[role=tabpanel]')];
+    box.classList.add('js-tabs');
+    const pick = (i: number, focus = false) => {
+      tabs.forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); t.tabIndex = k === i ? 0 : -1; });
+      panels.forEach((p, k) => { p.hidden = k !== i; });
+      if (focus) tabs[i].focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => { pick(i); history.replaceState(null, '', '#' + t.id.slice(4)); });
+      t.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (d) { e.preventDefault(); pick((i + d + tabs.length) % tabs.length, true); }
+      });
+    });
+    const fromHash = tabs.findIndex((t) => '#' + t.id.slice(4) === location.hash);
+    pick(Math.max(0, fromHash));
+  });
+</script>
 <style>
   .top { position: relative; overflow: hidden; isolation: isolate; margin-top: -65px; padding-top: 65px; background: #050506; border-bottom: 2px solid var(--c); }
   .top-bg { position: absolute; inset: 0; z-index: -1; }
@@ -118,7 +141,24 @@ let n = 0;
   .results b { font: 900 1.8rem/1 var(--font-display); color: var(--accent); font-variant-numeric: tabular-nums; }
   .gal-sec { padding-top: 0; }
   .yt-link { margin-top: 1.6rem; }
-  .cron-sec { padding-top: 0; }
+  .tabs-sec { padding-top: 0; }
+  .tablist { display: none; }
+  .js-tabs .tablist { display: flex; gap: clamp(1rem, 3vw, 2.5rem); overflow-x: auto; border-bottom: 1px solid #26262a; scrollbar-width: none; }
+  .tablist button { position: relative; flex: none; padding: .4rem 0 1rem; border: 0; background: none; cursor: pointer; font: 900 clamp(1.9rem, 4.2vw, 3.4rem)/.9 var(--font-display); text-transform: uppercase; color: transparent; -webkit-text-stroke: 1.5px #6b6b72; transition: color .3s, -webkit-text-stroke-color .3s; }
+  .tablist button small { font: 800 .95rem/1 var(--font-display); -webkit-text-stroke: 0; color: #8b8b92; margin-left: .35rem; vertical-align: top; }
+  .tablist button:hover { -webkit-text-stroke-color: var(--fg); }
+  .tablist button[aria-selected="true"] { color: var(--fg); -webkit-text-stroke-color: transparent; }
+  .tablist button[aria-selected="true"] small { color: var(--accent); }
+  .tablist button::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 70%, transparent); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.16, 1, .3, 1); }
+  .tablist button[aria-selected="true"]::after { transform: none; }
+  .tablist button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .panel { padding-top: .5rem; }
+  .panel:focus-visible { outline: none; }
+  .panel + .panel { margin-top: 3rem; }
+  .js-tabs .panel + .panel { margin-top: 0; }
+  .js-tabs .panel-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .js-tabs .panel:not([hidden]) { animation: panel-in .5s cubic-bezier(.16, 1, .3, 1); }
+  @keyframes panel-in { from { opacity: 0; transform: translateY(10px); } }
   .cron { max-width: 68ch; margin-top: 1.5rem; border-left: 2px solid var(--accent); padding-left: clamp(1rem, 3vw, 2rem); }
   .cron p { font-size: 1.1rem; line-height: 1.65; color: #ddd6c8; margin: 0 0 1.1rem; }
   .cron h3 { font: 900 clamp(1.6rem, 3vw, 2.2rem)/1 var(--font-display); text-transform: uppercase; color: var(--accent); margin: 2rem 0 .8rem; }
