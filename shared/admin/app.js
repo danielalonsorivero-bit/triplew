@@ -198,6 +198,8 @@ function render() {
     h('div', { class: 'adm-toast', role: 'status' }),
   );
   if (keepScroll) scrollTo(0, y); else scrollTo(0, 0);
+  // Tras añadir a alguien a una rumble, el cursor vuelve a la caja para seguir añadiendo sin usar el ratón.
+  if (S.focusAdd != null) { document.querySelector(`[data-field="card-${S.focusAdd}"] .rumble input`)?.focus({ preventScroll: true }); S.focusAdd = null; }
   refreshBar();
 }
 
@@ -662,26 +664,29 @@ const norm = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCa
 const sorted = [...roster].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 const isTeam = (w) => w.division === 'parejas' || (w.members || []).length > 0;
 let acId = 0;
-function nameInput(value, onset, label, kind) {
+function nameInput(value, onset, label, kind, opt = {}) {
   const known = (v) => roster.some((w) => w.name === v.trim());
   const status = h('span', { class: 'who-st' });
-  const paint = (v) => {
+  let paint = (v) => {
     status.replaceChildren(v.trim() ? (known(v) ? h('span', { class: 'ok' }, icon('check'), 'En el roster: se enlaza su ficha') : h('span', { class: 'free' }, 'Nombre libre: no tiene ficha en la web')) : '');
   };
   paint(value);
   const id = `ac${++acId}`;
   const list = h('ul', { class: 'ac', id, role: 'listbox', hidden: true });
   let items = [], act = -1;
-  const input = h('input', { type: 'text', value, id: `${id}-in`, placeholder: kind === 'parejas' ? 'Nombre de la pareja o «Por decidir»' : 'Nombre o «Por decidir»',
+  const input = h('input', { type: 'text', value, id: `${id}-in`, placeholder: opt.placeholder || (kind === 'parejas' ? 'Nombre de la pareja o «Por decidir»' : 'Nombre o «Por decidir»'),
     autocomplete: 'off', role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': id });
   const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); act = -1; };
-  const pick = (w) => { input.value = w.name; onset(w.name); paint(w.name); persist(); close(); };
+  const pick = (w) => {
+    if (opt.onpick) { opt.onpick(w.name); return; }
+    input.value = w.name; onset(w.name); paint(w.name); persist(); close();
+  };
   const show = () => {
     const q = norm(input.value.trim());
     if (!q) { close(); return; }
     const pool = kind === 'parejas' ? [...sorted.filter(isTeam), ...sorted.filter((w) => !isTeam(w))] : sorted;
     items = pool.filter((w) => norm(w.name).split(/[\s«»"'-]+/).some((p) => p.startsWith(q)) || norm(w.name).startsWith(q))
-      .filter((w) => w.name !== input.value).slice(0, 7);
+      .filter((w) => w.name !== input.value && !(opt.exclude || []).includes(w.name)).slice(0, 7);
     if (!items.length) { close(); return; }
     list.replaceChildren(...items.map((w, k) => h('li', { role: 'option', id: `${id}-${k}`, class: k === act ? 'on' : '',
       onmousedown: (e) => { e.preventDefault(); pick(w); } },
@@ -689,8 +694,16 @@ function nameInput(value, onset, label, kind) {
       h('span', {}, w.name, isTeam(w) && h('small', {}, ' · pareja o facción')))));
     list.hidden = false; input.setAttribute('aria-expanded', 'true');
   };
-  input.addEventListener('focus', () => snapshot());
-  input.addEventListener('input', () => { act = -1; paint(input.value); setLive(() => onset(input.value)); show(); });
+  if (opt.onpick) {
+    paint = () => {};
+    input.addEventListener('input', () => { act = -1; show(); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (list.hidden || act < 0)) { e.preventDefault(); const v = input.value.trim(); if (v) opt.onpick(roster.find((x) => norm(x.name) === norm(v))?.name || v); }
+    });
+  } else {
+    input.addEventListener('focus', () => snapshot());
+    input.addEventListener('input', () => { act = -1; paint(input.value); setLive(() => onset(input.value)); show(); });
+  }
   input.addEventListener('keydown', (e) => {
     if (list.hidden) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -702,25 +715,57 @@ function nameInput(value, onset, label, kind) {
   });
   input.addEventListener('blur', () => {
     close();
+    if (opt.onpick) return;
     // Si coincide con alguien del roster sin importar mayúsculas ni tildes, se corrige solo.
     const w = roster.find((x) => norm(x.name) === norm(input.value.trim()));
     if (w && w.name !== input.value) { input.value = w.name; onset(w.name); paint(w.name); persist(); }
   });
-  return h('div', { class: 'who' }, h('label', { class: 'who-l', for: `${id}-in` }, label), h('div', { class: 'ac-wrap' }, input, list), status);
+  return h('div', { class: 'who' }, label && h('label', { class: 'who-l', for: `${id}-in` }, label), h('div', { class: 'ac-wrap' }, input, list), opt.onpick ? null : status);
+}
+
+// Rumble: no hay dos lados, sino una lista de confirmados (puede estar vacía) y, si se quiere, sorpresas.
+const MAX_RUMBLE = 40;
+function rumbleBox(m, i) {
+  const add = (name) => {
+    if (m.sides.includes(name)) { toast(`${name} ya está en la lista`); return; }
+    if (m.sides.length >= MAX_RUMBLE) return;
+    S.view.keepScroll = true; S.focusAdd = i;
+    change(() => { m.sides.push(name); });
+  };
+  const n = m.sides.length;
+  return h('div', { class: 'rumble' },
+    h('p', { class: 'who-l' }, 'Luchadores confirmados', h('small', {}, ` ${n}`)),
+    h('p', { class: 'pane-p' }, 'Pon solo los que ya estén anunciados; no hace falta tenerlos todos. Si no quieres anunciar ninguno, déjalo vacío.'),
+    n ? h('ul', { class: 'rlist' }, m.sides.map((name, k) => {
+      const w = roster.find((x) => x.name === name);
+      return h('li', {},
+        w?.photo ? h('img', { src: w.photo, alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
+        h('span', {}, name),
+        h('button', { class: 'ib', type: 'button', 'aria-label': `Quitar a ${name}`, title: 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.splice(k, 1); }); } }, icon('x')));
+    })) : null,
+    n < MAX_RUMBLE
+      ? nameInput('', () => {}, n ? 'Añadir otro luchador' : 'Añadir un luchador', 'individual', { onpick: add, exclude: m.sides, placeholder: 'Escribe un nombre y pulsa Intro' })
+      : h('p', { class: 'muted-s' }, `Has llegado al máximo de ${MAX_RUMBLE}.`),
+    h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: !!m.surprises, onchange: (e) => change(() => { if (e.target.checked) m.surprises = true; else delete m.surprises; }, { rerender: false }) }),
+      'Habrá luchadores sorpresa (la web lo anuncia con un «?»)'));
 }
 
 function matchCard(s, m, i) {
   if (!m.sides) m.sides = [];
-  const kind = m.type === 'parejas' ? 'parejas' : 'individual';
+  const kind = m.type === 'parejas' || m.type === 'rumble' ? m.type : 'individual';
   const unit = kind === 'parejas' ? 'Pareja' : 'Luchador';
   return h('li', { class: 'match', 'data-field': `card-${i}` },
     h('div', { class: 'match-h' }, h('span', { class: 'match-n' }, `Combate ${i + 1}`), rowTools(s.card, i, 'combate')),
-    h('fieldset', { class: 'fs' }, h('legend', {}, '¿Cómo se lucha?'),
-      choice(`kind-${i}`, [{ value: 'individual', label: 'Individual' }, { value: 'parejas', label: 'Parejas' }], kind,
-        (v) => { S.view.keepScroll = true; change(() => { if (v === 'parejas') m.type = 'parejas'; else delete m.type; }); })),
-    field('Tipo de combate o título en juego', { value: m.title || '', max: 70, attrs: { placeholder: kind === 'parejas' ? 'Por ejemplo: Campeonatos de Parejas' : 'Por ejemplo: Campeonato Absoluto · Lucha de escaleras' },
+    h('fieldset', { class: 'fs' }, h('legend', {}, 'Tipo de lucha'),
+      choice(`kind-${i}`, [{ value: 'individual', label: 'Individual' }, { value: 'parejas', label: 'Parejas' }, { value: 'rumble', label: 'Rumble', note: 'Todos contra todos' }], kind,
+        (v) => { S.view.keepScroll = true; change(() => {
+          if (v === 'individual') delete m.type; else m.type = v;
+          if (v === 'rumble') { m.sides = m.sides.filter((x) => x.trim()); if (m.surprises === undefined) m.surprises = true; }
+          else { delete m.surprises; while (m.sides.length < 2) m.sides.push(''); }
+        }); })),
+    field('Tipo de combate o título en juego', { value: m.title || '', max: 70, attrs: { placeholder: kind === 'rumble' ? 'Por ejemplo: Total Rumble' : kind === 'parejas' ? 'Por ejemplo: Campeonatos de Parejas' : 'Por ejemplo: Campeonato Absoluto · Lucha de escaleras' },
       oninput: (v) => setLive(() => { m.title = v; }) }),
-    h('div', { class: 'sides' },
+    kind === 'rumble' ? rumbleBox(m, i) : h('div', { class: 'sides' },
       m.sides.map((side, k) => [
         k > 0 && h('span', { class: 'vs' }, 'contra'),
         h('div', { class: 'side' }, nameInput(side, (v) => { m.sides[k] = v; }, `${unit} ${k + 1}`, kind),
@@ -733,13 +778,16 @@ function matchCard(s, m, i) {
 }
 
 function resultBuilder(s) {
-  const card = (s.card || []).filter((m) => (m.sides || []).some((x) => x.trim()));
-  const st = S.rb || (S.rb = { m: 0, w: '', how: 'pin', title: false });
+  const card = (s.card || []).filter((m) => m.type === 'rumble' || (m.sides || []).some((x) => x.trim()));
+  const st = S.rb || (S.rb = { m: 0, w: '', how: 'pin', title: false, other: '' });
   if (st.m >= card.length) st.m = 0;
   const m = card[st.m];
   const sides = (m?.sides || []).filter((x) => x.trim());
-  if (!sides.includes(st.w)) st.w = sides[0] || '';
+  const rumble = m?.type === 'rumble';
+  const OTHER = '__otro';
+  if (!sides.includes(st.w) && !(rumble && st.w === OTHER)) st.w = sides[0] || (rumble ? OTHER : '');
   const sentence = () => {
+    if (rumble) return `${(st.w === OTHER ? st.other.trim() : st.w) || '…'} ganó la ${m.title?.trim() || 'rumble'}.`;
     const losers = sides.filter((x) => x !== st.w);
     const list = losers.length > 1 ? `${losers.slice(0, -1).join(', ')} y ${losers.at(-1)}` : losers[0] || '…';
     const t = /campeonato/i.test(m?.title || '') ? (st.title ? ` y retuvo el ${m.title}` : ` y ganó el ${m.title}`) : '';
@@ -751,10 +799,13 @@ function resultBuilder(s) {
   return h('div', { class: 'rb' },
     h('div', { class: 'rb-row' },
       h('label', {}, 'Combate', h('select', { onchange: (e) => { st.m = +e.target.value; S.view.keepScroll = true; render(); } },
-        card.map((c, k) => h('option', { value: k, selected: k === st.m }, `${k + 1}. ${c.title || c.sides.filter(Boolean).join(' contra ')}`)))),
-      h('label', {}, 'Ganó', h('select', { onchange: (e) => { st.w = e.target.value; up(); } }, sides.map((x) => h('option', { selected: x === st.w }, x)))),
-      h('label', {}, 'Cómo', h('select', { onchange: (e) => { st.how = e.target.value; up(); } }, METHODS.map((x) => h('option', { selected: x === st.how }, x)))),
-      isTitle && h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: st.title, onchange: (e) => { st.title = e.target.checked; up(); } }), 'Ya era el campeón')),
+        card.map((c, k) => h('option', { value: k, selected: k === st.m }, `${k + 1}. ${c.title || (c.type === 'rumble' ? 'Rumble' : c.sides.filter(Boolean).join(' contra '))}`)))),
+      h('label', {}, 'Ganó', h('select', { onchange: (e) => { st.w = e.target.value; if (rumble) { S.view.keepScroll = true; render(); } else up(); } },
+        sides.map((x) => h('option', { value: x, selected: x === st.w }, x)),
+        rumble && h('option', { value: OTHER, selected: st.w === OTHER }, 'Otro (un luchador sorpresa)'))),
+      rumble && st.w === OTHER && h('label', {}, 'Nombre del ganador', h('input', { type: 'text', value: st.other, placeholder: 'Escribe el nombre', oninput: (e) => { st.other = e.target.value; up(); } })),
+      !rumble && h('label', {}, 'Cómo', h('select', { onchange: (e) => { st.how = e.target.value; up(); } }, METHODS.map((x) => h('option', { selected: x === st.how }, x)))),
+      !rumble && isTitle && h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: st.title, onchange: (e) => { st.title = e.target.checked; up(); } }), 'Ya era el campeón')),
     out,
     h('button', { class: 'btn1', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (s.results ||= []).push({ text: sentence() }); }); toast('Resultado añadido'); } }, icon('plus'), 'Añadir este resultado'));
 }

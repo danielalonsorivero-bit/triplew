@@ -1,0 +1,57 @@
+---
+// Combate de muchos (rumble, todos contra todos, o tres o más): cuadrícula de retratos
+// de los confirmados y, si hay sorpresas, casillas con interrogante.
+import Provisional from '../../../shared/components/Provisional.astro';
+import { findByName } from '../../../shared/lib.js';
+const { match, color } = Astro.props;
+const rumble = match.type === 'rumble';
+const people = (match.sides ?? []).filter((n) => n?.trim()).map((name) => ({ name, w: findByName(name) }));
+const surprises = rumble && (match.surprises || !people.length);
+const kicker = rumble
+  ? people.length ? `Todos contra todos · ${people.length} ${people.length === 1 ? 'confirmado' : 'confirmados'}` : 'Todos contra todos'
+  : `${people.length} luchadores · uno contra todos`;
+---
+<article class="rb" style={`--c:${color}`}>
+  <div class="rb-head">
+    <p class="rb-k">{kicker}</p>
+    <h3 class="rb-title">{match.title || (rumble ? 'Rumble' : 'Combate')} {match.provisional && <Provisional label="Por confirmar" />}</h3>
+    {match.note && <p class="rb-note">{match.note}</p>}
+  </div>
+  <ul class="rb-grid">
+    {people.map((x) => {
+      const Tag = x.w ? 'a' : 'div';
+      return (
+        <li><Tag class:list={['rb-p', { unknown: !x.w?.photo }]} href={x.w ? `/roster/${x.w.slug}/` : undefined}>
+          {x.w?.photo
+            ? <img src={x.w.photo} alt="" loading="lazy" decoding="async" style={`object-position:${(x.w.photoPos || 'center 20%').split(' ')[0]} 8%`} />
+            : <span class="rb-q" aria-hidden="true">?</span>}
+          <span class="rb-n">{x.name}</span>
+        </Tag></li>
+      );
+    })}
+    {surprises && (
+      <li><div class="rb-p unknown surprise">
+        <span class="rb-q" aria-hidden="true">?</span>
+        <span class="rb-n">{people.length ? 'Y más sorpresas' : 'Participantes por anunciar'}</span>
+      </div></li>
+    )}
+  </ul>
+</article>
+
+<style>
+  .rb { grid-column: 1 / -1; display: grid; background: #070708; border: 1px solid #1d1d1f; }
+  .rb-head { padding: 1.2rem 1.2rem 1rem; border-bottom: 1px solid #1d1d1f; }
+  .rb-k { margin: 0 0 .4rem; font: 700 .8rem/1 var(--font-text); text-transform: uppercase; letter-spacing: .14em; color: var(--c); }
+  .rb-title { margin: 0; font: 900 clamp(1.8rem, 3.6vw, 3rem)/.9 var(--font-display); text-transform: uppercase; color: var(--fg); display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  .rb-note { margin: .6rem 0 0; font-size: 1rem; line-height: 1.45; color: #b9b3a8; max-width: 60ch; }
+  .rb-grid { list-style: none; margin: 0; padding: 1px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(30%, 150px), 1fr)); gap: 1px; background: #1d1d1f; }
+  .rb-grid li { background: #070708; }
+  .rb-p { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; text-decoration: none; background: #0d0d0f; }
+  .rb-p img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15) brightness(.7); transition: filter .5s, transform .8s cubic-bezier(.16, 1, .3, 1); }
+  .rb-p::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(0deg, rgba(5,5,6,.95) 0%, rgba(5,5,6,0) 60%); }
+  a.rb-p:hover img, a.rb-p:focus-visible img { filter: grayscale(1) contrast(1.2) brightness(1); transform: scale(1.04); }
+  .rb-n { position: absolute; z-index: 2; left: .55rem; right: .55rem; bottom: .55rem; overflow-wrap: anywhere; font: 900 clamp(.9rem, 1.6vw, 1.4rem)/.9 var(--font-display); text-transform: uppercase; color: var(--fg); text-wrap: balance; }
+  .unknown { background: repeating-linear-gradient(135deg, #0c0c0e 0 12px, #101013 12px 24px); }
+  .rb-q { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: 15%; font: 900 6rem/1 var(--font-display); color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--c) 55%, #333); }
+  .surprise .rb-n { color: var(--c); }
+</style>

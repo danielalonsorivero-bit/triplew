@@ -3,10 +3,14 @@
 // Lado sin luchador conocido ("Por anunciar"): silueta oscura con interrogante.
 import Provisional from '../../../shared/components/Provisional.astro';
 import { findByName } from '../../../shared/lib.js';
+import Rumble from './Rumble.astro';
 const { match, color } = Astro.props;
+// Rumble o tres o más luchadores: no caben en el cara a cara, van en cuadrícula.
+const many = match.type === 'rumble' || (match.sides ?? []).filter((n) => n?.trim()).length > 2;
 const sides = (match.sides ?? []).slice(0, 2).map((name) => ({ name, w: findByName(name) }));
 const solo = sides.length < 2;
 ---
+{many ? <Rumble match={match} color={color} /> : (
 <article class:list={['fo', { solo }]} style={`--c:${color}`}>
   <div class="fo-ring">
     {sides.map((x, k) => {
@@ -27,6 +31,7 @@ const solo = sides.length < 2;
     {match.note && <p class="fo-note">{match.note}</p>}
   </div>
 </article>
+)}
 
 <style>
   .fo { --h: clamp(260px, 26vw, 380px); display: grid; background: #070708; border: 1px solid #1d1d1f; }

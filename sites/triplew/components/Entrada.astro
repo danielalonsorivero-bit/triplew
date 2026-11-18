@@ -6,7 +6,8 @@ const { show, hidden = false } = Astro.props;
 const v = venues[show.venue];
 const slides = heroSlides(show);
 const startISO = `${show.date}T${show.start || '18:00'}:00+01:00`;
-const vs = (s) => s.opponents?.length ? s.opponents : [];
+// En una rumble (o con más de dos rivales) no se listan los rivales: serían demasiados.
+const vs = (s) => (s.opponents?.length && s.opponents.length <= 2 ? s.opponents : []);
 const chars = (t) => [...t];
 // En la portada la foto es muy ancha: se respeta el encuadre horizontal del retrato y se sube arriba del todo para no cortar cabezas.
 const heroPos = (pos = 'center 20%') => `${pos.split(' ')[0]} 4%`;
