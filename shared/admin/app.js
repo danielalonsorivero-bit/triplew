@@ -5,10 +5,12 @@
 
 import showsJson from '../data/shows.json';
 import rosterJson from '../data/roster.json';
+import titlesJson from '../data/titles.json';
 import { cronicaBlocksFor } from '../cronica.js';
 import { shrink, palette, inkFor, kb } from './img.js';
 import * as store from './store.js';
 import { rosterHome, wrestlerEditor, newWrestlerForm, checkWrestler, changedRoster, removedRoster, wrestlerBy } from './luchadores.js';
+import { titlesHome, titleEditor, checkTitle, changedTitles, removedTitles, titleBy } from './campeonatos.js';
 
 const BRANDS = {
   triplew: { name: 'Triple W', color: '#E3EE2B' },
@@ -24,6 +26,8 @@ export const S = {
   shows: clone(showsJson.shows),
   roster: clone(rosterJson.wrestlers),
   publishedRoster: JSON.stringify(rosterJson.wrestlers),
+  titles: clone(titlesJson.titles),
+  publishedTitles: JSON.stringify(titlesJson.titles),
   venues: clone(showsJson.venues),
   published: JSON.stringify(showsJson.shows),
   publishedVenues: JSON.stringify(showsJson.venues),
@@ -36,14 +40,14 @@ export const S = {
   restored: false,
 };
 
-const isPast = (s) => s.date && s.date <= today();
+export const isPast = (s) => s.date && s.date <= today();
 const venues = new Proxy({}, { get: (_, k) => S.venues[k], ownKeys: () => Reflect.ownKeys(S.venues), getOwnPropertyDescriptor: (_, k) => ({ enumerable: true, configurable: true, value: S.venues[k] }) });
 const venuesChanged = () => JSON.stringify(S.venues) !== S.publishedVenues;
 const showBy = (slug) => S.shows.find((s) => s.slug === slug);
 export const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
 
-const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues, roster: S.roster });
-const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; S.roster = d.roster; };
+const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles });
+const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; S.roster = d.roster; S.titles = d.titles; };
 export function snapshot() {
   const now = docNow();
   if (S.undo.at(-1) === now) return;
@@ -57,6 +61,7 @@ function undo() {
   docLoad(S.undo.pop());
   if (S.view.name === 'show' && !showBy(S.view.slug)) S.view = { name: 'home' };
   if (S.view.name === 'wrestler' && !wrestlerBy(S.view.slug)) S.view = { name: 'roster' };
+  if (S.view.name === 'title' && !titleBy(S.view.slug)) S.view = { name: 'titles' };
   toast('Deshecho');
   persist(); render();
 }
@@ -73,7 +78,7 @@ export function persist() {
   clearTimeout(persistT);
   persistT = setTimeout(async () => {
     const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
-    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, files, at: Date.now() });
+    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, files, at: Date.now() });
   }, 400);
   refreshBar();
   if (S.view.name === 'show') {
@@ -129,7 +134,7 @@ export const icon = (n, cls = '') =>
   h('span', { class: `ic ${cls}`, 'aria-hidden': 'true', html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[n]}"/></svg>` });
 
 const dateFmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const dateNice = (d) => (d ? dateFmt.format(new Date(d)) : 'Sin fecha');
+export const dateNice = (d) => (d ? dateFmt.format(new Date(d)) : 'Sin fecha');
 export const slugify = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 let toastT;
@@ -196,7 +201,7 @@ export function render() {
   S.view.keepScroll = false;
   app.replaceChildren(
     topbar(),
-    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm }[S.view.name] || home)())),
+    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm, titles: titlesHome, title: titleEditor }[S.view.name] || home)())),
     publishBar(),
     h('div', { class: 'adm-toast', role: 'status' }),
   );
@@ -222,16 +227,16 @@ function sidebar() {
     { k: 'shows', label: 'Shows', view: 'home' },
     { k: 'portada', label: 'Portada' },
     { k: 'roster', label: 'Luchadores', view: 'roster' },
-    { k: 'titulos', label: 'Campeonatos' },
+    { k: 'titulos', label: 'Campeonatos', view: 'titles' },
     { k: 'paginas', label: 'Historia y Salón de la Fama' },
     { k: 'sitio', label: 'Redes y contacto' },
   ];
   return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
     h('div', { class: 'side-list' },
       items.map((it) => {
-        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : 'shows');
+        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titulos' : 'shows');
         return it.view
-        ? h('a', { href: it.view === 'roster' ? '#luchadores' : '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
+        ? h('a', { href: { roster: '#luchadores', titles: '#campeonatos' }[it.view] || '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
         : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'));
       })),
     h('div', { class: 'side-foot' },
@@ -247,6 +252,8 @@ export function go(view) {
   if (view.name === 'show') location.hash = `show/${view.slug}/${view.step || 'datos'}`;
   else if (view.name === 'wrestler') location.hash = `luchador/${view.slug}`;
   else if (view.name === 'roster') location.hash = 'luchadores';
+  else if (view.name === 'title') location.hash = `campeonato/${view.slug}`;
+  else if (view.name === 'titles') location.hash = 'campeonatos';
   else history.replaceState(null, '', location.pathname);
   render();
 }
@@ -661,7 +668,7 @@ function dangerZone(s) {
   return wrap;
 }
 
-function rowTools(list, i, what) {
+export function rowTools(list, i, what) {
   const act = (fn) => () => { S.view.keepScroll = true; change(fn); };
   return h('div', { class: 'rt' },
     h('button', { class: 'ib', type: 'button', title: 'Subir', 'aria-label': `Subir ${what}`, disabled: i === 0, onclick: act(() => { [list[i - 1], list[i]] = [list[i], list[i - 1]]; }) }, icon('up')),
@@ -675,7 +682,7 @@ const norm = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCa
 const sortedRoster = () => [...S.roster].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 const isTeam = (w) => w.division === 'parejas' || (w.members || []).length > 0;
 let acId = 0;
-function nameInput(value, onset, label, kind, opt = {}) {
+export function nameInput(value, onset, label, kind, opt = {}) {
   const known = (v) => S.roster.some((w) => w.name === v.trim());
   const status = h('span', { class: 'who-st' });
   let paint = (v) => {
@@ -906,15 +913,19 @@ function refreshBar() {
   const vch = venuesChanged();
   const wch = changedRoster();
   const wrm = removedRoster();
-  const has = ch.length || removed.length || vch || wch.length || wrm.length;
+  const tch = changedTitles();
+  const trm = removedTitles();
+  const has = ch.length || removed.length || vch || wch.length || wrm.length || tch.length || trm.length;
   bar.classList.toggle('on', !!has);
   if (!has) { bar.replaceChildren(); return; }
-  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs)];
-  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns)];
+  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs), ...tch.flatMap((t) => checkTitle(t).errs)];
+  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns), ...tch.flatMap((t) => checkTitle(t).warns)];
   const parts = [];
   const nS = ch.length + removed.length, nW = wch.length + wrm.length;
   if (nS) parts.push(nS === 1 ? '1 show' : `${nS} shows`);
   if (nW) parts.push(nW === 1 ? '1 luchador' : `${nW} luchadores`);
+  const nT = tch.length + trm.length;
+  if (nT) parts.push(nT === 1 ? '1 campeonato' : `${nT} campeonatos`);
   if (vch) parts.push('las salas');
   const isPubW = (w) => JSON.parse(S.publishedRoster).some((p) => p.slug === w.slug);
   bar.replaceChildren(
@@ -935,6 +946,8 @@ function refreshBar() {
             removed.map((s) => h('li', {}, h('b', {}, s.name), ' · se borra')),
             wch.map((w) => h('li', {}, h('b', {}, w.name), isPubW(w) ? ' · cambios en su ficha' : ' · nueva ficha')),
             wrm.map((w) => h('li', {}, h('b', {}, w.name), ' · se borra su ficha')),
+            tch.map((t) => h('li', {}, h('b', {}, t.name || 'Campeonato nuevo'), ' · cambios')),
+            trm.map((t) => h('li', {}, h('b', {}, t.name), ' · se borra')),
             vch && h('li', {}, h('b', {}, 'Salas'), ' · cambios en la lista de salas')),
           warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
           h('div', { class: 'pub-go' }, h('button', { class: 'btn1 big', type: 'button', onclick: publish }, 'Publicar en la web'),
@@ -943,7 +956,7 @@ function refreshBar() {
 
 function jump(p) {
   S.publishOpen = false;
-  go(p.kind === 'wrestler' ? { name: 'wrestler', slug: p.slug } : { name: 'show', slug: p.slug, step: p.step });
+  go(p.kind === 'wrestler' ? { name: 'wrestler', slug: p.slug } : p.kind === 'title' ? { name: 'title', slug: p.slug } : { name: 'show', slug: p.slug, step: p.step });
   requestAnimationFrame(() => {
     const el = document.querySelector(`[data-field="${p.field}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -960,8 +973,10 @@ async function publish() {
   S.publishedVenues = JSON.stringify(S.venues);
   S.roster = S.roster.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
   S.publishedRoster = JSON.stringify(S.roster);
+  S.titles = S.titles.map((x) => { const n = normalize(x); n.slug = x.slug; if (!n.history) n.history = []; return n; });
+  S.publishedTitles = JSON.stringify(S.titles);
   for (const f of S.files.values()) f.published = true;
-  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster });
+  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles });
   S.publishOpen = false;
   S.undo = []; S.redo = [];
   persist();
@@ -975,12 +990,14 @@ async function discardAll() {
   S.venues = clone(pub?.venues || showsJson.venues);
   S.roster = clone(pub?.roster || rosterJson.wrestlers);
   S.publishedRoster = JSON.stringify(S.roster);
+  S.titles = clone(pub?.titles || titlesJson.titles);
+  S.publishedTitles = JSON.stringify(S.titles);
   S.published = JSON.stringify(S.shows);
   S.publishedVenues = JSON.stringify(S.venues);
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
   await store.set('draft', null);
-  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : 'home' });
+  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : 'home' });
   toast('Cambios descartados');
 }
 
@@ -990,10 +1007,12 @@ async function boot() {
   if (pub?.shows) { S.shows = clone(pub.shows); S.published = JSON.stringify(pub.shows); }
   if (pub?.venues) { S.venues = clone(pub.venues); S.publishedVenues = JSON.stringify(pub.venues); }
   if (pub?.roster) { S.roster = clone(pub.roster); S.publishedRoster = JSON.stringify(pub.roster); }
+  if (pub?.titles) { S.titles = clone(pub.titles); S.publishedTitles = JSON.stringify(pub.titles); }
   const draft = await store.get('draft');
   if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
   if (draft?.venues) S.venues = draft.venues;
   if (draft?.roster && JSON.stringify(draft.roster) !== S.publishedRoster) { S.roster = draft.roster; S.restored = true; }
+  if (draft?.titles && JSON.stringify(draft.titles) !== S.publishedTitles) { S.titles = draft.titles; S.restored = true; }
   if (draft?.shows && (JSON.stringify(draft.shows) !== S.published || venuesChanged())) { S.shows = draft.shows; S.restored = true; }
   S.view = viewFromHash();
   render();
@@ -1005,6 +1024,9 @@ function viewFromHash() {
   const l = location.hash.match(/^#luchador\/([^/]+)/);
   if (l && wrestlerBy(l[1])) return { name: 'wrestler', slug: l[1] };
   if (/^#luchador/.test(location.hash)) return { name: 'roster' };
+  const c = location.hash.match(/^#campeonato\/([^/]+)/);
+  if (c && titleBy(c[1])) return { name: 'title', slug: c[1] };
+  if (/^#campeonato/.test(location.hash)) return { name: 'titles' };
   return { name: 'home' };
 }
 

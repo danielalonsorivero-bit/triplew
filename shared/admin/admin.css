@@ -402,3 +402,38 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .div-tag { justify-self: end; font-size: .8rem; font-weight: 700; padding: .28rem .65rem; border-radius: 99px; color: var(--dc); border: 1.5px solid color-mix(in srgb, var(--dc) 60%, transparent); white-space: nowrap; }
 .w-row .sr-chips:empty { display: none; }
 @media (max-width: 760px) { .w-row { grid-template-columns: 44px minmax(0, 1fr); } .w-row .div-tag, .w-row .sr-chips { grid-column: 2; justify-self: start; } }
+
+/* Campeonatos */
+.belts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 1rem; }
+.belt-card { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 1.2rem; align-items: center; padding: 1rem; border-radius: 10px; background: var(--panel); border: 1px solid var(--line2); box-shadow: inset 0 4px 0 var(--t); text-decoration: none; color: var(--fg); transition: border-color .15s, background .15s; }
+.belt-card:hover { border-color: var(--t); background: var(--panel2); }
+.belt-card > img, .belt-card > .belt-q { width: 110px; height: 130px; border-radius: 6px; object-fit: cover; filter: grayscale(1) contrast(1.1); background: var(--panel2); }
+.belt-q { display: grid; place-items: center; font: 900 3.4rem/1 var(--font-display); color: transparent; -webkit-text-stroke: 1.5px var(--t, var(--muted)); }
+.belt-b { display: grid; gap: .3rem; }
+.belt-name { font: 700 .8rem/1.2 var(--font-text); text-transform: uppercase; letter-spacing: .12em; color: var(--t); }
+.belt-holder { font: 900 2rem/.95 var(--font-display); text-transform: uppercase; }
+.belt-meta { color: var(--muted); font-size: .9rem; }
+.belt-b .sr-chips { justify-content: flex-start; margin-top: .3rem; }
+.belt-dot { width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--c); box-shadow: 0 0 18px var(--c); }
+.holder { display: flex; gap: 1.2rem; align-items: center; padding: 1rem; border-radius: 10px; background: var(--panel); border: 1px solid var(--line2); margin-bottom: 1rem; max-width: 760px; }
+.holder > img, .holder > .belt-q { width: 96px; height: 116px; border-radius: 6px; object-fit: cover; filter: grayscale(1) contrast(1.1); --t: var(--c); }
+.holder p { margin: 0; }
+.holder-l { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--c); }
+.holder-n { font: 900 2.2rem/1 var(--font-display); text-transform: uppercase; margin: .2rem 0 !important; }
+.holder-m { color: var(--muted); }
+.ted .vt { align-items: center; gap: .6rem 1rem; }
+.when { display: flex; flex-wrap: wrap; gap: 1rem; }
+.when label, .hist-d label { display: grid; gap: .35rem; font-weight: 700; font-size: .9rem; }
+.when select, .when input, .hist-d select, .hist-d input { font: inherit; font-weight: 400; color: var(--fg); background: var(--panel); border: 1.5px solid var(--line2); border-radius: 8px; padding: .65rem .8rem; color-scheme: dark; }
+.when select { max-width: 30rem; }
+.wz-sum { margin: 0; padding: .9rem 1rem; border-radius: 8px; background: color-mix(in srgb, var(--c) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); line-height: 1.5; }
+.wz-out { display: grid; gap: .8rem; }
+.rlist.one { list-style: none; }
+.hist { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .8rem; max-width: 760px; }
+.hist-i { display: grid; gap: .8rem; padding: 1rem 1.1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.hist-top { display: flex; justify-content: space-between; align-items: center; }
+.hist-d { display: flex; flex-wrap: wrap; gap: .8rem 1rem; align-items: end; }
+.hist-d select { max-width: 18rem; }
+.swatches .sw { width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--sw); border: 2px solid transparent; }
+.swatches .sw.on { border-color: var(--fg); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--sw); }
+.when [hidden] { display: none; }

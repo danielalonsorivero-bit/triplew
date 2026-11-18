@@ -5,16 +5,15 @@
 // - Un campeón no se puede borrar: primero hay que cambiar el título en Campeonatos.
 
 import rosterJson from '../data/roster.json';
-import titlesJson from '../data/titles.json';
 import { shrink, kb } from './img.js';
 import { S, h, icon, field, choice, change, persist, setLive, toast, go, render, dropZone, imgSrc, slugify, snapshot, same } from './app.js';
 
 export const DIVISIONS = rosterJson.divisions;
-const TITLES = titlesJson.titles;
 const MAX_PHOTOS = 10;
 const norm = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 export const wrestlerBy = (slug) => S.roster.find((w) => w.slug === slug);
-const titleNames = (w) => (w.titles || []).map((t) => TITLES.find((x) => x.slug === t)?.name).filter(Boolean);
+// Los títulos salen de los campeonatos (la fuente de verdad), no de la ficha.
+const titleNames = (w) => S.titles.filter((t) => t.holder === w.slug).map((t) => t.name);
 const kindOf = (w) => (w.division === 'arbitros' ? 'ref' : w.division === 'invitados' ? 'guest' : w.division === 'staff' ? 'staff' : 'wrestler');
 const published = () => JSON.parse(S.publishedRoster);
 const isPublished = (w) => published().some((p) => p.slug === w.slug);
@@ -275,6 +274,7 @@ function renameEverywhere(w, oldName, v) {
     if (s.cronica) s.cronica = s.cronica.replace(re, nn);
     if (JSON.stringify(s) !== before) n++;
   }
+  for (const t of S.titles) for (const x of t.history || []) if (x.slug === w.slug || x.name === oldName) x.name = nn;
   w.name = nn;
   persist();
   S.view.keepScroll = true; render();
@@ -394,7 +394,8 @@ function secFicha(w) {
     h('p', { class: 'pane-p' }, 'Es la tabla que miran las promotoras. Lo que dejes en blanco sale como «Por confirmar».'),
     h('div', { class: 'grid two tight' }, rows),
     k === 'wrestler' && h('p', { class: 'muted-s titles-note' }, icon('star'),
-      t.length ? `Campeón: ${t.join(', ')}. Los títulos se cambian en la sección Campeonatos.` : 'Sin títulos ahora mismo. Los títulos se cambian en la sección Campeonatos.'));
+      t.length ? `Campeón: ${t.join(', ')}. ` : 'Sin títulos ahora mismo. ',
+      h('a', { href: '#campeonatos', onclick: (e) => { e.preventDefault(); go({ name: 'titles' }); } }, 'Los títulos se cambian en Campeonatos')));
 }
 
 // Integrantes de una pareja o facción: solo luchadores con ficha, para que se enlacen.
