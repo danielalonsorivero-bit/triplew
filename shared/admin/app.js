@@ -1,4 +1,4 @@
-// Panel de administración de Triple W. Prototipo: sección Shows, en modo demostración.
+// Panel de administración de Triple W. Prototipo: secciones Shows y Luchadores, en modo demostración.
 // Principio: prevenir el error antes que avisar de él. Listas en vez de texto libre,
 // fechas y horas con selector, fotos que se reducen solas, deshacer siempre a mano
 // y nada se publica si falta algo imprescindible.
@@ -8,8 +8,8 @@ import rosterJson from '../data/roster.json';
 import { cronicaBlocksFor } from '../cronica.js';
 import { shrink, palette, inkFor, kb } from './img.js';
 import * as store from './store.js';
+import { rosterHome, wrestlerEditor, newWrestlerForm, checkWrestler, changedRoster, removedRoster, wrestlerBy } from './luchadores.js';
 
-const roster = rosterJson.wrestlers;
 const BRANDS = {
   triplew: { name: 'Triple W', color: '#E3EE2B' },
   levelone: { name: 'Level One', color: '#2BD46A' },
@@ -20,8 +20,10 @@ const today = () => new Date().toISOString().slice(0, 10);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
 // ---------- Estado ----------
-const S = {
+export const S = {
   shows: clone(showsJson.shows),
+  roster: clone(rosterJson.wrestlers),
+  publishedRoster: JSON.stringify(rosterJson.wrestlers),
   venues: clone(showsJson.venues),
   published: JSON.stringify(showsJson.shows),
   publishedVenues: JSON.stringify(showsJson.venues),
@@ -38,11 +40,11 @@ const isPast = (s) => s.date && s.date <= today();
 const venues = new Proxy({}, { get: (_, k) => S.venues[k], ownKeys: () => Reflect.ownKeys(S.venues), getOwnPropertyDescriptor: (_, k) => ({ enumerable: true, configurable: true, value: S.venues[k] }) });
 const venuesChanged = () => JSON.stringify(S.venues) !== S.publishedVenues;
 const showBy = (slug) => S.shows.find((s) => s.slug === slug);
-const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
+export const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
 
-const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues });
-const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; };
-function snapshot() {
+const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues, roster: S.roster });
+const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; S.roster = d.roster; };
+export function snapshot() {
   const now = docNow();
   if (S.undo.at(-1) === now) return;
   S.undo.push(now);
@@ -53,7 +55,8 @@ function undo() {
   if (!S.undo.length) return;
   S.redo.push(docNow());
   docLoad(S.undo.pop());
-  if (S.view.slug && !showBy(S.view.slug)) S.view = { name: 'home' };
+  if (S.view.name === 'show' && !showBy(S.view.slug)) S.view = { name: 'home' };
+  if (S.view.name === 'wrestler' && !wrestlerBy(S.view.slug)) S.view = { name: 'roster' };
   toast('Deshecho');
   persist(); render();
 }
@@ -66,11 +69,11 @@ function redoFn() {
 }
 
 let persistT;
-function persist() {
+export function persist() {
   clearTimeout(persistT);
   persistT = setTimeout(async () => {
     const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
-    await store.set('draft', { shows: S.shows, venues: S.venues, files, at: Date.now() });
+    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, files, at: Date.now() });
   }, 400);
   refreshBar();
   if (S.view.name === 'show') {
@@ -80,7 +83,7 @@ function persist() {
 }
 
 // Cambio estructural: se guarda para deshacer y se vuelve a pintar.
-function change(fn, { rerender = true } = {}) {
+export function change(fn, { rerender = true } = {}) {
   snapshot();
   fn();
   persist();
@@ -88,7 +91,7 @@ function change(fn, { rerender = true } = {}) {
 }
 
 // ---------- Utilidades de DOM ----------
-function h(tag, attrs = {}, ...kids) {
+export function h(tag, attrs = {}, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
     if (v == null || v === false) continue;
@@ -122,15 +125,15 @@ const ICONS = {
   play: 'M8 5v14l11-7Z',
   wand: 'M15 4V2M15 10V8M11 6h2M17 6h2M4 20 14 10M13 11l-1-1',
 };
-const icon = (n, cls = '') =>
+export const icon = (n, cls = '') =>
   h('span', { class: `ic ${cls}`, 'aria-hidden': 'true', html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[n]}"/></svg>` });
 
 const dateFmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const dateNice = (d) => (d ? dateFmt.format(new Date(d)) : 'Sin fecha');
-const slugify = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+export const slugify = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 let toastT;
-function toast(msg) {
+export function toast(msg) {
   const el = document.querySelector('.adm-toast');
   if (!el) return;
   el.textContent = msg;
@@ -178,7 +181,7 @@ function normalize(o) {
   }
   return typeof o === 'string' ? o.trim() === '' ? '' : o : o;
 }
-const same = (a, b) => JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
+export const same = (a, b) => JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
 const changedShows = () => {
   const before = new Map(JSON.parse(S.published).map((s) => [s.slug, s]));
   return S.shows.filter((s) => !before.has(s.slug) || !same(before.get(s.slug), s));
@@ -187,13 +190,13 @@ const changedShows = () => {
 // ---------- Pintado ----------
 const app = document.getElementById('app');
 
-function render() {
+export function render() {
   const y = scrollY;
   const keepScroll = S.view.keepScroll;
   S.view.keepScroll = false;
   app.replaceChildren(
     topbar(),
-    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, S.view.name === 'show' ? showEditor() : home())),
+    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm }[S.view.name] || home)())),
     publishBar(),
     h('div', { class: 'adm-toast', role: 'status' }),
   );
@@ -216,18 +219,21 @@ function topbar() {
 
 function sidebar() {
   const items = [
-    { k: 'shows', label: 'Shows', on: true },
+    { k: 'shows', label: 'Shows', view: 'home' },
     { k: 'portada', label: 'Portada' },
-    { k: 'roster', label: 'Luchadores' },
+    { k: 'roster', label: 'Luchadores', view: 'roster' },
     { k: 'titulos', label: 'Campeonatos' },
     { k: 'paginas', label: 'Historia y Salón de la Fama' },
     { k: 'sitio', label: 'Redes y contacto' },
   ];
   return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
     h('div', { class: 'side-list' },
-      items.map((it) => it.on
-        ? h('a', { href: '#', class: 'on', 'aria-current': 'page', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, it.label)
-        : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto')))),
+      items.map((it) => {
+        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : 'shows');
+        return it.view
+        ? h('a', { href: it.view === 'roster' ? '#luchadores' : '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
+        : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'));
+      })),
     h('div', { class: 'side-foot' },
       h('p', {}, store.mode === 'demo'
         ? 'Modo demostración: los cambios se quedan en este ordenador y la web no cambia.'
@@ -235,10 +241,12 @@ function sidebar() {
       h('a', { href: '/', target: '_blank', rel: 'noopener' }, 'Ver la web ', icon('ext'))));
 }
 
-function go(view) {
+export function go(view) {
   S.view = view;
   S.publishOpen = false;
   if (view.name === 'show') location.hash = `show/${view.slug}/${view.step || 'datos'}`;
+  else if (view.name === 'wrestler') location.hash = `luchador/${view.slug}`;
+  else if (view.name === 'roster') location.hash = 'luchadores';
   else history.replaceState(null, '', location.pathname);
   render();
 }
@@ -379,7 +387,7 @@ function prevNext(s, step) {
 }
 
 // Campo de texto que guarda al escribir sin repintar (para no perder el foco).
-function field(label, { value = '', oninput, onchange, type = 'text', hint, max, id, required, attrs = {}, area = false, err: e } = {}) {
+export function field(label, { value = '', oninput, onchange, type = 'text', hint, max, id, required, attrs = {}, area = false, err: e } = {}) {
   const err = e?.msg, warn = e?.warn;
   const fid = id || `f${Math.random().toString(36).slice(2, 8)}`;
   const counter = max ? h('span', { class: 'count' }, `${value.length}/${max}`) : null;
@@ -398,7 +406,7 @@ function field(label, { value = '', oninput, onchange, type = 'text', hint, max,
 }
 
 // Opciones grandes en lugar de desplegables: se ve todo y no hay forma de equivocarse de campo.
-function choice(name, options, current, onpick) {
+export function choice(name, options, current, onpick) {
   return h('div', { class: 'choice', role: 'radiogroup' },
     options.map((o) => h('label', { class: `opt${o.value === current ? ' on' : ''}`, style: o.color ? `--oc:${o.color}` : null },
       h('input', { type: 'radio', name, value: o.value, checked: o.value === current, onchange: () => onpick(o.value) }),
@@ -407,7 +415,7 @@ function choice(name, options, current, onpick) {
       o.note && h('span', { class: 'opt-d' }, o.note))));
 }
 
-const setLive = (fn) => { fn(); persist(); };
+export const setLive = (fn) => { fn(); persist(); };
 
 const PANES = {
   datos(s) {
@@ -559,7 +567,7 @@ const PANES = {
   cronica(s) {
     const prev = h('div', { class: 'cron-prev' });
     const paint = () => {
-      const blocks = cronicaBlocksFor(s.cronica || '', roster);
+      const blocks = cronicaBlocksFor(s.cronica || '', S.roster);
       prev.replaceChildren(...(blocks.length ? blocks.map((b) => h(b.kind === 'h' ? 'h4' : 'p', { class: `cb ${b.kind}`, html: b.html })) : [h('p', { class: 'empty' }, 'Aquí verás cómo queda.')]));
       prev.querySelectorAll('a').forEach((a) => { a.target = '_blank'; a.rel = 'noopener'; });
     };
@@ -664,11 +672,11 @@ function rowTools(list, i, what) {
 // Texto predictivo: al escribir, sugiere nombres del roster (por orden alfabético) que empiecen
 // por lo escrito, en cualquier palabra del nombre. Se puede escribir cualquier otro nombre.
 const norm = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-const sorted = [...roster].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+const sortedRoster = () => [...S.roster].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 const isTeam = (w) => w.division === 'parejas' || (w.members || []).length > 0;
 let acId = 0;
 function nameInput(value, onset, label, kind, opt = {}) {
-  const known = (v) => roster.some((w) => w.name === v.trim());
+  const known = (v) => S.roster.some((w) => w.name === v.trim());
   const status = h('span', { class: 'who-st' });
   let paint = (v) => {
     status.replaceChildren(v.trim() ? (known(v) ? h('span', { class: 'ok' }, icon('check'), 'En el roster: se enlaza su ficha') : h('span', { class: 'free' }, 'Nombre libre: no tiene ficha en la web')) : '');
@@ -687,13 +695,13 @@ function nameInput(value, onset, label, kind, opt = {}) {
   const show = () => {
     const q = norm(input.value.trim());
     if (!q) { close(); return; }
-    const pool = kind === 'parejas' ? [...sorted.filter(isTeam), ...sorted.filter((w) => !isTeam(w))] : sorted;
+    const pool = kind === 'parejas' ? (() => { const so = sortedRoster(); return [...so.filter(isTeam), ...so.filter((w) => !isTeam(w))]; })() : sortedRoster();
     items = pool.filter((w) => norm(w.name).split(/[\s«»"'-]+/).some((p) => p.startsWith(q)) || norm(w.name).startsWith(q))
       .filter((w) => w.name !== input.value && !(opt.exclude || []).includes(w.name)).slice(0, 7);
     if (!items.length) { close(); return; }
     list.replaceChildren(...items.map((w, k) => h('li', { role: 'option', id: `${id}-${k}`, class: k === act ? 'on' : '',
       onmousedown: (e) => { e.preventDefault(); pick(w); } },
-      w.photo ? h('img', { src: w.photo, alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
+      w.photo ? h('img', { src: imgSrc(w.photo), alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
       h('span', {}, w.name, isTeam(w) && h('small', {}, ' · pareja o facción')))));
     list.hidden = false; input.setAttribute('aria-expanded', 'true');
   };
@@ -701,7 +709,7 @@ function nameInput(value, onset, label, kind, opt = {}) {
     paint = () => {};
     input.addEventListener('input', () => { act = -1; show(); });
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (list.hidden || act < 0)) { e.preventDefault(); const v = input.value.trim(); if (v) opt.onpick(roster.find((x) => norm(x.name) === norm(v))?.name || v); }
+      if (e.key === 'Enter' && (list.hidden || act < 0)) { e.preventDefault(); const v = input.value.trim(); if (v) opt.onpick(S.roster.find((x) => norm(x.name) === norm(v))?.name || v); }
     });
   } else {
     input.addEventListener('focus', () => snapshot());
@@ -720,7 +728,7 @@ function nameInput(value, onset, label, kind, opt = {}) {
     close();
     if (opt.onpick) return;
     // Si coincide con alguien del roster sin importar mayúsculas ni tildes, se corrige solo.
-    const w = roster.find((x) => norm(x.name) === norm(input.value.trim()));
+    const w = S.roster.find((x) => norm(x.name) === norm(input.value.trim()));
     if (w && w.name !== input.value) { input.value = w.name; onset(w.name); paint(w.name); persist(); }
   });
   return h('div', { class: 'who' }, label && h('label', { class: 'who-l', for: `${id}-in` }, label), h('div', { class: 'ac-wrap' }, input, list), opt.onpick ? null : status);
@@ -740,9 +748,9 @@ function rumbleBox(m, i) {
     h('p', { class: 'who-l' }, 'Luchadores confirmados', h('small', {}, ` ${n}`)),
     h('p', { class: 'pane-p' }, 'Pon solo los que ya estén anunciados; no hace falta tenerlos todos. Si no quieres anunciar ninguno, déjalo vacío.'),
     n ? h('ul', { class: 'rlist' }, m.sides.map((name, k) => {
-      const w = roster.find((x) => x.name === name);
+      const w = S.roster.find((x) => x.name === name);
       return h('li', {},
-        w?.photo ? h('img', { src: w.photo, alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
+        w?.photo ? h('img', { src: imgSrc(w.photo), alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
         h('span', {}, name),
         h('button', { class: 'ib', type: 'button', 'aria-label': `Quitar a ${name}`, title: 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.splice(k, 1); }); } }, icon('x')));
     })) : null,
@@ -861,7 +869,7 @@ function videoItem(s, v, i) {
     rowTools(s.videos, i, 'vídeo'));
 }
 
-function dropZone({ label, hint, multiple, onfiles }) {
+export function dropZone({ label, hint, multiple, onfiles }) {
   const input = h('input', { type: 'file', accept: 'image/*', multiple, class: 'sr-only', tabindex: -1,
     onchange: (e) => take([...e.target.files]) });
   const prog = h('span', { class: 'drop-prog', 'aria-live': 'polite' });
@@ -896,20 +904,27 @@ function refreshBar() {
   const ch = changedShows();
   const removed = JSON.parse(S.published).filter((p) => !showBy(p.slug));
   const vch = venuesChanged();
-  const has = ch.length || removed.length || vch;
+  const wch = changedRoster();
+  const wrm = removedRoster();
+  const has = ch.length || removed.length || vch || wch.length || wrm.length;
   bar.classList.toggle('on', !!has);
   if (!has) { bar.replaceChildren(); return; }
-  const problems = ch.flatMap((s) => check(s).errs);
-  const warns = ch.flatMap((s) => check(s).warns);
-  const n = ch.length + removed.length;
+  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs)];
+  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns)];
+  const parts = [];
+  const nS = ch.length + removed.length, nW = wch.length + wrm.length;
+  if (nS) parts.push(nS === 1 ? '1 show' : `${nS} shows`);
+  if (nW) parts.push(nW === 1 ? '1 luchador' : `${nW} luchadores`);
+  if (vch) parts.push('las salas');
+  const isPubW = (w) => JSON.parse(S.publishedRoster).some((p) => p.slug === w.slug);
   bar.replaceChildren(
     h('div', { class: 'pub-in' },
       h('div', { class: 'pub-st' },
-        h('b', {}, n === 0 ? 'Cambios en las salas sin publicar' : n === 1 ? '1 show con cambios sin publicar' : `${n} shows con cambios sin publicar`),
+        h('b', {}, `Cambios sin publicar en ${parts.length > 1 ? `${parts.slice(0, -1).join(', ')} y ${parts.at(-1)}` : parts[0]}`),
         h('span', {}, 'Se guardan solos en este ordenador mientras trabajas.')),
       h('div', { class: 'btns' },
         h('button', { class: 'btn2', type: 'button', onclick: discardAll }, 'Descartar cambios'),
-        h('button', { class: 'btn1', type: 'button', onclick: () => { S.publishOpen = !S.publishOpen; S.showErrors = true; if (S.view.name === 'show') { S.view.keepScroll = true; render(); } else refreshBar(); } }, 'Revisar y publicar'))),
+        h('button', { class: 'btn1', type: 'button', onclick: () => { S.publishOpen = !S.publishOpen; S.showErrors = true; if (S.view.name !== 'home') { S.view.keepScroll = true; render(); } else refreshBar(); } }, 'Revisar y publicar'))),
     S.publishOpen ? h('div', { class: 'pub-review' },
       problems.length
         ? [h('p', { class: 'pub-h bad' }, icon('alert'), 'Antes de publicar falta esto:'),
@@ -918,6 +933,8 @@ function refreshBar() {
           h('ul', { class: 'issues' },
             ch.map((s) => h('li', {}, h('b', {}, s.name), JSON.parse(S.published).some((p) => p.slug === s.slug) ? ' · cambios' : ' · nuevo show')),
             removed.map((s) => h('li', {}, h('b', {}, s.name), ' · se borra')),
+            wch.map((w) => h('li', {}, h('b', {}, w.name), isPubW(w) ? ' · cambios en su ficha' : ' · nueva ficha')),
+            wrm.map((w) => h('li', {}, h('b', {}, w.name), ' · se borra su ficha')),
             vch && h('li', {}, h('b', {}, 'Salas'), ' · cambios en la lista de salas')),
           warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
           h('div', { class: 'pub-go' }, h('button', { class: 'btn1 big', type: 'button', onclick: publish }, 'Publicar en la web'),
@@ -926,7 +943,7 @@ function refreshBar() {
 
 function jump(p) {
   S.publishOpen = false;
-  go({ name: 'show', slug: p.slug, step: p.step });
+  go(p.kind === 'wrestler' ? { name: 'wrestler', slug: p.slug } : { name: 'show', slug: p.slug, step: p.step });
   requestAnimationFrame(() => {
     const el = document.querySelector(`[data-field="${p.field}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -941,8 +958,10 @@ async function publish() {
   S.shows = S.shows.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
   S.published = JSON.stringify(S.shows);
   S.publishedVenues = JSON.stringify(S.venues);
+  S.roster = S.roster.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
+  S.publishedRoster = JSON.stringify(S.roster);
   for (const f of S.files.values()) f.published = true;
-  await store.set('published', { shows: S.shows, venues: S.venues });
+  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster });
   S.publishOpen = false;
   S.undo = []; S.redo = [];
   persist();
@@ -954,12 +973,14 @@ async function discardAll() {
   const pub = await store.get('published');
   S.shows = clone(pub?.shows || showsJson.shows);
   S.venues = clone(pub?.venues || showsJson.venues);
+  S.roster = clone(pub?.roster || rosterJson.wrestlers);
+  S.publishedRoster = JSON.stringify(S.roster);
   S.published = JSON.stringify(S.shows);
   S.publishedVenues = JSON.stringify(S.venues);
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
   await store.set('draft', null);
-  go({ name: 'home' });
+  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : 'home' });
   toast('Cambios descartados');
 }
 
@@ -968,13 +989,23 @@ async function boot() {
   const pub = await store.get('published');
   if (pub?.shows) { S.shows = clone(pub.shows); S.published = JSON.stringify(pub.shows); }
   if (pub?.venues) { S.venues = clone(pub.venues); S.publishedVenues = JSON.stringify(pub.venues); }
+  if (pub?.roster) { S.roster = clone(pub.roster); S.publishedRoster = JSON.stringify(pub.roster); }
   const draft = await store.get('draft');
   if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
   if (draft?.venues) S.venues = draft.venues;
+  if (draft?.roster && JSON.stringify(draft.roster) !== S.publishedRoster) { S.roster = draft.roster; S.restored = true; }
   if (draft?.shows && (JSON.stringify(draft.shows) !== S.published || venuesChanged())) { S.shows = draft.shows; S.restored = true; }
-  const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
-  if (m && showBy(m[1])) S.view = { name: 'show', slug: m[1], step: m[2] || 'datos' };
+  S.view = viewFromHash();
   render();
+}
+
+function viewFromHash() {
+  const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
+  if (m && showBy(m[1])) return { name: 'show', slug: m[1], step: m[2] || 'datos' };
+  const l = location.hash.match(/^#luchador\/([^/]+)/);
+  if (l && wrestlerBy(l[1])) return { name: 'wrestler', slug: l[1] };
+  if (/^#luchador/.test(location.hash)) return { name: 'roster' };
+  return { name: 'home' };
 }
 
 addEventListener('keydown', (e) => {
@@ -982,10 +1013,6 @@ addEventListener('keydown', (e) => {
     e.preventDefault(); e.shiftKey ? redoFn() : undo();
   }
 });
-addEventListener('popstate', () => {
-  const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
-  S.view = m && showBy(m[1]) ? { name: 'show', slug: m[1], step: m[2] || 'datos' } : { name: 'home' };
-  render();
-});
+addEventListener('popstate', () => { S.view = viewFromHash(); render(); });
 
 boot();
