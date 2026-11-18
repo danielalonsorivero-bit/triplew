@@ -10,10 +10,9 @@ import { shrink, palette, inkFor, kb } from './img.js';
 import * as store from './store.js';
 
 const roster = rosterJson.wrestlers;
-const venues = showsJson.venues;
 const BRANDS = {
-  triplew: { name: 'Triple W', color: '#E3EE2B', note: 'Shows principales' },
-  levelone: { name: 'Level One', color: '#2BD46A', note: 'La cantera' },
+  triplew: { name: 'Triple W', color: '#E3EE2B' },
+  levelone: { name: 'Level One', color: '#2BD46A' },
 };
 const METHODS = ['pin', 'sumisión', 'descalificación', 'cuenta fuera', 'rendición'];
 const MAX_GALLERY = 60;
@@ -23,7 +22,9 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 // ---------- Estado ----------
 const S = {
   shows: clone(showsJson.shows),
+  venues: clone(showsJson.venues),
   published: JSON.stringify(showsJson.shows),
+  publishedVenues: JSON.stringify(showsJson.venues),
   files: new Map(), // ruta pública -> { blob, url }
   view: { name: 'home' },
   undo: [],
@@ -34,12 +35,15 @@ const S = {
 };
 
 const isPast = (s) => s.date && s.date <= today();
-const dirty = () => JSON.stringify(S.shows) !== S.published || [...S.files.values()].some((f) => !f.published);
+const venues = new Proxy({}, { get: (_, k) => S.venues[k], ownKeys: () => Reflect.ownKeys(S.venues), getOwnPropertyDescriptor: (_, k) => ({ enumerable: true, configurable: true, value: S.venues[k] }) });
+const venuesChanged = () => JSON.stringify(S.venues) !== S.publishedVenues;
 const showBy = (slug) => S.shows.find((s) => s.slug === slug);
 const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
 
+const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues });
+const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; };
 function snapshot() {
-  const now = JSON.stringify(S.shows);
+  const now = docNow();
   if (S.undo.at(-1) === now) return;
   S.undo.push(now);
   if (S.undo.length > 80) S.undo.shift();
@@ -47,16 +51,16 @@ function snapshot() {
 }
 function undo() {
   if (!S.undo.length) return;
-  S.redo.push(JSON.stringify(S.shows));
-  S.shows = JSON.parse(S.undo.pop());
+  S.redo.push(docNow());
+  docLoad(S.undo.pop());
   if (S.view.slug && !showBy(S.view.slug)) S.view = { name: 'home' };
   toast('Deshecho');
   persist(); render();
 }
 function redoFn() {
   if (!S.redo.length) return;
-  S.undo.push(JSON.stringify(S.shows));
-  S.shows = JSON.parse(S.redo.pop());
+  S.undo.push(docNow());
+  docLoad(S.redo.pop());
   toast('Rehecho');
   persist(); render();
 }
@@ -66,7 +70,7 @@ function persist() {
   clearTimeout(persistT);
   persistT = setTimeout(async () => {
     const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
-    await store.set('draft', { shows: S.shows, files, at: Date.now() });
+    await store.set('draft', { shows: S.shows, venues: S.venues, files, at: Date.now() });
   }, 400);
   refreshBar();
   if (S.view.name === 'show') {
@@ -241,7 +245,10 @@ function go(view) {
 function home() {
   const upcoming = S.shows.filter((s) => !isPast(s)).sort((a, b) => a.date.localeCompare(b.date));
   const past = S.shows.filter(isPast).sort((a, b) => b.date.localeCompare(a.date));
-  const pending = past.find((s) => !(s.results || []).length || !(s.gallery || []).length);
+  // Por completar: todos los shows celebrados a los que les falta algo, del más reciente al más antiguo.
+  const missing = (s) => [!(s.results || []).length && 'resultados', !(s.gallery || []).length && 'fotos', !s.cronica && 'crónica'].filter(Boolean);
+  const pending = past.filter((s) => missing(s).length);
+  const SHOWN = 3;
   return h('div', { class: 'home' },
     S.restored && h('div', { class: 'note' }, icon('undo'),
       h('p', {}, 'Has recuperado los cambios sin publicar de la última vez.'),
@@ -254,19 +261,24 @@ function home() {
     h('div', { class: 'tasks' },
       h('button', { class: 'task', type: 'button', onclick: newShow },
         h('span', { class: 'task-ic' }, icon('plus')),
-        h('span', { class: 'task-t' }, 'Anunciar un show nuevo'),
+        h('span', { class: 'task-t' }, 'Nuevo show'),
         h('span', { class: 'task-d' }, 'Nombre, fecha, sala, cartel, entradas y combates.')),
-      pending
-        ? h('button', { class: 'task', type: 'button', onclick: () => go({ name: 'show', slug: pending.slug, step: (pending.results || []).length ? 'fotos' : 'resultados' }) },
+      pending.length
+        ? h('div', { class: 'task todo' },
           h('span', { class: 'task-ic' }, icon('star')),
-          h('span', { class: 'task-t' }, `Completar «${pending.name}»`),
-          h('span', { class: 'task-d' }, `Se celebró el ${dateNice(pending.date)}. ${!(pending.results || []).length ? 'Faltan los resultados' : 'Faltan las fotos'}.`))
+          h('span', { class: 'task-t' }, pending.length === 1 ? '1 show por completar' : `${pending.length} shows por completar`),
+          h('ul', { class: 'todo-list' },
+            pending.slice(0, S.allPending ? pending.length : SHOWN).map((p) => h('li', {},
+              h('a', { href: `#show/${p.slug}`, onclick: (e) => { e.preventDefault(); const m = missing(p)[0]; go({ name: 'show', slug: p.slug, step: m === 'resultados' ? 'resultados' : m === 'fotos' ? 'fotos' : 'cronica' }); } },
+                h('b', {}, p.name), h('span', {}, `Falta: ${missing(p).join(', ')}`))))),
+          pending.length > SHOWN && h('button', { class: 'lnk', type: 'button', onclick: () => { S.allPending = !S.allPending; S.view.keepScroll = true; render(); } },
+            S.allPending ? 'Ver menos' : `Ver los ${pending.length - SHOWN} restantes`))
         : h('div', { class: 'task done' },
           h('span', { class: 'task-ic' }, icon('check')),
           h('span', { class: 'task-t' }, 'Todo al día'),
-          h('span', { class: 'task-d' }, 'Todos los shows celebrados tienen resultados y fotos.'))),
+          h('span', { class: 'task-d' }, 'Todos los shows celebrados tienen resultados, fotos y crónica.'))),
     h('h2', { class: 'list-h' }, 'Próximos', h('small', {}, upcoming.length)),
-    upcoming.length ? h('ul', { class: 'shows' }, upcoming.map(showRow)) : h('p', { class: 'empty' }, 'No hay ningún show anunciado. Pulsa «Anunciar un show nuevo» para crear el siguiente.'),
+    upcoming.length ? h('ul', { class: 'shows' }, upcoming.map(showRow)) : h('p', { class: 'empty' }, 'No hay ningún show anunciado. Pulsa «Nuevo show» para crear el siguiente.'),
     h('h2', { class: 'list-h' }, 'Celebrados', h('small', {}, past.length)),
     h('ul', { class: 'shows' }, past.map(showRow)));
 }
@@ -325,7 +337,7 @@ function showEditor() {
     h('div', { class: 'ed-head' },
       s.poster ? h('img', { class: 'ed-poster', src: imgSrc(s.poster), alt: '' }) : null,
       h('div', { class: 'ed-tt' },
-        h('h1', { class: 'scr-title' }, s.name || 'Show nuevo'),
+        h('h1', { class: 'scr-title' }, s.name || 'Nuevo show'),
         h('p', { class: 'ed-sub' }, s.date ? `${dateNice(s.date)}${isPast(s) ? ' · ya celebrado' : ''}` : 'Empieza por el nombre y la fecha.')),
       JSON.parse(S.published).some((p) => p.slug === s.slug)
         ? h('a', { class: 'btn2 hd', href: `/shows/${s.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null),
@@ -403,12 +415,12 @@ const PANES = {
     return h('div', { class: 'grid' },
       field('Nombre del show', {
         value: s.name, max: 60, required: true, attrs: { 'data-field': 'name', autocomplete: 'off', placeholder: 'Por ejemplo: Top 1 2026' },
-        oninput: (v) => setLive(() => { s.name = v; document.querySelector('.ed-head .scr-title').textContent = v || 'Show nuevo'; }),
+        oninput: (v) => setLive(() => { s.name = v; document.querySelector('.ed-head .scr-title').textContent = v || 'Nuevo show'; }),
         onchange: () => { if (isNew && s.name.trim()) renameSlug(s); },
         hint: 'Tal como aparece en el cartel.',
       }),
       h('fieldset', { class: 'fs' }, h('legend', {}, '¿De quién es el show?'),
-        choice('brand', Object.entries(BRANDS).map(([value, b]) => ({ value, label: b.name, note: b.note, color: b.color })), s.brand,
+        choice('brand', Object.entries(BRANDS).map(([value, b]) => ({ value, label: b.name, color: b.color })), s.brand,
           (v) => change(() => { const wasDefault = Object.values(BRANDS).some((b) => b.color === s.color); s.brand = v; if (wasDefault) { s.color = BRANDS[v].color; s.ink = inkFor(s.color); } }, { rerender: true }))),
       h('div', { class: 'row3' },
         field('Fecha', { type: 'date', value: s.date, required: true, attrs: { 'data-field': 'date' }, err: errOf('date'),
@@ -416,8 +428,9 @@ const PANES = {
         field('Abren puertas', { type: 'time', value: s.doors || '', attrs: { step: 300 }, onchange: (v) => change(() => { s.doors = v; }, { rerender: false }) }),
         field('Empieza', { type: 'time', value: s.start || '', attrs: { step: 300 }, onchange: (v) => change(() => { s.start = v; }, { rerender: false }) })),
       h('fieldset', { class: 'fs' }, h('legend', {}, 'Sala'),
-        choice('venue', Object.entries(venues).map(([value, v]) => ({ value, label: v.name, note: v.address })), s.venue,
-          (v) => change(() => { s.venue = v; }))),
+        choice('venue', Object.entries(S.venues).map(([value, v]) => ({ value, label: v.name, note: v.address })), s.venue,
+          (v) => change(() => { s.venue = v; })),
+        venueTools(s)),
       h('fieldset', { class: 'fs', 'data-field': 'ticket' }, h('legend', {}, 'Entradas'),
         choice('ticket', [
           { value: 'venta', label: 'Venta de entradas', note: 'Se compran antes en Entradium. La web pondrá un botón grande de «Compra tu entrada».' },
@@ -438,14 +451,14 @@ const PANES = {
   cartel(s) {
     const drop = dropZone({
       label: s.poster ? 'Cambiar el cartel' : 'Sube el cartel del show',
-      hint: 'Arrastra aquí la imagen o pulsa para elegirla. Vertical, como en Instagram. Se reduce sola.',
+      hint: 'Arrastra aquí la imagen o pulsa para elegirla. JPG o PNG, vertical como en Instagram, de hasta 25 MB. El panel la deja sola en 1500 píxeles como máximo y menos de 1,5 MB.',
       multiple: false,
       onfiles: async ([f]) => {
-        const r = await shrink(f, 1600, 0.85);
+        const r = await shrink(f, 1500, 0.85, 1.5e6);
         const path = `/carteles/${s.slug}.jpg`;
         S.files.set(path, { blob: r.blob, url: r.url });
         change(() => { s.poster = path; }, { rerender: false });
-        toast(`Cartel listo: ${kb(r.before)} → ${kb(r.after)}`);
+        toast(`Cartel listo: ${r.width} × ${r.height} px, ${kb(r.before)} → ${kb(r.after)}`);
         S.suggest = await palette(r.url).catch(() => []);
         S.view.keepScroll = true; render();
       },
@@ -475,8 +488,7 @@ const PANES = {
   combates(s) {
     const card = s.card || [];
     return h('div', {},
-      h('p', { class: 'pane-p' }, 'Los combates anunciados, en el orden del cartel. Escribe el nombre y elige al luchador de la lista: así su foto y su ficha se enlazan solas.'),
-      h('datalist', { id: 'roster-names' }, roster.map((w) => h('option', { value: w.name }))),
+      h('p', { class: 'pane-p' }, 'Los combates anunciados, en el orden del cartel. Al escribir un nombre, el panel te sugiere los del roster: si eliges uno, su foto y su ficha se enlazan solas. También puedes escribir cualquier otro nombre.'),
       h('ol', { class: 'matches' }, card.map((m, i) => matchCard(s, m, i))),
       h('button', { class: 'btn2 add', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (s.card ||= []).push({ title: '', sides: ['', ''] }); }); } }, icon('plus'), 'Añadir combate'));
   },
@@ -535,7 +547,6 @@ const PANES = {
       h('ul', { class: 'gal' }, gallery.map((p, i) => galleryItem(s, p, i))),
       h('h3', { class: 'pane-h' }, 'Vídeos', h('small', {}, ` ${(s.videos || []).length}`)),
       h('p', { class: 'pane-p' }, 'Pega el enlace de YouTube de cada combate. Al elegir quién lucha, el vídeo sale también en la ficha de cada luchador.'),
-      h('datalist', { id: 'roster-names' }, roster.map((w) => h('option', { value: w.name }))),
       h('ul', { class: 'vids' }, (s.videos || []).map((v, i) => videoItem(s, v, i))),
       h('button', { class: 'btn2 add', type: 'button', onclick: () => change(() => { (s.videos ||= []).push({ youtube: '', title: '', sides: [] }); }) }, icon('plus'), 'Añadir un vídeo'));
   },
@@ -580,6 +591,51 @@ function renameSlug(s) {
   persist();
 }
 
+// Añadir una sala nueva o quitar una que ya no se usa. Una sala con shows no se puede borrar.
+function venueTools(s) {
+  const wrap = h('div', { class: 'vt' });
+  const idle = () => wrap.replaceChildren(
+    h('button', { class: 'lnk', type: 'button', onclick: addForm }, icon('plus'), 'Añadir sala nueva'),
+    h('button', { class: 'lnk', type: 'button', onclick: manage }, 'Quitar salas'));
+  const addForm = () => {
+    const d = { name: '', address: '', map: '' };
+    const err = h('div', { class: 'fld-h' });
+    wrap.replaceChildren(h('div', { class: 'sub-form' },
+      h('p', { class: 'pane-h' }, 'Sala nueva'),
+      field('Nombre de la sala', { required: true, max: 50, attrs: { placeholder: 'Por ejemplo: Sala Revi' }, oninput: (v) => { d.name = v; } }),
+      field('Dirección', { max: 90, attrs: { placeholder: 'Calle, número, código postal y ciudad' }, oninput: (v) => { d.address = v; } }),
+      field('Enlace de Google Maps (opcional)', { type: 'url', attrs: { placeholder: 'https://maps.app.goo.gl/…' }, oninput: (v) => { d.map = v.trim(); } }),
+      err,
+      h('div', { class: 'btns' },
+        h('button', { class: 'btn2', type: 'button', onclick: idle }, 'Cancelar'),
+        h('button', { class: 'btn1', type: 'button', onclick: () => {
+          const name = d.name.trim();
+          if (name.length < 2) { err.replaceChildren(h('span', { class: 'err' }, icon('alert'), 'Escribe el nombre de la sala.')); return; }
+          if (Object.values(S.venues).some((v) => v.name.toLowerCase() === name.toLowerCase())) { err.replaceChildren(h('span', { class: 'err' }, icon('alert'), 'Ya hay una sala con ese nombre.')); return; }
+          if (d.map && !/^https:\/\//.test(d.map)) { err.replaceChildren(h('span', { class: 'err' }, icon('alert'), 'El enlace de Maps debe empezar por https://')); return; }
+          let key = slugify(name) || 'sala'; let n = 2; const base = key; while (S.venues[key]) key = `${base}-${n++}`;
+          S.view.keepScroll = true;
+          change(() => { S.venues[key] = { name, ...(d.address.trim() ? { address: d.address.trim() } : {}), ...(d.map ? { map: d.map } : {}) }; s.venue = key; });
+          toast(`Sala «${name}» añadida`);
+        } }, 'Guardar sala'))));
+  };
+  const manage = () => {
+    const uses = (k) => S.shows.filter((x) => x.venue === k).length;
+    wrap.replaceChildren(h('div', { class: 'sub-form' },
+      h('p', { class: 'pane-h' }, 'Quitar salas'),
+      h('p', { class: 'pane-p' }, 'Solo se puede quitar una sala que no tenga ningún show. Así ningún show se queda sin sala.'),
+      h('ul', { class: 'vlist' }, Object.entries(S.venues).map(([k, v]) => {
+        const n = uses(k);
+        return h('li', {}, h('span', {}, h('b', {}, v.name), h('small', {}, n ? ` · ${n} ${n === 1 ? 'show' : 'shows'}` : ' · sin shows')),
+          n ? h('span', { class: 'muted-s' }, icon('lock'), 'En uso')
+            : h('button', { class: 'btn2 danger', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { delete S.venues[k]; }); toast(`Sala «${v.name}» quitada. Puedes deshacerlo.`); } }, icon('trash'), 'Quitar'));
+      })),
+      h('button', { class: 'btn2', type: 'button', onclick: idle }, 'Hecho')));
+  };
+  idle();
+  return wrap;
+}
+
 function dangerZone(s) {
   const wrap = h('div', { class: 'danger-z' });
   const ask = () => wrap.replaceChildren(
@@ -600,37 +656,77 @@ function rowTools(list, i, what) {
     h('button', { class: 'ib danger', type: 'button', title: 'Quitar', 'aria-label': `Quitar ${what}`, onclick: () => { act(() => { list.splice(i, 1); })(); toast(`${what[0].toUpperCase() + what.slice(1)} quitado. Puedes deshacerlo.`); } }, icon('trash')));
 }
 
-function nameInput(value, onset, label) {
+// Texto predictivo: al escribir, sugiere nombres del roster (por orden alfabético) que empiecen
+// por lo escrito, en cualquier palabra del nombre. Se puede escribir cualquier otro nombre.
+const norm = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const sorted = [...roster].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+const isTeam = (w) => w.division === 'parejas' || (w.members || []).length > 0;
+let acId = 0;
+function nameInput(value, onset, label, kind) {
   const known = (v) => roster.some((w) => w.name === v.trim());
   const status = h('span', { class: 'who-st' });
   const paint = (v) => {
-    status.replaceChildren(v.trim() ? (known(v) ? h('span', { class: 'ok' }, icon('check'), 'En el roster') : h('span', { class: 'free' }, 'Texto libre')) : '');
+    status.replaceChildren(v.trim() ? (known(v) ? h('span', { class: 'ok' }, icon('check'), 'En el roster: se enlaza su ficha') : h('span', { class: 'free' }, 'Nombre libre: no tiene ficha en la web')) : '');
   };
   paint(value);
-  return h('div', { class: 'who' },
-    h('input', { type: 'text', value, list: 'roster-names', 'aria-label': label, placeholder: 'Nombre o «Por decidir»', autocomplete: 'off',
-      onfocus: () => snapshot(),
-      oninput: (e) => { paint(e.target.value); setLive(() => onset(e.target.value)); },
-      onchange: (e) => { // Si coincide con alguien del roster sin importar mayúsculas, se corrige solo.
-        const w = roster.find((x) => x.name.toLowerCase() === e.target.value.trim().toLowerCase());
-        if (w && w.name !== e.target.value) { e.target.value = w.name; onset(w.name); paint(w.name); persist(); }
-      } }),
-    status);
+  const id = `ac${++acId}`;
+  const list = h('ul', { class: 'ac', id, role: 'listbox', hidden: true });
+  let items = [], act = -1;
+  const input = h('input', { type: 'text', value, id: `${id}-in`, placeholder: kind === 'parejas' ? 'Nombre de la pareja o «Por decidir»' : 'Nombre o «Por decidir»',
+    autocomplete: 'off', role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': id });
+  const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); act = -1; };
+  const pick = (w) => { input.value = w.name; onset(w.name); paint(w.name); persist(); close(); };
+  const show = () => {
+    const q = norm(input.value.trim());
+    if (!q) { close(); return; }
+    const pool = kind === 'parejas' ? [...sorted.filter(isTeam), ...sorted.filter((w) => !isTeam(w))] : sorted;
+    items = pool.filter((w) => norm(w.name).split(/[\s«»"'-]+/).some((p) => p.startsWith(q)) || norm(w.name).startsWith(q))
+      .filter((w) => w.name !== input.value).slice(0, 7);
+    if (!items.length) { close(); return; }
+    list.replaceChildren(...items.map((w, k) => h('li', { role: 'option', id: `${id}-${k}`, class: k === act ? 'on' : '',
+      onmousedown: (e) => { e.preventDefault(); pick(w); } },
+      w.photo ? h('img', { src: w.photo, alt: '' }) : h('span', { class: 'ac-ph' }, icon('user')),
+      h('span', {}, w.name, isTeam(w) && h('small', {}, ' · pareja o facción')))));
+    list.hidden = false; input.setAttribute('aria-expanded', 'true');
+  };
+  input.addEventListener('focus', () => snapshot());
+  input.addEventListener('input', () => { act = -1; paint(input.value); setLive(() => onset(input.value)); show(); });
+  input.addEventListener('keydown', (e) => {
+    if (list.hidden) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+      [...list.children].forEach((li, k) => li.classList.toggle('on', k === act));
+      input.setAttribute('aria-activedescendant', `${id}-${act}`);
+    } else if (e.key === 'Enter' && act >= 0) { e.preventDefault(); pick(items[act]); }
+    else if (e.key === 'Escape') close();
+  });
+  input.addEventListener('blur', () => {
+    close();
+    // Si coincide con alguien del roster sin importar mayúsculas ni tildes, se corrige solo.
+    const w = roster.find((x) => norm(x.name) === norm(input.value.trim()));
+    if (w && w.name !== input.value) { input.value = w.name; onset(w.name); paint(w.name); persist(); }
+  });
+  return h('div', { class: 'who' }, h('label', { class: 'who-l', for: `${id}-in` }, label), h('div', { class: 'ac-wrap' }, input, list), status);
 }
 
 function matchCard(s, m, i) {
   if (!m.sides) m.sides = [];
+  const kind = m.type === 'parejas' ? 'parejas' : 'individual';
+  const unit = kind === 'parejas' ? 'Pareja' : 'Luchador';
   return h('li', { class: 'match', 'data-field': `card-${i}` },
     h('div', { class: 'match-h' }, h('span', { class: 'match-n' }, `Combate ${i + 1}`), rowTools(s.card, i, 'combate')),
-    field('Tipo de combate o título en juego', { value: m.title || '', max: 70, attrs: { placeholder: 'Por ejemplo: Campeonato Absoluto · Lucha de escaleras · Individual' },
+    h('fieldset', { class: 'fs' }, h('legend', {}, '¿Cómo se lucha?'),
+      choice(`kind-${i}`, [{ value: 'individual', label: 'Individual' }, { value: 'parejas', label: 'Parejas' }], kind,
+        (v) => { S.view.keepScroll = true; change(() => { if (v === 'parejas') m.type = 'parejas'; else delete m.type; }); })),
+    field('Tipo de combate o título en juego', { value: m.title || '', max: 70, attrs: { placeholder: kind === 'parejas' ? 'Por ejemplo: Campeonatos de Parejas' : 'Por ejemplo: Campeonato Absoluto · Lucha de escaleras' },
       oninput: (v) => setLive(() => { m.title = v; }) }),
     h('div', { class: 'sides' },
       m.sides.map((side, k) => [
         k > 0 && h('span', { class: 'vs' }, 'contra'),
-        h('div', { class: 'side' }, nameInput(side, (v) => { m.sides[k] = v; }, `Luchador ${k + 1} del combate ${i + 1}`),
-          m.sides.length > 2 && h('button', { class: 'ib danger', type: 'button', 'aria-label': 'Quitar luchador', title: 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.splice(k, 1); }); } }, icon('x'))),
+        h('div', { class: 'side' }, nameInput(side, (v) => { m.sides[k] = v; }, `${unit} ${k + 1}`, kind),
+          m.sides.length > 2 && h('button', { class: 'ib danger', type: 'button', 'aria-label': `Quitar ${unit.toLowerCase()} ${k + 1}`, title: 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.splice(k, 1); }); } }, icon('x'))),
       ]),
-      h('button', { class: 'lnk', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.push(''); }); } }, icon('plus'), 'Añadir otro luchador o pareja')),
+      h('button', { class: 'lnk', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.push(''); }); } }, icon('plus'), kind === 'parejas' ? 'Añadir otra pareja' : 'Añadir otro luchador')),
     field('Nota (opcional)', { value: m.note || '', max: 160, attrs: { placeholder: 'Por ejemplo: quien gane, a por el título en Top 1' },
       oninput: (v) => setLive(() => { if (v.trim()) m.note = v; else delete m.note; }) }),
     h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: !!m.provisional, onchange: (e) => change(() => { if (e.target.checked) m.provisional = true; else delete m.provisional; }, { rerender: false }) }), 'Pendiente de confirmar'));
@@ -729,7 +825,7 @@ function dropZone({ label, hint, multiple, onfiles }) {
     if (!imgs.length) { prog.textContent = 'Eso no es una imagen. Prueba con un JPG o PNG.'; return; }
     busy = true; zone.classList.add('busy'); prog.textContent = 'Preparando…';
     try { await onfiles(multiple ? imgs : imgs.slice(0, 1)); }
-    catch { prog.textContent = 'No se ha podido leer la imagen. Prueba con otra.'; }
+    catch (e) { prog.textContent = e?.message === 'too-big' ? 'Esa imagen pesa más de 25 MB. Expórtala más pequeña y vuelve a probar.' : 'No se ha podido leer la imagen. Prueba con otra.'; }
     busy = false; zone.classList.remove('busy');
   }
   return zone;
@@ -745,7 +841,8 @@ function refreshBar() {
   if (!bar) return;
   const ch = changedShows();
   const removed = JSON.parse(S.published).filter((p) => !showBy(p.slug));
-  const has = ch.length || removed.length;
+  const vch = venuesChanged();
+  const has = ch.length || removed.length || vch;
   bar.classList.toggle('on', !!has);
   if (!has) { bar.replaceChildren(); return; }
   const problems = ch.flatMap((s) => check(s).errs);
@@ -754,7 +851,7 @@ function refreshBar() {
   bar.replaceChildren(
     h('div', { class: 'pub-in' },
       h('div', { class: 'pub-st' },
-        h('b', {}, n === 1 ? '1 show con cambios sin publicar' : `${n} shows con cambios sin publicar`),
+        h('b', {}, n === 0 ? 'Cambios en las salas sin publicar' : n === 1 ? '1 show con cambios sin publicar' : `${n} shows con cambios sin publicar`),
         h('span', {}, 'Se guardan solos en este ordenador mientras trabajas.')),
       h('div', { class: 'btns' },
         h('button', { class: 'btn2', type: 'button', onclick: discardAll }, 'Descartar cambios'),
@@ -765,8 +862,9 @@ function refreshBar() {
           h('ul', { class: 'issues' }, problems.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, h('b', {}, p.show), ` · ${p.msg}`))))]
         : [h('p', { class: 'pub-h ok' }, icon('check'), 'Todo listo para publicar.'),
           h('ul', { class: 'issues' },
-            ch.map((s) => h('li', {}, h('b', {}, s.name), JSON.parse(S.published).some((p) => p.slug === s.slug) ? ' · cambios' : ' · show nuevo')),
-            removed.map((s) => h('li', {}, h('b', {}, s.name), ' · se borra'))),
+            ch.map((s) => h('li', {}, h('b', {}, s.name), JSON.parse(S.published).some((p) => p.slug === s.slug) ? ' · cambios' : ' · nuevo show')),
+            removed.map((s) => h('li', {}, h('b', {}, s.name), ' · se borra')),
+            vch && h('li', {}, h('b', {}, 'Salas'), ' · cambios en la lista de salas')),
           warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
           h('div', { class: 'pub-go' }, h('button', { class: 'btn1 big', type: 'button', onclick: publish }, 'Publicar en la web'),
             store.mode === 'demo' && h('span', {}, 'Demostración: la web real no cambia.'))]) : '');
@@ -788,8 +886,9 @@ async function publish() {
   // shows.json y las imágenes nuevas al GitHub de la asociación, y la web se reconstruye sola.
   S.shows = S.shows.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
   S.published = JSON.stringify(S.shows);
+  S.publishedVenues = JSON.stringify(S.venues);
   for (const f of S.files.values()) f.published = true;
-  await store.set('published', { shows: S.shows });
+  await store.set('published', { shows: S.shows, venues: S.venues });
   S.publishOpen = false;
   S.undo = []; S.redo = [];
   persist();
@@ -800,7 +899,9 @@ async function publish() {
 async function discardAll() {
   const pub = await store.get('published');
   S.shows = clone(pub?.shows || showsJson.shows);
+  S.venues = clone(pub?.venues || showsJson.venues);
   S.published = JSON.stringify(S.shows);
+  S.publishedVenues = JSON.stringify(S.venues);
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
   await store.set('draft', null);
@@ -812,9 +913,11 @@ async function discardAll() {
 async function boot() {
   const pub = await store.get('published');
   if (pub?.shows) { S.shows = clone(pub.shows); S.published = JSON.stringify(pub.shows); }
+  if (pub?.venues) { S.venues = clone(pub.venues); S.publishedVenues = JSON.stringify(pub.venues); }
   const draft = await store.get('draft');
   if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
-  if (draft?.shows && JSON.stringify(draft.shows) !== S.published) { S.shows = draft.shows; S.restored = true; }
+  if (draft?.venues) S.venues = draft.venues;
+  if (draft?.shows && (JSON.stringify(draft.shows) !== S.published || venuesChanged())) { S.shows = draft.shows; S.restored = true; }
   const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
   if (m && showBy(m[1])) S.view = { name: 'show', slug: m[1], step: m[2] || 'datos' };
   render();

@@ -11,8 +11,9 @@ const loadImage = (file) =>
   });
 
 // Devuelve { blob, url, width, height, before, after }.
-export async function shrink(file, maxSide = 2000, quality = 0.82) {
+export async function shrink(file, maxSide = 2000, quality = 0.82, maxBytes = Infinity) {
   if (!file.type.startsWith('image/')) throw new Error('no-image');
+  if (file.size > 25e6) throw new Error('too-big');
   const { img, url } = await loadImage(file);
   const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
   const w = Math.round(img.naturalWidth * scale);
@@ -23,7 +24,9 @@ export async function shrink(file, maxSide = 2000, quality = 0.82) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h); // PNG con transparencia: fondo negro, como la web
   ctx.drawImage(img, 0, 0, w, h);
   URL.revokeObjectURL(url);
-  const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', quality));
+  const encode = (q) => new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
+  let blob = await encode(quality);
+  for (let q = quality - 0.08; blob.size > maxBytes && q >= 0.4; q -= 0.08) blob = await encode(q);
   return { blob, url: URL.createObjectURL(blob), width: w, height: h, before: file.size, after: blob.size };
 }
 
