@@ -300,10 +300,10 @@ function showRow(s) {
   if (isPast(s)) {
     if (!(s.results || []).length) chips.push(h('span', { class: 'chip warn' }, 'Sin resultados'));
     if (!(s.gallery || []).length) chips.push(h('span', { class: 'chip warn' }, 'Sin fotos'));
-    if (!s.cronica) chips.push(h('span', { class: 'chip' }, 'Sin crónica'));
+    if (!s.cronica) chips.push(h('span', { class: 'chip warn' }, 'Sin crónica'));
   } else {
     if (!s.poster) chips.push(h('span', { class: 'chip warn' }, 'Sin cartel'));
-    if (!(s.card || []).length) chips.push(h('span', { class: 'chip' }, 'Sin combates'));
+    if (!(s.card || []).length) chips.push(h('span', { class: 'chip warn' }, 'Sin combates'));
   }
   const before = JSON.parse(S.published).find((p) => p.slug === s.slug);
   if (!before) chips.unshift(h('span', { class: 'chip new' }, 'Nuevo'));
