@@ -482,3 +482,29 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .feat li { display: flex; align-items: center; gap: .7rem; padding: .4rem .5rem; background: var(--panel); border-radius: 8px; }
 .feat img, .feat .ac-ph { width: 2.6rem; height: 2.6rem; border-radius: 50%; object-fit: cover; }
 .feat-n { flex: 1; font-weight: 700; }
+
+/* Historia y Salón de la Fama · Redes y contacto */
+.hist-i.has-err { border-color: var(--bad); }
+.hito-g { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 1rem; align-items: start; }
+@media (max-width: 760px) { .hito-g { grid-template-columns: 1fr; } }
+.fld.yr input { max-width: 7rem; font-variant-numeric: tabular-nums; }
+.hito-ph figure { margin: 0; display: grid; gap: .4rem; }
+.hito-ph img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 6px; filter: grayscale(1); }
+.hito-ph .drop { min-height: 140px; }
+.hofg { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); max-width: 980px; }
+.hof-i { aspect-ratio: auto; display: grid; grid-template-rows: auto auto; cursor: grab; }
+.hof-i img { aspect-ratio: 3/4; height: auto; filter: grayscale(1); }
+.hof-i.over { outline-color: var(--fg); }
+.hof-f { display: grid; gap: .35rem; padding: .5rem; }
+.hof-f input[type="text"] { width: 100%; padding: .45rem .55rem; font: inherit; font-size: .9rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line2); border-radius: 6px; }
+.hof-f input[type="text"]:first-child { font-weight: 700; }
+.hof-f .tick { font-size: .82rem; }
+.gi-tools.on { opacity: 1; top: .35rem; bottom: auto; }
+.hof-new { width: 160px; aspect-ratio: 3/4; object-fit: cover; border-radius: 6px; filter: grayscale(1); }
+.redes { max-width: 760px; }
+.redes li { flex-wrap: wrap; }
+.red-l { width: 7.5rem; flex: none; }
+.redes input { flex: 1 1 14rem; min-width: 0; padding: .55rem .7rem; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line2); border-radius: 6px; }
+.redes input:focus { outline: none; border-color: var(--fg); }
+input.bad { border-color: var(--bad) !important; }
+.add-red { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
