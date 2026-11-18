@@ -1,4 +1,5 @@
-// Panel de administración de Triple W. Prototipo: secciones Shows y Luchadores, en modo demostración.
+// Panel de administración de Triple W. Publica de verdad a través de /api/admin (ver store.js);
+// sin esa función, funciona en modo demostración.
 // Principio: prevenir el error antes que avisar de él. Listas en vez de texto libre,
 // fechas y horas con selector, fotos que se reducen solas, deshacer siempre a mano
 // y nada se publica si falta algo imprescindible.
@@ -86,12 +87,12 @@ function redoFn() {
 }
 
 let persistT;
-export function persist() {
+export function persist(now = false) {
   clearTimeout(persistT);
   persistT = setTimeout(async () => {
     const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
-    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home, pages: S.pages, hof: S.hof, files, at: Date.now() });
-  }, 400);
+    await store.set(store.draftKey(), { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home, pages: S.pages, hof: S.hof, remote: S.remote, files, at: Date.now() });
+  }, now ? 0 : 400);
   refreshBar();
   if (S.view.name === 'show') {
     const old = document.querySelector('.steps'), sh = showBy(S.view.slug);
@@ -228,7 +229,7 @@ function topbar() {
     h('a', { class: 'adm-brand', href: '#', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } },
       h('img', { src: '/logo/whitewolf-blanco.svg', alt: '', width: 30, height: 29 }),
       h('span', {}, 'Panel ', h('b', {}, 'Triple W'))),
-    h('span', { class: 'adm-demo', title: 'Los cambios se quedan en este ordenador. La web pública no cambia.' }, 'Modo demostración'),
+    store.mode === 'demo' ? h('span', { class: 'adm-demo', title: store.setupPending ? 'Falta configurar el guardado en Vercel (token de GitHub y contraseña).' : 'Los cambios se quedan en este ordenador. La web pública no cambia.' }, 'Modo demostración') : null,
     h('div', { class: 'adm-top-r' },
       h('button', { class: 'tbtn', type: 'button', onclick: undo, disabled: !S.undo.length, title: 'Deshacer (Ctrl+Z)' }, icon('undo'), h('span', {}, 'Deshacer')),
       h('button', { class: 'tbtn', type: 'button', onclick: redoFn, disabled: !S.redo.length, title: 'Rehacer (Ctrl+Mayús+Z)' }, icon('redo'), h('span', {}, 'Rehacer'))));
@@ -255,7 +256,8 @@ function sidebar() {
       h('p', {}, store.mode === 'demo'
         ? 'Modo demostración: los cambios se quedan en este ordenador y la web no cambia.'
         : 'Los cambios se guardan y la web se vuelve a publicar sola en 1 o 2 minutos.'),
-      h('a', { href: '/', target: '_blank', rel: 'noopener' }, 'Ver la web ', icon('ext'))));
+      h('a', { href: '/', target: '_blank', rel: 'noopener' }, 'Ver la web ', icon('ext')),
+      store.mode === 'real' ? h('button', { class: 'lnk', type: 'button', onclick: () => { store.clearKey(); location.reload(); } }, 'Cerrar sesión') : null));
 }
 
 export function go(view) {
@@ -492,7 +494,7 @@ const PANES = {
       multiple: false,
       onfiles: async ([f]) => {
         const r = await shrink(f, 1500, 0.85, 1.5e6);
-        const path = `/carteles/${s.slug}.jpg`;
+        const path = `/carteles/${s.slug}-${Date.now().toString(36)}.jpg`;
         S.files.set(path, { blob: r.blob, url: r.url });
         change(() => { s.poster = path; }, { rerender: false });
         toast(`Cartel listo: ${r.width} × ${r.height} px, ${kb(r.before)} → ${kb(r.after)}`);
@@ -558,15 +560,15 @@ const PANES = {
         const room = MAX_GALLERY - s.gallery.length;
         if (room <= 0) { toast(`Ya hay ${MAX_GALLERY} fotos, que es el máximo.`); return; }
         const list = files.slice(0, room);
-        let before = 0, after = 0, n = s.gallery.length;
+        let before = 0, after = 0;
         const added = [];
         const prog = document.querySelector('.drop-prog');
         for (const [k, f] of list.entries()) {
           if (prog) prog.textContent = `Preparando foto ${k + 1} de ${list.length}…`;
           try {
-            const r = await shrink(f, 2000, 0.82);
-            let path;
-            do { path = `/fotos/por-carpeta/${s.slug}/${String(++n).padStart(3, '0')}.jpg`; } while (s.gallery.includes(path));
+            const r = await shrink(f, 2000, 0.82, 2.5e6);
+            // Nombre único: nunca pisa una foto que ya exista en la web aunque se haya quitado de la galería.
+            const path = `/fotos/por-carpeta/${s.slug}/${Date.now().toString(36)}-${k}.jpg`;
             S.files.set(path, { blob: r.blob, url: r.url });
             added.push(path); before += r.before; after += r.after;
           } catch { /* no era una imagen: se ignora sin romper nada */ }
@@ -990,28 +992,159 @@ function jump(p) {
 }
 
 async function publish() {
-  // Demostración: se da por publicado en este navegador. En la versión final aquí se envían
-  // shows.json y las imágenes nuevas al GitHub de la asociación, y la web se reconstruye sola.
+  if (S.busy) return;
+  // Se limpian campos vacíos antes de comparar y publicar.
   S.shows = S.shows.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
+  S.roster = S.roster.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
+  S.titles = S.titles.map((x) => { const n = normalize(x); n.slug = x.slug; if (!n.history) n.history = []; return n; });
+  if (store.mode === 'real' && !(await publishReal())) return;
   S.published = JSON.stringify(S.shows);
   S.publishedVenues = JSON.stringify(S.venues);
-  S.roster = S.roster.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
   S.publishedRoster = JSON.stringify(S.roster);
-  S.titles = S.titles.map((x) => { const n = normalize(x); n.slug = x.slug; if (!n.history) n.history = []; return n; });
   S.publishedTitles = JSON.stringify(S.titles);
   S.publishedHome = JSON.stringify(S.home);
   S.publishedPages = JSON.stringify(S.pages);
   S.publishedHof = JSON.stringify(S.hof);
-  for (const f of S.files.values()) f.published = true;
-  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home, pages: S.pages, hof: S.hof });
+  if (store.mode === 'demo') for (const f of S.files.values()) f.published = true;
+  if (store.mode === 'demo') await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home, pages: S.pages, hof: S.hof });
   S.publishOpen = false;
   S.undo = []; S.redo = [];
-  persist();
+  persist(true);
   render();
-  toast('Publicado (demostración). En la versión real la web se actualiza en unos 2 minutos.');
+  toast(store.mode === 'real' ? 'Publicado. La web se actualiza sola en 1 o 2 minutos.' : 'Publicado (demostración). En la versión real la web se actualiza en unos 2 minutos.');
+}
+
+// ---------- Publicación real (GitHub a través de /api/admin) ----------
+// S.remote guarda los 6 ficheros tal como están publicados. Se envía solo lo que cambia, junto con
+// lo que el panel cree que hay publicado; si alguien publicó entretanto, la función no pisa nada.
+const FILE_NAMES = { shows: 'los shows', roster: 'los luchadores', titles: 'los campeonatos', home: 'la portada', pages: 'historia, redes y contacto', hof: 'el Salón de la Fama' };
+const listNames = (keys) => { const n = keys.map((k) => FILE_NAMES[k]); return n.length > 1 ? `${n.slice(0, -1).join(', ')} y ${n.at(-1)}` : n[0]; };
+
+function fullFiles(D = S, R = S.remote) {
+  return {
+    shows: { ...R.shows, venues: D.venues, shows: D.shows },
+    roster: { ...R.roster, wrestlers: D.roster },
+    titles: { ...R.titles, titles: D.titles },
+    home: D.home, pages: D.pages, hof: D.hof,
+  };
+}
+
+// Pone en el panel el contenido de un fichero (sin tocar qué se considera publicado).
+function setDoc(k, obj) {
+  const o = clone(obj);
+  if (k === 'shows') { S.shows = o.shows; S.venues = o.venues; }
+  if (k === 'roster') S.roster = o.wrestlers;
+  if (k === 'titles') S.titles = o.titles;
+  if (k === 'home') S.home = o;
+  if (k === 'pages') S.pages = o;
+  if (k === 'hof') S.hof = o;
+}
+// Pone una parte del panel tal como está publicada.
+function takeRemote(k, obj) {
+  S.remote[k] = clone(obj);
+  setDoc(k, obj);
+  if (k === 'shows') { S.published = JSON.stringify(obj.shows); S.publishedVenues = JSON.stringify(obj.venues); }
+  if (k === 'roster') S.publishedRoster = JSON.stringify(obj.wrestlers);
+  if (k === 'titles') S.publishedTitles = JSON.stringify(obj.titles);
+  if (k === 'home') S.publishedHome = JSON.stringify(obj);
+  if (k === 'pages') S.publishedPages = JSON.stringify(obj);
+  if (k === 'hof') S.publishedHof = JSON.stringify(obj);
+}
+const applyRemote = (files) => { S.remote = {}; for (const k of Object.keys(FILE_NAMES)) takeRemote(k, files[k]); };
+
+// Capa que tapa el panel mientras se publica: nadie puede tocar nada a medias.
+function busy(msg) {
+  let el = document.querySelector('.pub-busy');
+  if (!msg) { el?.remove(); S.busy = false; return; }
+  S.busy = true;
+  if (!el) { el = h('div', { class: 'pub-busy', role: 'status', 'aria-live': 'polite' }, h('div', {}, h('span', { class: 'spin' }), h('p', {}))); document.body.append(el); }
+  el.querySelector('p').textContent = msg;
+}
+
+// Ventana con un mensaje y botones. Devuelve el valor del botón pulsado.
+function dialog(title, text, buttons) {
+  return new Promise((resolve) => {
+    const close = (v) => { el.remove(); resolve(v); };
+    const el = h('div', { class: 'dlg-bg' }, h('div', { class: 'dlg', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'dlg-t' },
+      h('h2', { id: 'dlg-t' }, title), ...[].concat(text).map((t) => h('p', {}, t)),
+      h('div', { class: 'btns' }, buttons.map((b) => h('button', { class: b.main ? 'btn1' : 'btn2', type: 'button', onclick: () => close(b.value) }, b.label)))));
+    document.body.append(el);
+    el.querySelector('.btn1, .btn2')?.focus();
+  });
+}
+
+const KEEP = 'No se ha publicado nada y tus cambios siguen aquí, guardados en este ordenador.';
+async function failed(r, path) {
+  busy(null);
+  if (r.status === 401) {
+    await dialog('Hay que volver a entrar', ['La contraseña del panel ha cambiado.', KEEP], [{ label: 'Entrar de nuevo', value: 1, main: true }]);
+    store.clearKey(); location.reload(); return false;
+  }
+  const msg = r.error === 'network' ? 'No hay conexión con el servidor. Comprueba internet y vuelve a pulsar «Publicar en la web».'
+    : r.error === 'too-big' ? `La foto ${path || ''} pesa demasiado para subirla. Quítala y vuelve a subirla.`
+    : r.error === 'bad-image' || r.error === 'bad-path' ? `La foto ${path || ''} no es válida. Quítala y vuelve a subirla.`
+    : r.error === 'github-access' ? 'GitHub no deja guardar: el permiso (token) ha caducado o no es válido. Avisa a quien gestiona la web.'
+    : r.error === 'setup' ? 'El guardado todavía no está configurado en el servidor.'
+    : 'Algo ha fallado al guardar. Espera un minuto y vuelve a intentarlo.';
+  await dialog('No se ha podido publicar', [msg, KEEP], [{ label: 'Entendido', value: 1, main: true }]);
+  return false;
+}
+
+async function publishReal(force = []) {
+  const files = fullFiles();
+  // Solo se envía lo que cambia de verdad (sin contar campos vacíos): el resto de ficheros no se toca.
+  const keys = Object.keys(files).filter((k) => !same(files[k], S.remote[k]));
+  const all = JSON.stringify(files);
+  const pending = [...S.files].filter(([p, f]) => !f.published && all.includes(`"${p}"`));
+  const images = [];
+  busy('Publicando…');
+  for (const [i, [path, f]] of pending.entries()) {
+    busy(`Subiendo fotos: ${i + 1} de ${pending.length}`);
+    let data;
+    try { data = await store.toBase64(f.blob); } catch { return failed({ error: 'bad-image' }, path); }
+    const r = await store.call('image', { path, data });
+    if (!r.ok) return failed(r, path);
+    images.push({ path, sha: r.sha });
+  }
+  if (!keys.length && !images.length) { busy(null); return true; }
+  busy('Guardando los cambios…');
+  const send = () => store.call('publish', {
+    files: Object.fromEntries(keys.map((k) => [k, files[k]])),
+    base: Object.fromEntries(keys.map((k) => [k, S.remote[k]])),
+    images, force, summary: keys.length ? listNames(keys) : 'fotos',
+  });
+  let r = await send();
+  if (r.status === 409 && r.error === 'race') r = await send();
+  if (r.status === 409 && r.error === 'conflict') {
+    busy(null);
+    const ck = Object.keys(r.current);
+    const v = await dialog('Alguien ha publicado mientras trabajabas',
+      [`Desde otro ordenador se han publicado cambios en ${listNames(ck)}. Para no borrar su trabajo, no se ha publicado nada.`,
+        'Puedes ver lo que hay publicado ahora (se pierden tus cambios en esa parte) o publicar lo tuyo encima (se pierde lo de la otra persona en esa parte).'],
+      [{ label: 'Cancelar', value: 'cancel' }, { label: 'Ver lo publicado', value: 'take' }, { label: 'Publicar lo mío encima', value: 'mine', main: true }]);
+    if (v === 'take') { for (const k of ck) takeRemote(k, r.current[k]); S.undo = []; S.redo = []; S.publishOpen = false; persist(); render(); toast('Cargado lo que hay publicado ahora'); }
+    if (v === 'mine') { for (const k of ck) S.remote[k] = r.current[k]; return publishReal(ck); }
+    return false;
+  }
+  if (!r.ok) return failed(r);
+  for (const k of keys) S.remote[k] = clone(files[k]);
+  for (const im of images) S.files.get(im.path).published = true;
+  busy(null);
+  return true;
 }
 
 async function discardAll() {
+  if (store.mode === 'real') {
+    // Se vuelve a lo que hay publicado ahora mismo (por si alguien publicó desde otro ordenador).
+    const r = await store.call('load');
+    if (r.ok) applyRemote(r.files); else for (const k of Object.keys(FILE_NAMES)) takeRemote(k, S.remote[k]);
+    for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
+    S.restored = false; S.undo = []; S.redo = [];
+    await store.set(store.draftKey(), null);
+    go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : 'home' });
+    toast('Cambios descartados');
+    return;
+  }
   const pub = await store.get('published');
   S.shows = clone(pub?.shows || showsJson.shows);
   S.venues = clone(pub?.venues || showsJson.venues);
@@ -1029,13 +1162,57 @@ async function discardAll() {
   S.publishedVenues = JSON.stringify(S.venues);
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
-  await store.set('draft', null);
+  await store.set(store.draftKey(), null);
   go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : 'home' });
   toast('Cambios descartados');
 }
 
 // ---------- Arranque ----------
+// Pantalla de entrada (solo en modo real).
+function loginScreen(msg) {
+  const err = h('p', { class: 'err', role: 'alert' }, msg ? [icon('alert'), msg] : null);
+  const pw = h('input', { type: 'password', id: 'pw', autocomplete: 'current-password', required: true });
+  const remember = h('input', { type: 'checkbox', checked: true });
+  const btn = h('button', { class: 'btn1 big', type: 'submit' }, 'Entrar');
+  app.replaceChildren(h('main', { class: 'login' }, h('form', {
+    onsubmit: async (e) => {
+      e.preventDefault();
+      if (!pw.value) return;
+      btn.disabled = true; btn.textContent = 'Comprobando…'; err.replaceChildren();
+      const r = await store.call('load', {}, pw.value);
+      if (r.ok) { store.setKey(pw.value, remember.checked); return start(r.files); }
+      btn.disabled = false; btn.textContent = 'Entrar';
+      err.replaceChildren(icon('alert'), r.status === 401 ? 'Contraseña incorrecta.' : r.error === 'network' ? 'No hay conexión. Comprueba internet.' : 'El servidor no responde bien. Prueba en un minuto.');
+      pw.select();
+    },
+  },
+  h('img', { src: '/logo/whitewolf-blanco.svg', alt: '', width: 64, height: 62 }),
+  h('h1', {}, 'Panel ', h('b', {}, 'Triple W')),
+  h('div', { class: 'fld' }, h('label', { for: 'pw' }, 'Contraseña'), pw),
+  h('label', { class: 'tick' }, remember, 'Recordarla en este ordenador'),
+  err, btn)));
+  pw.focus();
+}
+
 async function boot() {
+  await store.detect();
+  if (store.mode !== 'real') return start();
+  if (!store.getKey()) return loginScreen();
+  const r = await store.call('load');
+  if (r.status === 401) { store.clearKey(); return loginScreen('La contraseña ha cambiado. Escribe la nueva.'); }
+  if (!r.ok) {
+    app.replaceChildren(h('main', { class: 'login' }, h('div', {},
+      h('h1', {}, 'No se pueden cargar los datos'),
+      h('p', {}, r.error === 'network' ? 'No hay conexión con el servidor. Comprueba internet.' : r.error === 'github-access' ? 'GitHub no da acceso: el permiso (token) ha caducado o no es válido. Avisa a quien gestiona la web.' : 'El servidor no responde bien ahora mismo.'),
+      h('button', { class: 'btn1', type: 'button', onclick: () => location.reload() }, 'Volver a intentarlo'))));
+    return;
+  }
+  start(r.files);
+}
+
+async function start(remote) {
+  if (remote) applyRemote(remote);
+  else {
   const pub = await store.get('published');
   if (pub?.shows) { S.shows = clone(pub.shows); S.published = JSON.stringify(pub.shows); }
   if (pub?.venues) { S.venues = clone(pub.venues); S.publishedVenues = JSON.stringify(pub.venues); }
@@ -1044,8 +1221,26 @@ async function boot() {
   if (pub?.home) { S.home = clone(pub.home); S.publishedHome = JSON.stringify(pub.home); }
   if (pub?.pages) { S.pages = clone(pub.pages); S.publishedPages = JSON.stringify(pub.pages); }
   if (pub?.hof) { S.hof = clone(pub.hof); S.publishedHof = JSON.stringify(pub.hof); }
-  const draft = await store.get('draft');
+  }
+  const draft = await store.get(store.draftKey());
+  if (remote && draft?.remote) {
+    // Solo se recupera lo que de verdad quedó sin publicar. Si mientras tanto alguien publicó en esa
+    // parte, el panel sigue comparando con la versión antigua: al publicar saldrá el aviso de choque.
+    const mine = fullFiles(draft, draft.remote);
+    for (const k of Object.keys(FILE_NAMES)) {
+      if (same(mine[k], draft.remote[k])) continue;
+      takeRemote(k, draft.remote[k]); setDoc(k, mine[k]); S.restored = true;
+    }
+  }
   if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
+  // Fotos ya publicadas que la web ya sirve: no hace falta guardarlas más en este ordenador.
+  if (store.mode === 'real') {
+    await Promise.all([...S.files].filter(([, f]) => f.published).map(async ([p]) => {
+      const ok = await fetch(p, { method: 'HEAD', cache: 'no-store' }).then((x) => x.ok).catch(() => false);
+      if (ok) S.files.delete(p);
+    }));
+  }
+  if (!remote) {
   if (draft?.venues) S.venues = draft.venues;
   if (draft?.roster && JSON.stringify(draft.roster) !== S.publishedRoster) { S.roster = draft.roster; S.restored = true; }
   if (draft?.titles && JSON.stringify(draft.titles) !== S.publishedTitles) { S.titles = draft.titles; S.restored = true; }
@@ -1053,6 +1248,7 @@ async function boot() {
   if (draft?.pages && JSON.stringify(draft.pages) !== S.publishedPages) { S.pages = draft.pages; S.restored = true; }
   if (draft?.hof && JSON.stringify(draft.hof) !== S.publishedHof) { S.hof = draft.hof; S.restored = true; }
   if (draft?.shows && (JSON.stringify(draft.shows) !== S.published || venuesChanged())) { S.shows = draft.shows; S.restored = true; }
+  }
   S.view = viewFromHash();
   render();
 }
