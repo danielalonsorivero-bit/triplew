@@ -460,3 +460,25 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .hp-empty { color: var(--muted); padding: 2rem; }
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
 .hero-side { position: sticky; top: 84px; display: grid; gap: .6rem; }
+
+/* Sección Portada */
+.order-note { margin-top: .6rem; }
+.hl-in { display: grid; gap: .45rem; }
+.hl-row { display: grid; grid-template-columns: 1.8rem minmax(0, 1fr) 3.4rem; gap: .6rem; align-items: center; }
+.hl-row input { font: inherit; color: var(--fg); background: var(--panel); border: 1.5px solid var(--line2); border-radius: 8px; padding: .7rem .85rem; }
+.hl-row input:focus { outline: none; border-color: var(--fg); }
+.hl-row.has-err input { border-color: var(--bad); }
+.hl-n { font: 800 1rem/1 var(--font-display); color: var(--muted); text-align: center; }
+.hl-row .count { font-size: .85rem; color: var(--muted); text-align: right; }
+.hl-prev { margin: .5rem 0 0; padding: 1rem 1.2rem; border-radius: 8px; background: #0B0B0B; border: 1px solid var(--line); font: 900 2.3rem/.92 var(--font-display); text-transform: uppercase; display: grid; }
+.hl-prev .acc { color: #E3EE2B; }
+.hl-inversa { color: #FF3EA5; text-shadow: 0 0 14px rgba(255,62,165,.6); }
+.pgal .gi.sh-wide { grid-column: span 2; aspect-ratio: auto; }
+.pgal .gi.sh-tall { grid-row: span 2; aspect-ratio: auto; }
+.shape { position: absolute; left: .35rem; top: .35rem; display: flex; border-radius: 6px; overflow: hidden; background: rgba(15,15,15,.85); }
+.shape button { font-size: .72rem; font-weight: 700; padding: .3rem .45rem; border: 0; background: none; color: var(--muted); }
+.shape button.on { background: var(--fg); color: #0B0B0B; }
+.feat { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .4rem; max-width: 560px; }
+.feat li { display: flex; align-items: center; gap: .7rem; padding: .4rem .5rem; background: var(--panel); border-radius: 8px; }
+.feat img, .feat .ac-ph { width: 2.6rem; height: 2.6rem; border-radius: 50%; object-fit: cover; }
+.feat-n { flex: 1; font-weight: 700; }

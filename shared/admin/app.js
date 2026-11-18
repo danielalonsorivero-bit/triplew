@@ -6,11 +6,13 @@
 import showsJson from '../data/shows.json';
 import rosterJson from '../data/roster.json';
 import titlesJson from '../data/titles.json';
+import homeJson from '../data/portada-triplew.json';
 import { cronicaBlocksFor } from '../cronica.js';
 import { shrink, palette, inkFor, kb } from './img.js';
 import * as store from './store.js';
 import { rosterHome, wrestlerEditor, newWrestlerForm, checkWrestler, changedRoster, removedRoster, wrestlerBy } from './luchadores.js';
 import { heroPane } from './portada.js';
+import { homeEditor, checkHome, homeChanged } from './portada-home.js';
 import { titlesHome, titleEditor, checkTitle, changedTitles, removedTitles, titleBy } from './campeonatos.js';
 
 const BRANDS = {
@@ -29,6 +31,8 @@ export const S = {
   publishedRoster: JSON.stringify(rosterJson.wrestlers),
   titles: clone(titlesJson.titles),
   publishedTitles: JSON.stringify(titlesJson.titles),
+  home: clone(homeJson),
+  publishedHome: JSON.stringify(homeJson),
   venues: clone(showsJson.venues),
   published: JSON.stringify(showsJson.shows),
   publishedVenues: JSON.stringify(showsJson.venues),
@@ -47,8 +51,8 @@ const venuesChanged = () => JSON.stringify(S.venues) !== S.publishedVenues;
 const showBy = (slug) => S.shows.find((s) => s.slug === slug);
 export const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
 
-const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles });
-const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; S.roster = d.roster; S.titles = d.titles; };
+const docNow = () => JSON.stringify({ shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home });
+const docLoad = (j) => { const d = JSON.parse(j); S.shows = d.shows; S.venues = d.venues; S.roster = d.roster; S.titles = d.titles; S.home = d.home; };
 export function snapshot() {
   const now = docNow();
   if (S.undo.at(-1) === now) return;
@@ -79,7 +83,7 @@ export function persist() {
   clearTimeout(persistT);
   persistT = setTimeout(async () => {
     const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
-    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, files, at: Date.now() });
+    await store.set('draft', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home, files, at: Date.now() });
   }, 400);
   refreshBar();
   if (S.view.name === 'show') {
@@ -202,7 +206,7 @@ export function render() {
   S.view.keepScroll = false;
   app.replaceChildren(
     topbar(),
-    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm, titles: titlesHome, title: titleEditor }[S.view.name] || home)())),
+    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm, titles: titlesHome, title: titleEditor, portada: homeEditor }[S.view.name] || home)())),
     publishBar(),
     h('div', { class: 'adm-toast', role: 'status' }),
   );
@@ -226,7 +230,7 @@ function topbar() {
 function sidebar() {
   const items = [
     { k: 'shows', label: 'Shows', view: 'home' },
-    { k: 'portada', label: 'Portada' },
+    { k: 'portada', label: 'Portada', view: 'portada' },
     { k: 'roster', label: 'Luchadores', view: 'roster' },
     { k: 'titulos', label: 'Campeonatos', view: 'titles' },
     { k: 'paginas', label: 'Historia y Salón de la Fama' },
@@ -235,9 +239,9 @@ function sidebar() {
   return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
     h('div', { class: 'side-list' },
       items.map((it) => {
-        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titulos' : 'shows');
+        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titulos' : S.view.name === 'portada' ? 'portada' : 'shows');
         return it.view
-        ? h('a', { href: { roster: '#luchadores', titles: '#campeonatos' }[it.view] || '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
+        ? h('a', { href: { roster: '#luchadores', titles: '#campeonatos', portada: '#portada' }[it.view] || '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
         : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'));
       })),
     h('div', { class: 'side-foot' },
@@ -255,6 +259,7 @@ export function go(view) {
   else if (view.name === 'roster') location.hash = 'luchadores';
   else if (view.name === 'title') location.hash = `campeonato/${view.slug}`;
   else if (view.name === 'titles') location.hash = 'campeonatos';
+  else if (view.name === 'portada') location.hash = 'portada';
   else history.replaceState(null, '', location.pathname);
   render();
 }
@@ -918,17 +923,19 @@ function refreshBar() {
   const wrm = removedRoster();
   const tch = changedTitles();
   const trm = removedTitles();
-  const has = ch.length || removed.length || vch || wch.length || wrm.length || tch.length || trm.length;
+  const hch = homeChanged();
+  const has = ch.length || removed.length || vch || wch.length || wrm.length || tch.length || trm.length || hch;
   bar.classList.toggle('on', !!has);
   if (!has) { bar.replaceChildren(); return; }
-  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs), ...tch.flatMap((t) => checkTitle(t).errs)];
-  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns), ...tch.flatMap((t) => checkTitle(t).warns)];
+  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs), ...tch.flatMap((t) => checkTitle(t).errs), ...(hch ? checkHome().errs : [])];
+  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns), ...tch.flatMap((t) => checkTitle(t).warns), ...(hch ? checkHome().warns : [])];
   const parts = [];
   const nS = ch.length + removed.length, nW = wch.length + wrm.length;
   if (nS) parts.push(nS === 1 ? '1 show' : `${nS} shows`);
   if (nW) parts.push(nW === 1 ? '1 luchador' : `${nW} luchadores`);
   const nT = tch.length + trm.length;
   if (nT) parts.push(nT === 1 ? '1 campeonato' : `${nT} campeonatos`);
+  if (hch) parts.push('la portada');
   if (vch) parts.push('las salas');
   const isPubW = (w) => JSON.parse(S.publishedRoster).some((p) => p.slug === w.slug);
   bar.replaceChildren(
@@ -951,6 +958,7 @@ function refreshBar() {
             wrm.map((w) => h('li', {}, h('b', {}, w.name), ' · se borra su ficha')),
             tch.map((t) => h('li', {}, h('b', {}, t.name || 'Campeonato nuevo'), ' · cambios')),
             trm.map((t) => h('li', {}, h('b', {}, t.name), ' · se borra')),
+            hch && h('li', {}, h('b', {}, 'Portada'), ' · cambios en los bloques'),
             vch && h('li', {}, h('b', {}, 'Salas'), ' · cambios en la lista de salas')),
           warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
           h('div', { class: 'pub-go' }, h('button', { class: 'btn1 big', type: 'button', onclick: publish }, 'Publicar en la web'),
@@ -959,7 +967,7 @@ function refreshBar() {
 
 function jump(p) {
   S.publishOpen = false;
-  go(p.kind === 'wrestler' ? { name: 'wrestler', slug: p.slug } : p.kind === 'title' ? { name: 'title', slug: p.slug } : { name: 'show', slug: p.slug, step: p.step });
+  go(p.kind === 'wrestler' ? { name: 'wrestler', slug: p.slug } : p.kind === 'title' ? { name: 'title', slug: p.slug } : p.kind === 'home' ? { name: 'portada' } : { name: 'show', slug: p.slug, step: p.step });
   requestAnimationFrame(() => {
     const el = document.querySelector(`[data-field="${p.field}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -978,8 +986,9 @@ async function publish() {
   S.publishedRoster = JSON.stringify(S.roster);
   S.titles = S.titles.map((x) => { const n = normalize(x); n.slug = x.slug; if (!n.history) n.history = []; return n; });
   S.publishedTitles = JSON.stringify(S.titles);
+  S.publishedHome = JSON.stringify(S.home);
   for (const f of S.files.values()) f.published = true;
-  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles });
+  await store.set('published', { shows: S.shows, venues: S.venues, roster: S.roster, titles: S.titles, home: S.home });
   S.publishOpen = false;
   S.undo = []; S.redo = [];
   persist();
@@ -995,12 +1004,14 @@ async function discardAll() {
   S.publishedRoster = JSON.stringify(S.roster);
   S.titles = clone(pub?.titles || titlesJson.titles);
   S.publishedTitles = JSON.stringify(S.titles);
+  S.home = clone(pub?.home || homeJson);
+  S.publishedHome = JSON.stringify(S.home);
   S.published = JSON.stringify(S.shows);
   S.publishedVenues = JSON.stringify(S.venues);
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
   await store.set('draft', null);
-  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : 'home' });
+  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : 'home' });
   toast('Cambios descartados');
 }
 
@@ -1011,11 +1022,13 @@ async function boot() {
   if (pub?.venues) { S.venues = clone(pub.venues); S.publishedVenues = JSON.stringify(pub.venues); }
   if (pub?.roster) { S.roster = clone(pub.roster); S.publishedRoster = JSON.stringify(pub.roster); }
   if (pub?.titles) { S.titles = clone(pub.titles); S.publishedTitles = JSON.stringify(pub.titles); }
+  if (pub?.home) { S.home = clone(pub.home); S.publishedHome = JSON.stringify(pub.home); }
   const draft = await store.get('draft');
   if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
   if (draft?.venues) S.venues = draft.venues;
   if (draft?.roster && JSON.stringify(draft.roster) !== S.publishedRoster) { S.roster = draft.roster; S.restored = true; }
   if (draft?.titles && JSON.stringify(draft.titles) !== S.publishedTitles) { S.titles = draft.titles; S.restored = true; }
+  if (draft?.home && JSON.stringify(draft.home) !== S.publishedHome) { S.home = draft.home; S.restored = true; }
   if (draft?.shows && (JSON.stringify(draft.shows) !== S.published || venuesChanged())) { S.shows = draft.shows; S.restored = true; }
   S.view = viewFromHash();
   render();
@@ -1030,6 +1043,7 @@ function viewFromHash() {
   const c = location.hash.match(/^#campeonato\/([^/]+)/);
   if (c && titleBy(c[1])) return { name: 'title', slug: c[1] };
   if (/^#campeonato/.test(location.hash)) return { name: 'titles' };
+  if (location.hash === '#portada') return { name: 'portada' };
   return { name: 'home' };
 }
 
