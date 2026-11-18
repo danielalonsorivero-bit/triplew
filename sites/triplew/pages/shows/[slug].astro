@@ -6,7 +6,7 @@ import Galeria from '../../components/Galeria.astro';
 import VideoYT from '../../components/VideoYT.astro';
 import pages from '../../../../shared/data/paginas-triplew.json';
 import Provisional from '../../../../shared/components/Provisional.astro';
-import { allShows, venues, dateLong, cronicaBlocks } from '../../../../shared/lib.js';
+import { allShows, venues, dateLong, cronicaBlocks, ticketInfo } from '../../../../shared/lib.js';
 export function getStaticPaths() { return allShows.map((s) => ({ params: { slug: s.slug }, props: { s: s } })); }
 const { s } = Astro.props;
 const v = venues[s.venue];
@@ -52,11 +52,11 @@ let n = 0;
           <div><dt>Fecha</dt><dd>{dateLong(s.date)}</dd></div>
           {s.start && <div><dt>Hora</dt><dd>{s.start}{s.doors && <small>Puertas {s.doors}</small>}</dd></div>}
           <div><dt>Lugar</dt><dd><a href={v.map}>{v.name}</a><small>{v.address}</small></dd></div>
-          <div><dt>Entrada</dt><dd>{s.ticket?.type === 'venta' ? 'Anticipada' : 'Gratis, pagas al salir'}</dd></div>
+          <div><dt>Entrada</dt><dd>{ticketInfo(s).board}</dd></div>
         </dl>
         {!past && (
           <div class="cta">
-            {s.ticket?.type === 'venta' ? <a class="btn" href={s.ticket.url}>Compra tu entrada</a> : <a class="btn" href={v.map}>Cómo llegar</a>}
+            {s.ticket?.type === 'venta' && s.ticket.url ? <a class="btn" href={s.ticket.url}>Compra tu entrada</a> : <a class="btn" href={v.map}>Cómo llegar</a>}
           </div>
         )}
       </div>

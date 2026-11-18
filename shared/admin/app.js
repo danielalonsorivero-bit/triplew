@@ -437,7 +437,10 @@ const PANES = {
         choice('ticket', [
           { value: 'venta', label: 'Venta de entradas', note: 'Se compran antes en Entradium. La web pondrá un botón grande de «Compra tu entrada».' },
           { value: 'inversa', label: 'Entrada inversa', note: 'Se entra gratis y se paga al salir lo que cada uno quiera.' },
-        ], s.ticket?.type, (v) => change(() => { s.ticket = v === 'venta' ? { type: 'venta', url: s.ticket?.url || '' } : { type: 'inversa' }; })),
+          { value: 'gratis', label: 'Gratis', note: 'Se entra gratis y no se paga nada.' },
+          { value: 'taquilla', label: 'En taquilla', note: 'Las entradas se compran en la puerta el mismo día.' },
+          { value: 'agotado', label: 'Agotadas', note: 'Ya no quedan entradas. La web lo dice y quita el botón de compra.' },
+        ], s.ticket?.type, (v) => change(() => { s.ticket = v === 'venta' ? { type: 'venta', url: s.ticket?.url || '' } : { type: v, ...(s.ticket?.url ? { url: s.ticket.url } : {}) }; })),
         s.ticket?.type === 'venta' && field('Enlace de Entradium', {
           type: 'url', value: s.ticket.url || '', required: true, err: errOf('ticket'),
           attrs: { placeholder: 'https://entradium.com/events/…', inputmode: 'url', autocomplete: 'off' },
@@ -483,7 +486,7 @@ const PANES = {
               onchange: (e) => change(() => { s.color = e.target.value.toUpperCase(); s.ink = inkFor(s.color); }) }))),
         h('p', { class: 'pane-p' }, 'Así quedarán los botones. El color del texto se elige solo para que siempre se lea.'),
         h('div', { class: 'cta-prev', style: `--c:${s.color};--ci:${s.ink}` },
-          h('span', { class: 'cta-btn' }, s.ticket?.type === 'venta' ? 'Compra tu entrada' : 'Entrada inversa'),
+          h('span', { class: 'cta-btn' }, ({ venta: 'Compra tu entrada', inversa: 'Entrada inversa', gratis: 'Entrada gratuita', taquilla: 'Entrada en taquilla', agotado: 'Entradas agotadas' })[s.ticket?.type] || 'Entrada inversa'),
           h('span', { class: 'cta-tag' }, s.name || 'Nombre del show'))));
   },
 

@@ -1,7 +1,7 @@
 ---
 // Portada "La entrada": cada luchador del próximo show entra a escena como en un show.
 // Todo sale de los datos (shows.json y roster.json): no hay textos escritos a mano aquí.
-import { venues, dateLong, heroSlides } from '../../../shared/lib.js';
+import { venues, dateLong, heroSlides, ticketInfo } from '../../../shared/lib.js';
 const { show, hidden = false } = Astro.props;
 const v = venues[show.venue];
 const slides = heroSlides(show);
@@ -12,7 +12,8 @@ const chars = (t) => [...t];
 // En la portada la foto es muy ancha: se respeta el encuadre horizontal del retrato y se sube arriba del todo para no cortar cabezas.
 const heroPos = (pos = 'center 20%') => `${pos.split(' ')[0]} 4%`;
 const nameLines = (n) => { const p = n.split(' '); return p.length === 1 ? [n] : [p[0], p.slice(1).join(' ')]; };
-const isSale = show.ticket?.type === 'venta';
+const isSale = show.ticket?.type === 'venta' && !!show.ticket.url;
+const tix = ticketInfo(show);
 ---
 <section class="ent" hidden={hidden} data-end={`${show.date}T23:59:00+01:00`} style={`--show:${show.color};--show-ink:${show.ink}`} aria-roledescription="carrusel" aria-label={`Luchadores de ${show.name}`} data-count={slides.length}>
   <div class="ent-stage" aria-hidden="true">
@@ -68,7 +69,7 @@ const isSale = show.ticket?.type === 'venta';
       <p class="led-when">
         {dateLong(show.date)} · {show.start}{show.doors && ` (puertas ${show.doors})`}<br />
         <a href={v.map}>{v.name}</a><br />
-        <strong>{isSale ? 'Entradas a la venta' : 'Entra gratis, paga al salir'}</strong>
+        <strong>{tix.line}</strong>
       </p>
       <div class="led-clock" data-start={startISO} aria-label="Cuenta atrás hasta el show">
         <span><b data-u="d">--</b>d</span><span><b data-u="h">--</b>h</span><span><b data-u="m">--</b>m</span><span><b data-u="s">--</b>s</span>

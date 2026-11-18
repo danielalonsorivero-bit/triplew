@@ -32,8 +32,17 @@ export const findByName = (name) => roster.find((w) => w.name === name);
 export const titleOf = (slug) => titles.find((t) => t.slug === slug);
 export const initials = (name) => name.replace(/[^\p{L} ]/gu, '').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
-export const ticketLabel = (show) =>
-  show.ticket?.type === 'venta' ? 'Compra tu entrada' : show.ticket?.type === 'inversa' ? 'Entrada inversa' : null;
+// Tipos de entrada. label: listas de shows · line: bajo la sala en la portada · board: ficha del show.
+// Solo 'venta' con enlace pone el botón de compra.
+export const TICKETS = {
+  venta: { label: 'Compra tu entrada', line: 'Entradas a la venta', board: 'Anticipada' },
+  inversa: { label: 'Entrada inversa', line: 'Entra gratis, paga al salir', board: 'Gratis, pagas al salir' },
+  gratis: { label: 'Entrada gratuita', line: 'Entrada gratuita', board: 'Gratuita' },
+  taquilla: { label: 'Entrada en taquilla', line: 'Entradas en taquilla el mismo día', board: 'En taquilla, el mismo día' },
+  agotado: { label: 'Entradas agotadas', line: 'Entradas agotadas', board: 'Agotadas' },
+};
+export const ticketInfo = (show) => TICKETS[show.ticket?.type] || TICKETS.inversa;
+export const ticketLabel = (show) => TICKETS[show.ticket?.type]?.label ?? null;
 
 // Direcciones de cada web, usadas en los enlaces de una a otra.
 // Ahora apuntan al prototipo en Vercel. Al publicar en los servidores de la asociación,
