@@ -1,0 +1,824 @@
+// Panel de administración de Triple W. Prototipo: sección Shows, en modo demostración.
+// Principio: prevenir el error antes que avisar de él. Listas en vez de texto libre,
+// fechas y horas con selector, fotos que se reducen solas, deshacer siempre a mano
+// y nada se publica si falta algo imprescindible.
+
+import showsJson from '../data/shows.json';
+import rosterJson from '../data/roster.json';
+import { cronicaBlocksFor } from '../cronica.js';
+import { shrink, palette, inkFor, kb } from './img.js';
+import * as store from './store.js';
+
+const roster = rosterJson.wrestlers;
+const venues = showsJson.venues;
+const BRANDS = {
+  triplew: { name: 'Triple W', color: '#E3EE2B', note: 'Shows principales' },
+  levelone: { name: 'Level One', color: '#2BD46A', note: 'La cantera' },
+};
+const METHODS = ['pin', 'sumisión', 'descalificación', 'cuenta fuera', 'rendición'];
+const MAX_GALLERY = 60;
+const today = () => new Date().toISOString().slice(0, 10);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+// ---------- Estado ----------
+const S = {
+  shows: clone(showsJson.shows),
+  published: JSON.stringify(showsJson.shows),
+  files: new Map(), // ruta pública -> { blob, url }
+  view: { name: 'home' },
+  undo: [],
+  redo: [],
+  notice: null,
+  publishOpen: false,
+  restored: false,
+};
+
+const isPast = (s) => s.date && s.date <= today();
+const dirty = () => JSON.stringify(S.shows) !== S.published || [...S.files.values()].some((f) => !f.published);
+const showBy = (slug) => S.shows.find((s) => s.slug === slug);
+const imgSrc = (p) => (p && S.files.get(p)?.url) || p;
+
+function snapshot() {
+  const now = JSON.stringify(S.shows);
+  if (S.undo.at(-1) === now) return;
+  S.undo.push(now);
+  if (S.undo.length > 80) S.undo.shift();
+  S.redo = [];
+}
+function undo() {
+  if (!S.undo.length) return;
+  S.redo.push(JSON.stringify(S.shows));
+  S.shows = JSON.parse(S.undo.pop());
+  if (S.view.slug && !showBy(S.view.slug)) S.view = { name: 'home' };
+  toast('Deshecho');
+  persist(); render();
+}
+function redoFn() {
+  if (!S.redo.length) return;
+  S.undo.push(JSON.stringify(S.shows));
+  S.shows = JSON.parse(S.redo.pop());
+  toast('Rehecho');
+  persist(); render();
+}
+
+let persistT;
+function persist() {
+  clearTimeout(persistT);
+  persistT = setTimeout(async () => {
+    const files = [...S.files.entries()].map(([path, f]) => ({ path, blob: f.blob, published: !!f.published }));
+    await store.set('draft', { shows: S.shows, files, at: Date.now() });
+  }, 400);
+  refreshBar();
+  if (S.view.name === 'show') {
+    const old = document.querySelector('.steps'), sh = showBy(S.view.slug);
+    if (old && sh) old.replaceWith(stepsNav(sh, STEPS.find((x) => x.k === S.view.step) || STEPS[0]));
+  }
+}
+
+// Cambio estructural: se guarda para deshacer y se vuelve a pintar.
+function change(fn, { rerender = true } = {}) {
+  snapshot();
+  fn();
+  persist();
+  if (rerender) render();
+}
+
+// ---------- Utilidades de DOM ----------
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'html') el.innerHTML = v;
+    else if (v === true) el.setAttribute(k, '');
+    else el.setAttribute(k, v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(k));
+  return el;
+}
+
+const ICONS = {
+  plus: 'M12 5v14M5 12h14',
+  up: 'M12 19V5M6 11l6-6 6 6',
+  down: 'M12 5v14M6 13l6 6 6-6',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  alert: 'M12 8v5M12 16.5v.5M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  redo: 'M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3',
+  back: 'M15 18l-6-6 6-6',
+  ext: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  x: 'M6 6l12 12M18 6 6 18',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z',
+  lock: 'M6 11h12v10H6zM8.5 11V7.5a3.5 3.5 0 0 1 7 0V11',
+  play: 'M8 5v14l11-7Z',
+  wand: 'M15 4V2M15 10V8M11 6h2M17 6h2M4 20 14 10M13 11l-1-1',
+};
+const icon = (n, cls = '') =>
+  h('span', { class: `ic ${cls}`, 'aria-hidden': 'true', html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[n]}"/></svg>` });
+
+const dateFmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dateNice = (d) => (d ? dateFmt.format(new Date(d)) : 'Sin fecha');
+const slugify = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+let toastT;
+function toast(msg) {
+  const el = document.querySelector('.adm-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
+// ---------- Validación ----------
+// Bloqueos: impiden publicar. Avisos: no impiden, pero se enseñan.
+function check(s) {
+  const errs = [], warns = [];
+  const add = (list, step, field, msg) => list.push({ step, field, msg, slug: s.slug, show: s.name || 'Show sin nombre' });
+  if (!s.name || s.name.trim().length < 3) add(errs, 'datos', 'name', 'Falta el nombre del show.');
+  if (!s.date) add(errs, 'datos', 'date', 'Falta la fecha.');
+  if (!s.brand) add(errs, 'datos', 'brand', 'Elige si es de Triple W o de Level One.');
+  if (!s.venue) add(errs, 'datos', 'venue', 'Elige la sala.');
+  if (s.ticket?.type === 'venta' && !isPast(s)) {
+    const u = s.ticket.url || '';
+    if (!u) add(errs, 'datos', 'ticket', 'Falta el enlace de venta de entradas.');
+    else if (!/^https:\/\/\S+\.\S+/.test(u)) add(errs, 'datos', 'ticket', 'El enlace de entradas no es una dirección web válida (debe empezar por https://).');
+    else if (!/entradium\.com/.test(u)) add(warns, 'datos', 'ticket', 'El enlace de entradas no es de Entradium. Comprueba que es el correcto.');
+  }
+  (s.card || []).forEach((m, i) => {
+    if (!m.title?.trim() && !(m.sides || []).some((x) => x.trim())) add(errs, 'combates', `card-${i}`, `El combate ${i + 1} está vacío. Rellénalo o bórralo.`);
+  });
+  (s.results || []).forEach((r, i) => { if (!r.text?.trim()) add(errs, 'resultados', `res-${i}`, `El resultado ${i + 1} está vacío. Rellénalo o bórralo.`); });
+  (s.videos || []).forEach((v, i) => { if (!v.youtube) add(errs, 'fotos', `vid-${i}`, `El vídeo ${i + 1} no tiene un enlace de YouTube válido.`); });
+  if (!isPast(s) && !s.poster) add(warns, 'cartel', 'poster', 'Este show aún no tiene cartel.');
+  if (isPast(s) && !(s.results || []).length) add(warns, 'resultados', 'results', 'El show ya se celebró y no tiene resultados.');
+  return { errs, warns };
+}
+// Quita lo vacío (listas sin elementos, textos en blanco) para que abrir y cerrar no cuente como cambio.
+function normalize(o) {
+  if (Array.isArray(o)) return o.map(normalize);
+  if (o && typeof o === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(o)) {
+      if (k.startsWith('_')) continue;
+      const n = normalize(v);
+      if (n === '' || n == null || (Array.isArray(n) && !n.length)) continue;
+      out[k] = n;
+    }
+    return out;
+  }
+  return typeof o === 'string' ? o.trim() === '' ? '' : o : o;
+}
+const same = (a, b) => JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
+const changedShows = () => {
+  const before = new Map(JSON.parse(S.published).map((s) => [s.slug, s]));
+  return S.shows.filter((s) => !before.has(s.slug) || !same(before.get(s.slug), s));
+};
+
+// ---------- Pintado ----------
+const app = document.getElementById('app');
+
+function render() {
+  const y = scrollY;
+  const keepScroll = S.view.keepScroll;
+  S.view.keepScroll = false;
+  app.replaceChildren(
+    topbar(),
+    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, S.view.name === 'show' ? showEditor() : home())),
+    publishBar(),
+    h('div', { class: 'adm-toast', role: 'status' }),
+  );
+  if (keepScroll) scrollTo(0, y); else scrollTo(0, 0);
+  refreshBar();
+}
+
+function topbar() {
+  return h('header', { class: 'adm-top' },
+    h('a', { class: 'adm-brand', href: '#', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } },
+      h('img', { src: '/logo/whitewolf-blanco.svg', alt: '', width: 30, height: 29 }),
+      h('span', {}, 'Panel ', h('b', {}, 'Triple W'))),
+    h('span', { class: 'adm-demo', title: 'Los cambios se quedan en este ordenador. La web pública no cambia.' }, 'Modo demostración'),
+    h('div', { class: 'adm-top-r' },
+      h('button', { class: 'tbtn', type: 'button', onclick: undo, disabled: !S.undo.length, title: 'Deshacer (Ctrl+Z)' }, icon('undo'), h('span', {}, 'Deshacer')),
+      h('button', { class: 'tbtn', type: 'button', onclick: redoFn, disabled: !S.redo.length, title: 'Rehacer (Ctrl+Mayús+Z)' }, icon('redo'), h('span', {}, 'Rehacer')),
+      h('a', { class: 'tbtn', href: '/', target: '_blank', rel: 'noopener' }, h('span', {}, 'Ver la web'), icon('ext'))));
+}
+
+function sidebar() {
+  const items = [
+    { k: 'shows', label: 'Shows', on: true },
+    { k: 'portada', label: 'Portada' },
+    { k: 'roster', label: 'Luchadores' },
+    { k: 'titulos', label: 'Campeonatos' },
+    { k: 'paginas', label: 'Historia y Salón de la Fama' },
+    { k: 'sitio', label: 'Redes y contacto' },
+  ];
+  return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
+    items.map((it) => it.on
+      ? h('a', { href: '#', class: 'on', 'aria-current': 'page', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, it.label)
+      : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'))));
+}
+
+function go(view) {
+  S.view = view;
+  S.publishOpen = false;
+  if (view.name === 'show') location.hash = `show/${view.slug}/${view.step || 'datos'}`;
+  else history.replaceState(null, '', location.pathname);
+  render();
+}
+
+// ---------- Inicio de Shows ----------
+function home() {
+  const upcoming = S.shows.filter((s) => !isPast(s)).sort((a, b) => a.date.localeCompare(b.date));
+  const past = S.shows.filter(isPast).sort((a, b) => b.date.localeCompare(a.date));
+  const pending = past.find((s) => !(s.results || []).length || !(s.gallery || []).length);
+  return h('div', { class: 'home' },
+    S.restored && h('div', { class: 'note' }, icon('undo'),
+      h('p', {}, 'Has recuperado los cambios sin publicar de la última vez.'),
+      h('button', { class: 'lnk', type: 'button', onclick: discardAll }, 'Descartarlos y empezar de cero')),
+    h('h1', { class: 'scr-title' }, 'Shows'),
+    h('p', { class: 'lead' }, '¿Qué quieres hacer?'),
+    h('div', { class: 'tasks' },
+      h('button', { class: 'task', type: 'button', onclick: newShow },
+        h('span', { class: 'task-ic' }, icon('plus')),
+        h('span', { class: 'task-t' }, 'Anunciar un show nuevo'),
+        h('span', { class: 'task-d' }, 'Nombre, fecha, sala, cartel, entradas y combates.')),
+      pending
+        ? h('button', { class: 'task', type: 'button', onclick: () => go({ name: 'show', slug: pending.slug, step: (pending.results || []).length ? 'fotos' : 'resultados' }) },
+          h('span', { class: 'task-ic' }, icon('star')),
+          h('span', { class: 'task-t' }, `Completar «${pending.name}»`),
+          h('span', { class: 'task-d' }, `Se celebró el ${dateNice(pending.date)}. ${!(pending.results || []).length ? 'Faltan los resultados' : 'Faltan las fotos'}.`))
+        : h('div', { class: 'task done' },
+          h('span', { class: 'task-ic' }, icon('check')),
+          h('span', { class: 'task-t' }, 'Todo al día'),
+          h('span', { class: 'task-d' }, 'Todos los shows celebrados tienen resultados y fotos.'))),
+    h('h2', { class: 'list-h' }, 'Próximos', h('small', {}, upcoming.length)),
+    upcoming.length ? h('ul', { class: 'shows' }, upcoming.map(showRow)) : h('p', { class: 'empty' }, 'No hay ningún show anunciado. Pulsa «Anunciar un show nuevo» para crear el siguiente.'),
+    h('h2', { class: 'list-h' }, 'Celebrados', h('small', {}, past.length)),
+    h('ul', { class: 'shows' }, past.map(showRow)));
+}
+
+function showRow(s) {
+  const chips = [];
+  const { errs } = check(s);
+  if (errs.length) chips.push(h('span', { class: 'chip bad' }, icon('alert'), 'Falta información'));
+  if (isPast(s)) {
+    if (!(s.results || []).length) chips.push(h('span', { class: 'chip warn' }, 'Sin resultados'));
+    if (!(s.gallery || []).length) chips.push(h('span', { class: 'chip warn' }, 'Sin fotos'));
+    if (!s.cronica) chips.push(h('span', { class: 'chip' }, 'Sin crónica'));
+  } else {
+    if (!s.poster) chips.push(h('span', { class: 'chip warn' }, 'Sin cartel'));
+    if (!(s.card || []).length) chips.push(h('span', { class: 'chip' }, 'Sin combates'));
+  }
+  const before = JSON.parse(S.published).find((p) => p.slug === s.slug);
+  if (!before) chips.unshift(h('span', { class: 'chip new' }, 'Nuevo'));
+  else if (!same(before, s)) chips.unshift(h('span', { class: 'chip new' }, 'Con cambios'));
+  return h('li', {},
+    h('a', { href: `#show/${s.slug}/datos`, class: 'show-row', style: `--c:${s.color || '#444'}`, onclick: (e) => { e.preventDefault(); go({ name: 'show', slug: s.slug, step: 'datos' }); } },
+      s.poster ? h('img', { class: 'sr-poster', src: imgSrc(s.poster), alt: '', loading: 'lazy' }) : h('span', { class: 'sr-poster none' }),
+      h('span', { class: 'sr-main' },
+        h('span', { class: 'sr-name' }, s.name || 'Show sin nombre'),
+        h('span', { class: 'sr-meta' }, `${dateNice(s.date)} · ${BRANDS[s.brand]?.name || '—'} · ${venues[s.venue]?.name || 'Sin sala'}`)),
+      h('span', { class: 'sr-chips' }, chips)));
+}
+
+function newShow() {
+  const base = 'show-nuevo';
+  let slug = base, n = 2;
+  while (showBy(slug)) slug = `${base}-${n++}`;
+  change(() => {
+    S.shows.push({ slug, name: '', brand: 'triplew', date: '', doors: '17:30', start: '18:00', venue: 'lucharama', ticket: { type: 'inversa' }, color: BRANDS.triplew.color, ink: inkFor(BRANDS.triplew.color), tagline: '', card: [], _new: true });
+  }, { rerender: false });
+  go({ name: 'show', slug, step: 'datos' });
+}
+
+// ---------- Editor de un show ----------
+const STEPS = [
+  { k: 'datos', label: 'Datos' },
+  { k: 'cartel', label: 'Cartel y color' },
+  { k: 'combates', label: 'Combates' },
+  { k: 'resultados', label: 'Resultados', past: true },
+  { k: 'fotos', label: 'Fotos y vídeos', past: true },
+  { k: 'cronica', label: 'Crónica', past: true },
+];
+
+function showEditor() {
+  const s = showBy(S.view.slug);
+  if (!s) return h('p', {}, 'Ese show ya no existe.');
+  const step = STEPS.find((x) => x.k === S.view.step) || STEPS[0];
+  const locked = step.past && !isPast(s);
+  return h('div', { class: 'ed', style: `--c:${s.color};--ci:${s.ink}` },
+    h('a', { href: '#', class: 'back', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, icon('back'), 'Todos los shows'),
+    h('div', { class: 'ed-head' },
+      s.poster ? h('img', { class: 'ed-poster', src: imgSrc(s.poster), alt: '' }) : null,
+      h('div', {},
+        h('h1', { class: 'scr-title' }, s.name || 'Show nuevo'),
+        h('p', { class: 'ed-sub' }, s.date ? `${dateNice(s.date)}${isPast(s) ? ' · ya celebrado' : ''}` : 'Empieza por el nombre y la fecha.'))),
+    stepsNav(s, step),
+    locked
+      ? h('div', { class: 'locked' }, icon('lock'),
+        h('div', {}, h('p', { class: 'locked-t' }, 'Esto se rellena después del show.'),
+          h('p', {}, `Se abrirá solo el ${dateNice(s.date)}. Así nadie publica resultados de un show que aún no ha pasado.`)))
+      : h('section', { class: 'pane' }, PANES[step.k](s)),
+    h('div', { class: 'pager' },
+      prevNext(s, step)));
+}
+
+function stepsNav(s, step) {
+  const { errs, warns } = check(s);
+  const stepState = (k) => (errs.some((e) => e.step === k) ? 'bad' : warns.some((e) => e.step === k) ? 'warn' : null);
+  return h('nav', { class: 'steps', 'aria-label': 'Partes del show' },
+    STEPS.map((x, i) => {
+      const off = x.past && !isPast(s);
+      const st = stepState(x.k);
+      return h('a', {
+        href: `#show/${s.slug}/${x.k}`, class: `step${x.k === step.k ? ' on' : ''}${off ? ' later' : ''}${st ? ` st-${st}` : ''}`,
+        'aria-current': x.k === step.k ? 'step' : null,
+        onclick: (e) => { e.preventDefault(); go({ name: 'show', slug: s.slug, step: x.k }); },
+      }, h('span', { class: 'step-n' }, st ? icon('alert') : off ? icon('lock') : i + 1), x.label,
+      st && h('span', { class: 'sr-only' }, st === 'bad' ? ' (falta información)' : ' (aviso)'));
+    }));
+}
+
+function prevNext(s, step) {
+  const i = STEPS.indexOf(step);
+  const prev = STEPS[i - 1], next = STEPS[i + 1];
+  return [
+    prev ? h('button', { class: 'btn2', type: 'button', onclick: () => go({ name: 'show', slug: s.slug, step: prev.k }) }, icon('back'), prev.label) : h('span'),
+    next && !(next.past && !isPast(s)) ? h('button', { class: 'btn2 fwd', type: 'button', onclick: () => go({ name: 'show', slug: s.slug, step: next.k }) }, `Siguiente: ${next.label}`) : h('span'),
+  ];
+}
+
+// Campo de texto que guarda al escribir sin repintar (para no perder el foco).
+function field(label, { value = '', oninput, onchange, type = 'text', hint, max, id, required, attrs = {}, area = false, err: e } = {}) {
+  const err = e?.msg, warn = e?.warn;
+  const fid = id || `f${Math.random().toString(36).slice(2, 8)}`;
+  const counter = max ? h('span', { class: 'count' }, `${value.length}/${max}`) : null;
+  const input = h(area ? 'textarea' : 'input', {
+    id: fid, type: area ? null : type, maxlength: max, required, 'aria-invalid': err ? 'true' : null,
+    'aria-describedby': hint || err ? `${fid}-h` : null, ...attrs,
+    oninput: (e) => { if (counter) counter.textContent = `${e.target.value.length}/${max}`; oninput?.(e.target.value, e); },
+    onchange: (e) => onchange?.(e.target.value, e),
+    onfocus: () => snapshot(),
+  });
+  if (area) input.value = value; else input.value = value;
+  return h('div', { class: `fld${err ? (warn ? ' has-warn' : ' has-err') : ''}`, 'data-field': attrs['data-field'] },
+    h('label', { for: fid }, label, required && h('span', { class: 'req' }, ' obligatorio')),
+    input,
+    (hint || err || counter) && h('div', { class: 'fld-h', id: `${fid}-h` }, err ? h('span', { class: warn ? 'warn' : 'err' }, icon('alert'), err) : hint, counter));
+}
+
+// Opciones grandes en lugar de desplegables: se ve todo y no hay forma de equivocarse de campo.
+function choice(name, options, current, onpick) {
+  return h('div', { class: 'choice', role: 'radiogroup' },
+    options.map((o) => h('label', { class: `opt${o.value === current ? ' on' : ''}`, style: o.color ? `--oc:${o.color}` : null },
+      h('input', { type: 'radio', name, value: o.value, checked: o.value === current, onchange: () => onpick(o.value) }),
+      o.color && h('span', { class: 'opt-dot' }),
+      h('span', { class: 'opt-t' }, o.label),
+      o.note && h('span', { class: 'opt-d' }, o.note))));
+}
+
+const setLive = (fn) => { fn(); persist(); };
+
+const PANES = {
+  datos(s) {
+    // Los fallos solo se enseñan en rojo después de intentar publicar; los avisos, siempre.
+    const errOf = (f) => { const c = check(s); const e = S.showErrors && c.errs.find((x) => x.field === f); const w = c.warns.find((x) => x.field === f); return e ? { msg: e.msg } : w ? { msg: w.msg, warn: true } : null; };
+    const isNew = !JSON.parse(S.published).some((p) => p.slug === s.slug);
+    return h('div', { class: 'grid' },
+      field('Nombre del show', {
+        value: s.name, max: 60, required: true, attrs: { 'data-field': 'name', autocomplete: 'off', placeholder: 'Por ejemplo: Top 1 2026' },
+        oninput: (v) => setLive(() => { s.name = v; document.querySelector('.ed-head .scr-title').textContent = v || 'Show nuevo'; }),
+        onchange: () => { if (isNew && s.name.trim()) renameSlug(s); },
+        hint: 'Tal como aparece en el cartel.',
+      }),
+      h('fieldset', { class: 'fs' }, h('legend', {}, '¿De quién es el show?'),
+        choice('brand', Object.entries(BRANDS).map(([value, b]) => ({ value, label: b.name, note: b.note, color: b.color })), s.brand,
+          (v) => change(() => { const wasDefault = Object.values(BRANDS).some((b) => b.color === s.color); s.brand = v; if (wasDefault) { s.color = BRANDS[v].color; s.ink = inkFor(s.color); } }, { rerender: true }))),
+      h('div', { class: 'row3' },
+        field('Fecha', { type: 'date', value: s.date, required: true, attrs: { 'data-field': 'date' }, err: errOf('date'),
+          onchange: (v) => change(() => { s.date = v; }) }),
+        field('Abren puertas', { type: 'time', value: s.doors || '', attrs: { step: 300 }, onchange: (v) => change(() => { s.doors = v; }, { rerender: false }) }),
+        field('Empieza', { type: 'time', value: s.start || '', attrs: { step: 300 }, onchange: (v) => change(() => { s.start = v; }, { rerender: false }) })),
+      h('fieldset', { class: 'fs' }, h('legend', {}, 'Sala'),
+        choice('venue', Object.entries(venues).map(([value, v]) => ({ value, label: v.name, note: v.address })), s.venue,
+          (v) => change(() => { s.venue = v; }))),
+      h('fieldset', { class: 'fs', 'data-field': 'ticket' }, h('legend', {}, 'Entradas'),
+        choice('ticket', [
+          { value: 'venta', label: 'Venta de entradas', note: 'Se compran antes en Entradium. La web pondrá un botón grande de «Compra tu entrada».' },
+          { value: 'inversa', label: 'Entrada inversa', note: 'Se entra gratis y se paga al salir lo que cada uno quiera.' },
+        ], s.ticket?.type, (v) => change(() => { s.ticket = v === 'venta' ? { type: 'venta', url: s.ticket?.url || '' } : { type: 'inversa' }; })),
+        s.ticket?.type === 'venta' && field('Enlace de Entradium', {
+          type: 'url', value: s.ticket.url || '', required: true, err: errOf('ticket'),
+          attrs: { placeholder: 'https://entradium.com/events/…', inputmode: 'url', autocomplete: 'off' },
+          hint: 'Copia la dirección de la página del evento en Entradium y pégala aquí.',
+          oninput: (v) => setLive(() => { s.ticket.url = v.trim(); }),
+          onchange: () => { S.view.keepScroll = true; render(); },
+        })),
+      field('Frase del cartel', { area: true, value: s.tagline || '', max: 140, attrs: { rows: 2, placeholder: 'Una línea que enganche. Sale debajo del nombre.' },
+        oninput: (v) => setLive(() => { s.tagline = v; }) }),
+      dangerZone(s));
+  },
+
+  cartel(s) {
+    const drop = dropZone({
+      label: s.poster ? 'Cambiar el cartel' : 'Sube el cartel del show',
+      hint: 'Arrastra aquí la imagen o pulsa para elegirla. Vertical, como en Instagram. Se reduce sola.',
+      multiple: false,
+      onfiles: async ([f]) => {
+        const r = await shrink(f, 1600, 0.85);
+        const path = `/carteles/${s.slug}.jpg`;
+        S.files.set(path, { blob: r.blob, url: r.url });
+        change(() => { s.poster = path; }, { rerender: false });
+        toast(`Cartel listo: ${kb(r.before)} → ${kb(r.after)}`);
+        S.suggest = await palette(r.url).catch(() => []);
+        S.view.keepScroll = true; render();
+      },
+    });
+    const sw = [...new Set([...(S.suggest || []), BRANDS[s.brand]?.color, s.color].filter(Boolean))].slice(0, 7);
+    if (s.poster && !S.suggest) palette(imgSrc(s.poster)).then((p) => { S.suggest = p; S.view.keepScroll = true; render(); }).catch(() => { S.suggest = []; });
+    return h('div', { class: 'grid two' },
+      h('div', {}, s.poster
+        ? h('figure', { class: 'poster-big' }, h('img', { src: imgSrc(s.poster), alt: `Cartel de ${s.name}` }),
+          h('button', { class: 'lnk danger', type: 'button', onclick: () => change(() => { delete s.poster; }) }, icon('trash'), 'Quitar el cartel'))
+        : null, drop),
+      h('div', {},
+        h('h3', { class: 'pane-h' }, 'Color del show'),
+        h('p', { class: 'pane-p' }, 'Cada show tiene su color, sacado del cartel. Se usa en los botones y detalles de su página. Elige uno de los que hemos encontrado en el cartel:'),
+        h('div', { class: 'swatches', role: 'radiogroup', 'aria-label': 'Color del show' },
+          sw.map((c) => h('button', { type: 'button', role: 'radio', 'aria-checked': c.toUpperCase() === s.color?.toUpperCase() ? 'true' : 'false', class: 'sw', style: `--sw:${c}`, title: c,
+            onclick: () => change(() => { s.color = c; s.ink = inkFor(c); }, { rerender: true }) }, h('span', { class: 'sr-only' }, c))),
+          h('label', { class: 'sw custom', title: 'Otro color' }, icon('plus'),
+            h('input', { type: 'color', value: s.color || '#ffffff', 'aria-label': 'Elegir otro color',
+              onchange: (e) => change(() => { s.color = e.target.value.toUpperCase(); s.ink = inkFor(s.color); }) }))),
+        h('p', { class: 'pane-p' }, 'Así quedarán los botones. El color del texto se elige solo para que siempre se lea.'),
+        h('div', { class: 'cta-prev', style: `--c:${s.color};--ci:${s.ink}` },
+          h('span', { class: 'cta-btn' }, s.ticket?.type === 'venta' ? 'Compra tu entrada' : 'Entrada inversa'),
+          h('span', { class: 'cta-tag' }, s.name || 'Nombre del show'))));
+  },
+
+  combates(s) {
+    const card = s.card || [];
+    return h('div', {},
+      h('p', { class: 'pane-p' }, 'Los combates anunciados, en el orden del cartel. Escribe el nombre y elige al luchador de la lista: así su foto y su ficha se enlazan solas.'),
+      h('datalist', { id: 'roster-names' }, roster.map((w) => h('option', { value: w.name }))),
+      h('ol', { class: 'matches' }, card.map((m, i) => matchCard(s, m, i))),
+      h('button', { class: 'btn2 add', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (s.card ||= []).push({ title: '', sides: ['', ''] }); }); } }, icon('plus'), 'Añadir combate'));
+  },
+
+  resultados(s) {
+    const results = s.results || [];
+    const card = s.card || [];
+    return h('div', {},
+      card.length ? h('div', { class: 'helper' },
+        h('h3', { class: 'pane-h' }, icon('wand'), 'Escribir un resultado sin teclear'),
+        h('p', { class: 'pane-p' }, 'Elige el combate, quién ganó y cómo. La frase se escribe sola y la puedes retocar después.'),
+        resultBuilder(s)) : null,
+      h('h3', { class: 'pane-h' }, 'Resultados de este show', h('small', {}, ` ${results.length}`)),
+      results.length ? h('ol', { class: 'results' }, results.map((r, i) => h('li', { class: 'res' },
+        h('span', { class: 'res-n' }, i + 1),
+        field(`Resultado ${i + 1}`, { area: true, value: r.text, attrs: { rows: 2, 'data-field': `res-${i}` }, oninput: (v) => setLive(() => { r.text = v; }) }),
+        h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: !!r.provisional, onchange: (e) => change(() => { if (e.target.checked) r.provisional = true; else delete r.provisional; }, { rerender: false }) }), 'Pendiente de confirmar'),
+        rowTools(s.results, i, 'resultado')))) : h('p', { class: 'empty' }, 'Todavía no hay resultados. Usa el asistente de arriba o añade uno a mano.'),
+      h('button', { class: 'btn2 add', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (s.results ||= []).push({ text: '' }); }); } }, icon('plus'), 'Añadir un resultado a mano'));
+  },
+
+  fotos(s) {
+    const gallery = s.gallery || [];
+    const drop = dropZone({
+      label: 'Sube las fotos del show',
+      hint: `Arrastra aquí todas a la vez o pulsa para elegirlas. Se reducen solas. Máximo ${MAX_GALLERY}.`,
+      multiple: true,
+      onfiles: async (files) => {
+        s.gallery ||= [];
+        const room = MAX_GALLERY - s.gallery.length;
+        if (room <= 0) { toast(`Ya hay ${MAX_GALLERY} fotos, que es el máximo.`); return; }
+        const list = files.slice(0, room);
+        let before = 0, after = 0, n = s.gallery.length;
+        const added = [];
+        const prog = document.querySelector('.drop-prog');
+        for (const [k, f] of list.entries()) {
+          if (prog) prog.textContent = `Preparando foto ${k + 1} de ${list.length}…`;
+          try {
+            const r = await shrink(f, 2000, 0.82);
+            let path;
+            do { path = `/fotos/por-carpeta/${s.slug}/${String(++n).padStart(3, '0')}.jpg`; } while (s.gallery.includes(path));
+            S.files.set(path, { blob: r.blob, url: r.url });
+            added.push(path); before += r.before; after += r.after;
+          } catch { /* no era una imagen: se ignora sin romper nada */ }
+        }
+        change(() => { s.gallery.push(...added); }, { rerender: false });
+        const skipped = files.length - added.length;
+        toast(`${added.length} fotos añadidas (${kb(before)} → ${kb(after)})${skipped ? `. ${skipped} no se han añadido` : ''}`);
+        S.view.keepScroll = true; render();
+      },
+    });
+    return h('div', {},
+      h('h3', { class: 'pane-h' }, 'Fotos', h('small', {}, ` ${gallery.length}`)),
+      drop,
+      gallery.length ? h('p', { class: 'pane-p' }, 'Arrastra las fotos para cambiar el orden. La primera sale de fondo en la cabecera del show salvo que marques otra con la estrella.') : null,
+      h('ul', { class: 'gal' }, gallery.map((p, i) => galleryItem(s, p, i))),
+      h('h3', { class: 'pane-h' }, 'Vídeos', h('small', {}, ` ${(s.videos || []).length}`)),
+      h('p', { class: 'pane-p' }, 'Pega el enlace de YouTube de cada combate. Al elegir quién lucha, el vídeo sale también en la ficha de cada luchador.'),
+      h('datalist', { id: 'roster-names' }, roster.map((w) => h('option', { value: w.name }))),
+      h('ul', { class: 'vids' }, (s.videos || []).map((v, i) => videoItem(s, v, i))),
+      h('button', { class: 'btn2 add', type: 'button', onclick: () => change(() => { (s.videos ||= []).push({ youtube: '', title: '', sides: [] }); }) }, icon('plus'), 'Añadir un vídeo'));
+  },
+
+  cronica(s) {
+    const prev = h('div', { class: 'cron-prev' });
+    const paint = () => {
+      const blocks = cronicaBlocksFor(s.cronica || '', roster);
+      prev.replaceChildren(...(blocks.length ? blocks.map((b) => h(b.kind === 'h' ? 'h4' : 'p', { class: `cb ${b.kind}`, html: b.html })) : [h('p', { class: 'empty' }, 'Aquí verás cómo queda.')]));
+      prev.querySelectorAll('a').forEach((a) => { a.target = '_blank'; a.rel = 'noopener'; });
+    };
+    paint();
+    let t;
+    return h('div', { class: 'grid two cron' },
+      h('div', {},
+        field('Crónica del show', { area: true, value: s.cronica || '', attrs: { rows: 18, placeholder: 'Pega aquí el texto de la publicación de Instagram, tal cual.' },
+          hint: 'Deja una línea en blanco entre párrafos. Los emojis se quitan solos.',
+          oninput: (v) => setLive(() => { if (v.trim()) s.cronica = v; else delete s.cronica; clearTimeout(t); t = setTimeout(paint, 250); }) })),
+      h('div', {},
+        h('h3', { class: 'pane-h' }, 'Así se verá'),
+        h('ul', { class: 'legend' },
+          h('li', {}, h('span', { class: 'lg lg-lead' }), 'El primer párrafo se destaca'),
+          h('li', {}, h('span', { class: 'lg lg-res' }), 'Las frases con resultado se marcan solas'),
+          h('li', {}, h('span', { class: 'lg lg-link' }), 'Los nombres del roster se enlazan a su ficha')),
+        prev));
+  },
+};
+
+function renameSlug(s) {
+  let slug = slugify(`${s.name} ${(s.date || today()).slice(0, 4)}`.replace(/\b(\d{4}) \1$/, '$1')) || 'show';
+  if (slug === s.slug) return;
+  let n = 2; const base = slug;
+  while (showBy(slug)) slug = `${base}-${n++}`;
+  // Las rutas de fotos nuevas siguen al show.
+  const remap = (p) => (p && p.includes(`/${s.slug}`) ? p.replace(`/${s.slug}`, `/${slug}`) : p);
+  for (const [p, f] of [...S.files]) { const np = remap(p); if (np !== p) { S.files.delete(p); S.files.set(np, f); } }
+  s.poster = remap(s.poster); if (!s.poster) delete s.poster;
+  if (s.gallery) s.gallery = s.gallery.map(remap);
+  s.slug = slug;
+  S.view.slug = slug;
+  history.replaceState(null, '', `#show/${slug}/${S.view.step || 'datos'}`);
+  persist();
+}
+
+function dangerZone(s) {
+  const wrap = h('div', { class: 'danger-z' });
+  const ask = () => wrap.replaceChildren(
+    h('p', {}, `¿Borrar «${s.name || 'este show'}»? Desaparecerá de la web al publicar. Puedes deshacerlo.`),
+    h('div', { class: 'btns' },
+      h('button', { class: 'btn2', type: 'button', onclick: idle }, 'No, dejarlo'),
+      h('button', { class: 'btn2 danger', type: 'button', onclick: () => { change(() => { S.shows = S.shows.filter((x) => x !== s); }, { rerender: false }); go({ name: 'home' }); toast('Show borrado. Puedes deshacerlo.'); } }, icon('trash'), 'Sí, borrar el show')));
+  const idle = () => wrap.replaceChildren(h('button', { class: 'lnk danger', type: 'button', onclick: ask }, icon('trash'), 'Borrar este show'));
+  idle();
+  return wrap;
+}
+
+function rowTools(list, i, what) {
+  const act = (fn) => () => { S.view.keepScroll = true; change(fn); };
+  return h('div', { class: 'rt' },
+    h('button', { class: 'ib', type: 'button', title: 'Subir', 'aria-label': `Subir ${what}`, disabled: i === 0, onclick: act(() => { [list[i - 1], list[i]] = [list[i], list[i - 1]]; }) }, icon('up')),
+    h('button', { class: 'ib', type: 'button', title: 'Bajar', 'aria-label': `Bajar ${what}`, disabled: i === list.length - 1, onclick: act(() => { [list[i + 1], list[i]] = [list[i], list[i + 1]]; }) }, icon('down')),
+    h('button', { class: 'ib danger', type: 'button', title: 'Quitar', 'aria-label': `Quitar ${what}`, onclick: () => { act(() => { list.splice(i, 1); })(); toast(`${what[0].toUpperCase() + what.slice(1)} quitado. Puedes deshacerlo.`); } }, icon('trash')));
+}
+
+function nameInput(value, onset, label) {
+  const known = (v) => roster.some((w) => w.name === v.trim());
+  const status = h('span', { class: 'who-st' });
+  const paint = (v) => {
+    status.replaceChildren(v.trim() ? (known(v) ? h('span', { class: 'ok' }, icon('check'), 'En el roster') : h('span', { class: 'free' }, 'Texto libre')) : '');
+  };
+  paint(value);
+  return h('div', { class: 'who' },
+    h('input', { type: 'text', value, list: 'roster-names', 'aria-label': label, placeholder: 'Nombre o «Por decidir»', autocomplete: 'off',
+      onfocus: () => snapshot(),
+      oninput: (e) => { paint(e.target.value); setLive(() => onset(e.target.value)); },
+      onchange: (e) => { // Si coincide con alguien del roster sin importar mayúsculas, se corrige solo.
+        const w = roster.find((x) => x.name.toLowerCase() === e.target.value.trim().toLowerCase());
+        if (w && w.name !== e.target.value) { e.target.value = w.name; onset(w.name); paint(w.name); persist(); }
+      } }),
+    status);
+}
+
+function matchCard(s, m, i) {
+  if (!m.sides) m.sides = [];
+  return h('li', { class: 'match', 'data-field': `card-${i}` },
+    h('div', { class: 'match-h' }, h('span', { class: 'match-n' }, `Combate ${i + 1}`), rowTools(s.card, i, 'combate')),
+    field('Tipo de combate o título en juego', { value: m.title || '', max: 70, attrs: { placeholder: 'Por ejemplo: Campeonato Absoluto · Lucha de escaleras · Individual' },
+      oninput: (v) => setLive(() => { m.title = v; }) }),
+    h('div', { class: 'sides' },
+      m.sides.map((side, k) => [
+        k > 0 && h('span', { class: 'vs' }, 'contra'),
+        h('div', { class: 'side' }, nameInput(side, (v) => { m.sides[k] = v; }, `Luchador ${k + 1} del combate ${i + 1}`),
+          m.sides.length > 2 && h('button', { class: 'ib danger', type: 'button', 'aria-label': 'Quitar luchador', title: 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.splice(k, 1); }); } }, icon('x'))),
+      ]),
+      h('button', { class: 'lnk', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { m.sides.push(''); }); } }, icon('plus'), 'Añadir otro luchador o pareja')),
+    field('Nota (opcional)', { value: m.note || '', max: 160, attrs: { placeholder: 'Por ejemplo: quien gane, a por el título en Top 1' },
+      oninput: (v) => setLive(() => { if (v.trim()) m.note = v; else delete m.note; }) }),
+    h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: !!m.provisional, onchange: (e) => change(() => { if (e.target.checked) m.provisional = true; else delete m.provisional; }, { rerender: false }) }), 'Pendiente de confirmar'));
+}
+
+function resultBuilder(s) {
+  const card = (s.card || []).filter((m) => (m.sides || []).some((x) => x.trim()));
+  const st = S.rb || (S.rb = { m: 0, w: '', how: 'pin', title: false });
+  if (st.m >= card.length) st.m = 0;
+  const m = card[st.m];
+  const sides = (m?.sides || []).filter((x) => x.trim());
+  if (!sides.includes(st.w)) st.w = sides[0] || '';
+  const sentence = () => {
+    const losers = sides.filter((x) => x !== st.w);
+    const list = losers.length > 1 ? `${losers.slice(0, -1).join(', ')} y ${losers.at(-1)}` : losers[0] || '…';
+    const t = /campeonato/i.test(m?.title || '') ? (st.title ? ` y retuvo el ${m.title}` : ` y ganó el ${m.title}`) : '';
+    return `${st.w || '…'} venció a ${list}${t} (${st.how}).`;
+  };
+  const out = h('p', { class: 'rb-out' }, sentence());
+  const up = () => { out.textContent = sentence(); };
+  const isTitle = /campeonato/i.test(m?.title || '');
+  return h('div', { class: 'rb' },
+    h('div', { class: 'rb-row' },
+      h('label', {}, 'Combate', h('select', { onchange: (e) => { st.m = +e.target.value; S.view.keepScroll = true; render(); } },
+        card.map((c, k) => h('option', { value: k, selected: k === st.m }, `${k + 1}. ${c.title || c.sides.filter(Boolean).join(' contra ')}`)))),
+      h('label', {}, 'Ganó', h('select', { onchange: (e) => { st.w = e.target.value; up(); } }, sides.map((x) => h('option', { selected: x === st.w }, x)))),
+      h('label', {}, 'Cómo', h('select', { onchange: (e) => { st.how = e.target.value; up(); } }, METHODS.map((x) => h('option', { selected: x === st.how }, x)))),
+      isTitle && h('label', { class: 'tick' }, h('input', { type: 'checkbox', checked: st.title, onchange: (e) => { st.title = e.target.checked; up(); } }), 'Ya era el campeón')),
+    out,
+    h('button', { class: 'btn1', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (s.results ||= []).push({ text: sentence() }); }); toast('Resultado añadido'); } }, icon('plus'), 'Añadir este resultado'));
+}
+
+let dragFrom = null;
+function galleryItem(s, p, i) {
+  const isHero = (s.heroPhoto || s.gallery[0]) === p;
+  return h('li', {
+    class: `gi${isHero ? ' hero' : ''}`, draggable: 'true',
+    ondragstart: (e) => { dragFrom = i; e.dataTransfer.effectAllowed = 'move'; },
+    ondragover: (e) => { e.preventDefault(); e.currentTarget.classList.add('over'); },
+    ondragleave: (e) => e.currentTarget.classList.remove('over'),
+    ondrop: (e) => { e.preventDefault(); if (dragFrom == null || dragFrom === i) return; const from = dragFrom; dragFrom = null; S.view.keepScroll = true; change(() => { const [x] = s.gallery.splice(from, 1); s.gallery.splice(i, 0, x); }); },
+  },
+  h('img', { src: imgSrc(p), alt: '', loading: 'lazy' }),
+  isHero && h('span', { class: 'gi-badge' }, 'Cabecera'),
+  h('div', { class: 'gi-tools' },
+    h('button', { class: 'ib', type: 'button', title: 'Usar de fondo en la cabecera del show', 'aria-label': 'Usar de fondo en la cabecera', 'aria-pressed': isHero ? 'true' : 'false', onclick: () => { S.view.keepScroll = true; change(() => { if (i === 0) delete s.heroPhoto; else s.heroPhoto = p; }); } }, icon('star')),
+    h('button', { class: 'ib danger', type: 'button', title: 'Quitar foto', 'aria-label': 'Quitar foto', onclick: () => { S.view.keepScroll = true; change(() => { s.gallery.splice(i, 1); if (s.heroPhoto === p) delete s.heroPhoto; }); toast('Foto quitada. Puedes deshacerlo.'); } }, icon('trash'))));
+}
+
+const ytId = (v) => {
+  const t = (v || '').trim();
+  if (/^[\w-]{11}$/.test(t)) return t;
+  const m = t.match(/(?:youtu\.be\/|v=|shorts\/|embed\/|live\/)([\w-]{11})/);
+  return m ? m[1] : '';
+};
+
+function videoItem(s, v, i) {
+  const thumb = h('div', { class: 'vid-th' });
+  const paintThumb = () => thumb.replaceChildren(v.youtube
+    ? h('img', { src: `https://i.ytimg.com/vi/${v.youtube}/mqdefault.jpg`, alt: '' })
+    : h('span', {}, icon('play'), 'Pega el enlace'));
+  paintThumb();
+  const linkErr = h('div', { class: 'fld-h' });
+  const vsides = v.sides || [];
+  return h('li', { class: 'vid', 'data-field': `vid-${i}` },
+    thumb,
+    h('div', { class: 'vid-f' },
+      h('div', { class: 'fld' }, h('label', {}, 'Enlace de YouTube'),
+        h('input', { type: 'url', value: v.youtube ? `https://youtu.be/${v.youtube}` : '', placeholder: 'https://www.youtube.com/watch?v=…', onfocus: () => snapshot(),
+          oninput: (e) => { const id = ytId(e.target.value); v.youtube = id; paintThumb(); linkErr.replaceChildren(e.target.value.trim() && !id ? h('span', { class: 'err' }, icon('alert'), 'No reconozco este enlace. Cópialo desde el botón «Compartir» de YouTube.') : ''); persist(); } }),
+        linkErr),
+      field('Título', { value: v.title || '', max: 80, attrs: { placeholder: 'Por ejemplo: Newt Nova contra Reaper' }, oninput: (x) => setLive(() => { v.title = x; }) }),
+      h('div', { class: 'fld' }, h('label', {}, 'Quién sale en el vídeo'),
+        h('div', { class: 'sides compact' },
+          vsides.map((side, k) => h('div', { class: 'side' }, nameInput(side, (x) => { v.sides[k] = x; }, `Luchador ${k + 1} del vídeo`),
+            h('button', { class: 'ib danger', type: 'button', 'aria-label': 'Quitar', onclick: () => { S.view.keepScroll = true; change(() => { v.sides.splice(k, 1); }); } }, icon('x')))),
+          h('button', { class: 'lnk', type: 'button', onclick: () => { S.view.keepScroll = true; change(() => { (v.sides ||= []).push(''); }); } }, icon('plus'), 'Añadir luchador')))),
+    rowTools(s.videos, i, 'vídeo'));
+}
+
+function dropZone({ label, hint, multiple, onfiles }) {
+  const input = h('input', { type: 'file', accept: 'image/*', multiple, class: 'sr-only', tabindex: -1,
+    onchange: (e) => take([...e.target.files]) });
+  const prog = h('span', { class: 'drop-prog', 'aria-live': 'polite' });
+  let busy = false;
+  const zone = h('div', {
+    class: 'drop', role: 'button', tabindex: 0,
+    onclick: () => !busy && input.click(),
+    onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } },
+    ondragover: (e) => { e.preventDefault(); zone.classList.add('over'); },
+    ondragleave: () => zone.classList.remove('over'),
+    ondrop: (e) => { e.preventDefault(); zone.classList.remove('over'); take([...e.dataTransfer.files]); },
+  }, icon('upload', 'big'), h('span', { class: 'drop-t' }, label), h('span', { class: 'drop-h' }, hint), prog, input);
+  async function take(files) {
+    const imgs = files.filter((f) => f.type.startsWith('image/'));
+    if (!imgs.length) { prog.textContent = 'Eso no es una imagen. Prueba con un JPG o PNG.'; return; }
+    busy = true; zone.classList.add('busy'); prog.textContent = 'Preparando…';
+    try { await onfiles(multiple ? imgs : imgs.slice(0, 1)); }
+    catch { prog.textContent = 'No se ha podido leer la imagen. Prueba con otra.'; }
+    busy = false; zone.classList.remove('busy');
+  }
+  return zone;
+}
+
+// ---------- Barra de publicar ----------
+function publishBar() {
+  return h('div', { class: 'pub', id: 'pub' });
+}
+
+function refreshBar() {
+  const bar = document.getElementById('pub');
+  if (!bar) return;
+  const ch = changedShows();
+  const removed = JSON.parse(S.published).filter((p) => !showBy(p.slug));
+  const has = ch.length || removed.length;
+  bar.classList.toggle('on', !!has);
+  if (!has) { bar.replaceChildren(); return; }
+  const problems = ch.flatMap((s) => check(s).errs);
+  const warns = ch.flatMap((s) => check(s).warns);
+  const n = ch.length + removed.length;
+  bar.replaceChildren(
+    h('div', { class: 'pub-in' },
+      h('div', { class: 'pub-st' },
+        h('b', {}, n === 1 ? '1 show con cambios sin publicar' : `${n} shows con cambios sin publicar`),
+        h('span', {}, 'Se guardan solos en este ordenador mientras trabajas.')),
+      h('div', { class: 'btns' },
+        h('button', { class: 'btn2', type: 'button', onclick: discardAll }, 'Descartar cambios'),
+        h('button', { class: 'btn1', type: 'button', onclick: () => { S.publishOpen = !S.publishOpen; S.showErrors = true; if (S.view.name === 'show') { S.view.keepScroll = true; render(); } else refreshBar(); } }, 'Revisar y publicar'))),
+    S.publishOpen ? h('div', { class: 'pub-review' },
+      problems.length
+        ? [h('p', { class: 'pub-h bad' }, icon('alert'), 'Antes de publicar falta esto:'),
+          h('ul', { class: 'issues' }, problems.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, h('b', {}, p.show), ` · ${p.msg}`))))]
+        : [h('p', { class: 'pub-h ok' }, icon('check'), 'Todo listo para publicar.'),
+          h('ul', { class: 'issues' },
+            ch.map((s) => h('li', {}, h('b', {}, s.name), JSON.parse(S.published).some((p) => p.slug === s.slug) ? ' · cambios' : ' · show nuevo')),
+            removed.map((s) => h('li', {}, h('b', {}, s.name), ' · se borra'))),
+          warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
+          h('div', { class: 'pub-go' }, h('button', { class: 'btn1 big', type: 'button', onclick: publish }, 'Publicar en la web'),
+            store.mode === 'demo' && h('span', {}, 'Demostración: la web real no cambia.'))]) : '');
+}
+
+function jump(p) {
+  S.publishOpen = false;
+  go({ name: 'show', slug: p.slug, step: p.step });
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`[data-field="${p.field}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.querySelector('input, textarea')?.focus({ preventScroll: true });
+    el?.classList.add('flash');
+  });
+}
+
+async function publish() {
+  // Demostración: se da por publicado en este navegador. En la versión final aquí se envían
+  // shows.json y las imágenes nuevas al GitHub de la asociación, y la web se reconstruye sola.
+  S.shows = S.shows.map((x) => { const n = normalize(x); n.slug = x.slug; return n; });
+  S.published = JSON.stringify(S.shows);
+  for (const f of S.files.values()) f.published = true;
+  await store.set('published', { shows: S.shows });
+  S.publishOpen = false;
+  S.undo = []; S.redo = [];
+  persist();
+  render();
+  toast('Publicado (demostración). En la versión real la web se actualiza en unos 2 minutos.');
+}
+
+async function discardAll() {
+  const pub = await store.get('published');
+  S.shows = clone(pub?.shows || showsJson.shows);
+  S.published = JSON.stringify(S.shows);
+  for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
+  S.restored = false; S.undo = []; S.redo = [];
+  await store.set('draft', null);
+  go({ name: 'home' });
+  toast('Cambios descartados');
+}
+
+// ---------- Arranque ----------
+async function boot() {
+  const pub = await store.get('published');
+  if (pub?.shows) { S.shows = clone(pub.shows); S.published = JSON.stringify(pub.shows); }
+  const draft = await store.get('draft');
+  if (draft?.files) for (const f of draft.files) S.files.set(f.path, { blob: f.blob, url: URL.createObjectURL(f.blob), published: f.published });
+  if (draft?.shows && JSON.stringify(draft.shows) !== S.published) { S.shows = draft.shows; S.restored = true; }
+  const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
+  if (m && showBy(m[1])) S.view = { name: 'show', slug: m[1], step: m[2] || 'datos' };
+  render();
+}
+
+addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) {
+    e.preventDefault(); e.shiftKey ? redoFn() : undo();
+  }
+});
+addEventListener('popstate', () => {
+  const m = location.hash.match(/^#show\/([^/]+)\/?(\w+)?/);
+  S.view = m && showBy(m[1]) ? { name: 'show', slug: m[1], step: m[2] || 'datos' } : { name: 'home' };
+  render();
+});
+
+boot();

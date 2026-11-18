@@ -26,7 +26,7 @@ The big references (WWE, UFC) are important but their sites are gridded and conv
 - Shows roughly every two weeks at Gimnasio Lucharama (Carabanchel, Madrid) with entrada inversa; special events (e.g. Top 1 at Sala Revi) sell tickets through Entradium.
 - Instagram (@latriplew) publishes three recurring formats: ¡ANUNCIO!, ¡RECORDATORIO!, RESULTADOS RÁPIDOS. The site mirrors them as card, event page and results archive.
 - Championships: Absoluto, Level One, Parejas, Extremo; Hall of Fame.
-- The association must run the site by itself. An admin panel (Sveltia CMS, built in another thread) edits the data files; every piece of editable content (shows, roster, titles, galleries, entrance videos, stats, copy) must live in `shared/data/*.json` or similar data files, never hard-coded in pages.
+- The association must run the site by itself. A custom admin panel at /admin (built in its own thread, code in shared/admin/) edits the data files; every piece of editable content (shows, roster, titles, galleries, entrance videos, stats, copy) must live in `shared/data/*.json` or similar data files, never hard-coded in pages.
 
 ## Capabilities and Constraints
 

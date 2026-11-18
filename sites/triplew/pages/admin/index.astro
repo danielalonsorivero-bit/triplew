@@ -1,0 +1,24 @@
+---
+// Panel de administración de Triple W (prototipo, modo demostración).
+// No usa el diseño público: es una herramienta de trabajo. Todo el panel vive en shared/admin/.
+import '../../../../shared/styles/base.css';
+import '../../../../shared/admin/admin.css';
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel · Triple W</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#101010" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body class="adm">
+  <div id="app" aria-live="polite"><p class="adm-loading">Cargando el panel…</p></div>
+  <noscript><p class="adm-loading">El panel necesita JavaScript activado.</p></noscript>
+  <script>
+    import '../../../../shared/admin/app.js';
+  </script>
+</body>
+</html>
