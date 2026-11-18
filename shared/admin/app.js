@@ -205,8 +205,7 @@ function topbar() {
     h('span', { class: 'adm-demo', title: 'Los cambios se quedan en este ordenador. La web pública no cambia.' }, 'Modo demostración'),
     h('div', { class: 'adm-top-r' },
       h('button', { class: 'tbtn', type: 'button', onclick: undo, disabled: !S.undo.length, title: 'Deshacer (Ctrl+Z)' }, icon('undo'), h('span', {}, 'Deshacer')),
-      h('button', { class: 'tbtn', type: 'button', onclick: redoFn, disabled: !S.redo.length, title: 'Rehacer (Ctrl+Mayús+Z)' }, icon('redo'), h('span', {}, 'Rehacer')),
-      h('a', { class: 'tbtn', href: '/', target: '_blank', rel: 'noopener' }, h('span', {}, 'Ver la web'), icon('ext'))));
+      h('button', { class: 'tbtn', type: 'button', onclick: redoFn, disabled: !S.redo.length, title: 'Rehacer (Ctrl+Mayús+Z)' }, icon('redo'), h('span', {}, 'Rehacer'))));
 }
 
 function sidebar() {
@@ -219,9 +218,15 @@ function sidebar() {
     { k: 'sitio', label: 'Redes y contacto' },
   ];
   return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
-    items.map((it) => it.on
-      ? h('a', { href: '#', class: 'on', 'aria-current': 'page', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, it.label)
-      : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'))));
+    h('div', { class: 'side-list' },
+      items.map((it) => it.on
+        ? h('a', { href: '#', class: 'on', 'aria-current': 'page', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, it.label)
+        : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto')))),
+    h('div', { class: 'side-foot' },
+      h('p', {}, store.mode === 'demo'
+        ? 'Modo demostración: los cambios se quedan en este ordenador y la web no cambia.'
+        : 'Los cambios se guardan y la web se vuelve a publicar sola en 1 o 2 minutos.'),
+      h('a', { href: '/', target: '_blank', rel: 'noopener' }, 'Ver la web ', icon('ext'))));
 }
 
 function go(view) {
@@ -241,7 +246,10 @@ function home() {
     S.restored && h('div', { class: 'note' }, icon('undo'),
       h('p', {}, 'Has recuperado los cambios sin publicar de la última vez.'),
       h('button', { class: 'lnk', type: 'button', onclick: discardAll }, 'Descartarlos y empezar de cero')),
-    h('h1', { class: 'scr-title' }, 'Shows'),
+    h('div', { class: 'scr-head' },
+      h('div', {}, h('h1', { class: 'scr-title' }, 'Shows'),
+        h('p', { class: 'scr-sub' }, `${S.shows.length} shows · ${upcoming.length} próximos · ${past.length} celebrados`)),
+      h('button', { class: 'btn1 hd', type: 'button', onclick: newShow }, icon('plus'), 'Nuevo show')),
     h('p', { class: 'lead' }, '¿Qué quieres hacer?'),
     h('div', { class: 'tasks' },
       h('button', { class: 'task', type: 'button', onclick: newShow },
@@ -316,9 +324,11 @@ function showEditor() {
     h('a', { href: '#', class: 'back', onclick: (e) => { e.preventDefault(); go({ name: 'home' }); } }, icon('back'), 'Todos los shows'),
     h('div', { class: 'ed-head' },
       s.poster ? h('img', { class: 'ed-poster', src: imgSrc(s.poster), alt: '' }) : null,
-      h('div', {},
+      h('div', { class: 'ed-tt' },
         h('h1', { class: 'scr-title' }, s.name || 'Show nuevo'),
-        h('p', { class: 'ed-sub' }, s.date ? `${dateNice(s.date)}${isPast(s) ? ' · ya celebrado' : ''}` : 'Empieza por el nombre y la fecha.'))),
+        h('p', { class: 'ed-sub' }, s.date ? `${dateNice(s.date)}${isPast(s) ? ' · ya celebrado' : ''}` : 'Empieza por el nombre y la fecha.')),
+      JSON.parse(S.published).some((p) => p.slug === s.slug)
+        ? h('a', { class: 'btn2 hd', href: `/shows/${s.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null),
     stepsNav(s, step),
     locked
       ? h('div', { class: 'locked' }, icon('lock'),
