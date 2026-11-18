@@ -99,7 +99,7 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .ed-poster { width: 76px; height: 95px; object-fit: cover; border-radius: 5px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
 .ed-sub { color: var(--muted); margin: .5rem 0 0; }
 .ed-sub::first-letter { text-transform: uppercase; }
-.steps { display: flex; gap: .3rem; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 2rem; scrollbar-width: none; }
+.steps { display: flex; gap: .3rem; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 2rem; scrollbar-width: none; }
 .step { display: inline-flex; align-items: center; gap: .55rem; padding: .8rem .9rem; text-decoration: none; font-weight: 600; color: var(--muted); white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -1px; transition: color .15s; }
 .step:hover { color: var(--fg); }
 .step.on { color: var(--fg); border-color: var(--c); }
@@ -437,3 +437,26 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .swatches .sw { width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--sw); border: 2px solid transparent; }
 .swatches .sw.on { border-color: var(--fg); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--sw); }
 .when [hidden] { display: none; }
+
+/* Paso Portada de un show */
+.hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+.hero-auto, .hero-man { margin-top: 1rem; display: grid; gap: .8rem; }
+.hero-man .hist { margin: 0; }
+.hero-who { display: inline-flex; align-items: center; gap: .6rem; }
+.hero-who img, .hero-who .ac-ph { width: 2.4rem; height: 2.4rem; border-radius: 50%; object-fit: cover; object-position: top; }
+.hp { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px; background: #0a0a0a; isolation: isolate; container-type: inline-size; }
+.hp > img { position: absolute; inset: 0 0 0 30%; width: 70%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.22) brightness(.92); z-index: -1; }
+.hp::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #0a0a0a 25%, rgba(10,10,10,.2) 70%), linear-gradient(0deg, #0a0a0a 5%, transparent 45%); }
+.hp-copy { position: absolute; left: 5%; right: 30%; bottom: 22%; }
+.hp-name { margin: 0; font: 900 11cqw/.82 var(--font-display); text-transform: uppercase; color: var(--fg); }
+.hp-vs { margin: .6rem 0 .3rem; font: 800 3.2cqw/1 var(--font-display); text-transform: uppercase; color: #d9d3c7; }
+.hp-vs b { color: var(--show); }
+.hp-why { margin: 0; font-size: 2.2cqw; line-height: 1.4; color: #c9c2b5; max-width: 44ch; }
+.hp-tabs { position: absolute; left: 5%; right: 5%; bottom: 10%; display: flex; gap: .3rem; }
+.hp-tabs button { flex: 1; max-width: 9rem; background: none; border: 0; border-top: 3px solid rgba(242,240,234,.25); padding: .35rem 0 0; color: #a8a196; text-align: left; font: 700 1.6cqw/1 var(--font-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-tabs button.on { color: var(--fg); border-top-color: var(--show); }
+.hp-led { position: absolute; left: 0; right: 0; bottom: 0; padding: .45rem 5%; font-size: 1.7cqw; color: #d9d3c7; background: #0c0a08; border-top: 2px solid var(--show); }
+.hp-led b { color: var(--show); text-transform: uppercase; }
+.hp-empty { color: var(--muted); padding: 2rem; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero-side { position: sticky; top: 84px; display: grid; gap: .6rem; }

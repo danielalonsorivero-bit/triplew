@@ -10,6 +10,7 @@ import { cronicaBlocksFor } from '../cronica.js';
 import { shrink, palette, inkFor, kb } from './img.js';
 import * as store from './store.js';
 import { rosterHome, wrestlerEditor, newWrestlerForm, checkWrestler, changedRoster, removedRoster, wrestlerBy } from './luchadores.js';
+import { heroPane } from './portada.js';
 import { titlesHome, titleEditor, checkTitle, changedTitles, removedTitles, titleBy } from './campeonatos.js';
 
 const BRANDS = {
@@ -339,6 +340,7 @@ const STEPS = [
   { k: 'datos', label: 'Datos' },
   { k: 'cartel', label: 'Cartel y color' },
   { k: 'combates', label: 'Combates' },
+  { k: 'portada', label: 'Portada' },
   { k: 'resultados', label: 'Resultados', past: true },
   { k: 'fotos', label: 'Fotos y vídeos', past: true },
   { k: 'cronica', label: 'Crónica', past: true },
@@ -425,6 +427,7 @@ export function choice(name, options, current, onpick) {
 export const setLive = (fn) => { fn(); persist(); };
 
 const PANES = {
+  portada: (s) => heroPane(s),
   datos(s) {
     // Los fallos solo se enseñan en rojo después de intentar publicar; los avisos, siempre.
     const errOf = (f) => { const c = check(s); const e = S.showErrors && c.errs.find((x) => x.field === f); const w = c.warns.find((x) => x.field === f); return e ? { msg: e.msg } : w ? { msg: w.msg, warn: true } : null; };
