@@ -69,22 +69,22 @@ export const removedRoster = () => published().filter((p) => !wrestlerBy(p.slug)
 // ---------- Lista ----------
 export function rosterHome() {
   const q = S.rosterQ || '';
-  const f = S.rosterF || 'all';
+  // Filtros acumulables: varias divisiones a la vez (vacío = todas) y, aparte, estados.
+  const divSel = S.rosterDiv || (S.rosterDiv = new Set());
+  const stSel = S.rosterSt || (S.rosterSt = new Set());
   const sort = S.rosterSort || 'az';
   const match = (w) => !q || norm(w.name).split(/[\s«»"'-]+/).some((p) => p.startsWith(norm(q))) || norm(w.name).includes(norm(q)) || norm(w.nickname).includes(norm(q));
   const noPhoto = (w) => !w.photo;
   const prov = (w) => (w.provisional || []).length > 0;
-  const FILTERS = [
-    { k: 'all', label: 'Todos', test: () => true },
-    ...Object.entries(DIVISIONS).map(([k, d]) => ({ k, label: d.name, color: d.color, test: (w) => w.division === k })),
-    { k: 'nophoto', label: 'Sin retrato', test: noPhoto, status: true },
-    { k: 'prov', label: 'Por confirmar', test: prov, status: true },
+  const STATUS = [
+    { k: 'nophoto', label: 'Sin retrato', test: noPhoto },
+    { k: 'prov', label: 'Por confirmar', test: prov },
   ];
-  const cur = FILTERS.find((x) => x.k === f) || FILTERS[0];
-  let list = S.roster.filter((w) => cur.test(w) && match(w));
+  let list = S.roster.filter((w) => (!divSel.size || divSel.has(w.division)) && STATUS.every((x) => !stSel.has(x.k) || x.test(w)) && match(w));
   if (sort === 'az') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'es'));
   // Ordenar a mano solo tiene sentido viendo una división en el orden de la web y sin buscar.
-  const canDrag = sort === 'web' && DIVISIONS[f] && !q;
+  const canDrag = sort === 'web' && divSel.size === 1 && !stSel.size && !q;
+  const toggle = (set, k) => { set.has(k) ? set.delete(k) : set.add(k); S.view.keepScroll = true; render(); };
   const pick = (patch) => { Object.assign(S, patch); S.view.keepScroll = true; render(); };
   const search = h('input', { type: 'search', class: 'r-search', value: q, placeholder: 'Buscar por nombre o apodo', 'aria-label': 'Buscar luchador',
     oninput: (e) => { S.rosterQ = e.target.value; const pos = e.target.selectionStart; S.view.keepScroll = true; render(); const el = document.querySelector('.r-search'); el?.focus(); el?.setSelectionRange(pos, pos); } });
@@ -96,23 +96,31 @@ export function rosterHome() {
     h('div', { class: 'r-tools' }, search,
       h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Orden' },
         [['az', 'A–Z'], ['web', 'Orden de la web']].map(([k, l]) => h('button', { type: 'button', role: 'radio', 'aria-checked': sort === k ? 'true' : 'false', class: sort === k ? 'on' : '', onclick: () => pick({ rosterSort: k }) }, l)))),
-    h('div', { class: 'filters', role: 'radiogroup', 'aria-label': 'Mostrar' },
-      FILTERS.map((x) => {
-        const n = S.roster.filter(x.test).length;
-        if (x.status && !n) return null;
-        return h('button', { type: 'button', role: 'radio', 'aria-checked': f === x.k ? 'true' : 'false', class: `fchip${f === x.k ? ' on' : ''}${x.status ? ' st' : ''}`, style: x.color ? `--dc:${x.color}` : null, onclick: () => pick({ rosterF: x.k }) },
-          x.color && h('span', { class: 'div-dot' }), x.label, h('small', {}, n));
+    h('div', { class: 'filters', 'aria-label': 'Divisiones' },
+      h('button', { type: 'button', 'aria-pressed': divSel.size ? 'false' : 'true', class: `fchip${divSel.size ? '' : ' on'}`, onclick: () => { divSel.clear(); S.view.keepScroll = true; render(); } }, 'Todas', h('small', {}, S.roster.length)),
+      Object.entries(DIVISIONS).map(([k, d]) => {
+        const n = S.roster.filter((w) => w.division === k).length;
+        const on = divSel.has(k);
+        return h('button', { type: 'button', 'aria-pressed': on ? 'true' : 'false', class: `fchip dv${on ? ' on' : ''}`, style: `--dc:${d.color}`, onclick: () => toggle(divSel, k) },
+          h('span', { class: 'fbox', 'aria-hidden': 'true' }, on ? icon('check') : ''), d.name, h('small', {}, n));
+      })),
+    h('div', { class: 'filters st', 'aria-label': 'Estado' },
+      h('span', { class: 'muted-s' }, 'Solo los que tienen:'),
+      STATUS.map((x) => {
+        const on = stSel.has(x.k);
+        return h('button', { type: 'button', 'aria-pressed': on ? 'true' : 'false', class: `fchip st${on ? ' on' : ''}`, onclick: () => toggle(stSel, x.k) },
+          h('span', { class: 'fbox', 'aria-hidden': 'true' }, on ? icon('check') : ''), x.label, h('small', {}, S.roster.filter(x.test).length));
       })),
     h('p', { class: 'muted-s r-hint' }, canDrag
       ? 'Arrastra las fichas para cambiar el orden en que salen en la web.'
-      : 'Para cambiar el orden en que salen en la web, elige una división y «Orden de la web».'),
+      : 'Para cambiar el orden en que salen en la web, marca una sola división y elige «Orden de la web».'),
     list.length
-      ? h('ul', { class: 'shows wl' }, list.map((w) => wrestlerRow(w, canDrag, f === 'all' || !DIVISIONS[f])))
-      : h('p', { class: 'empty' }, q ? `No hay nadie que se llame «${q}»${f !== 'all' ? ` en «${cur.label}»` : ''}. Puedes crearlo con «Nuevo luchador».` : 'No hay nadie aquí todavía.'));
+      ? h('ul', { class: 'shows wl' }, list.map((w) => wrestlerRow(w, canDrag)))
+      : h('p', { class: 'empty' }, q ? `No hay nadie que se llame «${q}» con estos filtros. Puedes crearlo con «Nuevo luchador».` : 'No hay nadie con estos filtros.'));
 }
 
 let dragSlug = null;
-function wrestlerRow(w, draggable, showDiv) {
+function wrestlerRow(w, draggable) {
   const chips = [];
   const { errs } = checkWrestler(w);
   if (errs.length) chips.push(h('span', { class: 'chip bad' }, icon('alert'), 'Falta información'));
@@ -136,13 +144,13 @@ function wrestlerRow(w, draggable, showDiv) {
       change(() => { const r = S.roster; const a = r.indexOf(from); r.splice(a, 1); r.splice(r.indexOf(w) + (a <= r.indexOf(w) ? 1 : 0), 0, from); });
     },
   } : {},
-  h('a', { href: `#luchador/${w.slug}`, class: 'show-row w-row', onclick: (e) => { e.preventDefault(); go({ name: 'wrestler', slug: w.slug }); } },
+  h('a', { href: `#luchador/${w.slug}`, class: 'show-row w-row', style: `--dc:${DIVISIONS[w.division]?.color || '#666'}`, onclick: (e) => { e.preventDefault(); go({ name: 'wrestler', slug: w.slug }); } },
     w.photo ? h('img', { class: 'w-thumb', src: imgSrc(w.photo), alt: '', loading: 'lazy', style: `object-position:${(w.photoPos || 'center 20%').split(' ')[0]} 10%` }) : h('span', { class: 'w-thumb none' }, '?'),
     h('span', { class: 'sr-main' },
       h('span', { class: 'sr-name' }, w.emoji ? `${w.name} ${w.emoji}` : w.name || 'Sin nombre'),
       h('span', { class: 'sr-meta' },
-        showDiv && DIVISIONS[w.division] && h('span', { class: 'div-tag', style: `--dc:${DIVISIONS[w.division].color}` }, h('span', { class: 'div-dot' }), DIVISIONS[w.division].name),
         w.nickname ? `«${w.nickname}»` : t.length ? t.join(', ') : '')),
+    DIVISIONS[w.division] && h('span', { class: 'div-tag' }, DIVISIONS[w.division].name),
     h('span', { class: 'sr-chips' }, chips)));
 }
 

@@ -384,7 +384,21 @@ button.task:hover { transform: translateY(-2px); border-color: var(--fg); backgr
 .fchip.st { border-style: dashed; }
 .fchip .div-dot { width: .6rem; height: .6rem; }
 .r-hint { margin: .4rem 0 1rem; }
-.div-tag { display: inline-flex; align-items: center; gap: .35rem; margin-right: .6rem; }
-.div-tag .div-dot { width: .55rem; height: .55rem; }
 .w-row { padding-top: .5rem; padding-bottom: .5rem; }
 .w-thumb { width: 44px; height: 44px; }
+
+/* Filtros acumulables y división de cada fila */
+.filters.st { margin-top: .2rem; align-items: center; }
+.fbox { display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; border-radius: 4px; border: 1.5px solid var(--dc, var(--line2)); background: transparent; }
+.fbox .ic { width: .8rem; height: .8rem; }
+.fchip.dv .fbox { border-color: var(--dc); }
+.fchip.dv.on { background: color-mix(in srgb, var(--dc) 22%, var(--panel)); color: var(--fg); border-color: var(--dc); }
+.fchip.dv.on .fbox { background: var(--dc); color: #0B0B0B; }
+.fchip.dv.on small { color: var(--muted); }
+.fchip.st.on { background: var(--panel2); color: var(--fg); border-color: var(--fg); }
+.fchip.st.on .fbox { background: var(--fg); color: #0B0B0B; border-color: var(--fg); }
+.fchip.st.on small { color: var(--muted); }
+.w-row { grid-template-columns: 44px minmax(0, 1fr) auto auto; box-shadow: inset 4px 0 0 var(--dc); padding-left: 1rem; }
+.div-tag { justify-self: end; font-size: .8rem; font-weight: 700; padding: .28rem .65rem; border-radius: 99px; color: var(--dc); border: 1.5px solid color-mix(in srgb, var(--dc) 60%, transparent); white-space: nowrap; }
+.w-row .sr-chips:empty { display: none; }
+@media (max-width: 760px) { .w-row { grid-template-columns: 44px minmax(0, 1fr); } .w-row .div-tag, .w-row .sr-chips { grid-column: 2; justify-self: start; } }
