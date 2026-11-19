@@ -13,11 +13,6 @@
     "intro": "Miles de personas se han reunido al borde de nuestro ring para animar a sus luchadores favoritos. Y muchas, con el deseo de estar algún día sobre ese cuadrilátero.",
     "hitos": [
       {
-        "year": "2009",
-        "title": "Nace la Triple W",
-        "text": "Un grupo de amigos, aficionados al wrestling y a la lucha libre que veíamos de pequeños por televisión, decide crear su propia promoción."
-      },
-      {
         "year": "2011",
         "title": "Molino Rojo, Tabacalera",
         "text": "Empiezan los shows en la nave Molino Rojo de la Tabacalera de Madrid. Ese mismo año, los shows se trasladan a la nave central.",
@@ -59,6 +54,11 @@
         "title": "La Hora de la Verdad",
         "text": "La Sala Shoko de Madrid acoge «La Hora de la Verdad», con estrellas internacionales como Aussie Open, entre otras.",
         "photo": "/historia/2018-sala-shoko-aussie-open.jpg"
+      },
+      {
+        "year": "2019",
+        "title": "Nace la Triple W",
+        "text": "Un grupo de amigos, aficionados al wrestling y a la lucha libre que veíamos de pequeños por televisión, decide crear su propia promoción."
       },
       {
         "year": "2019",
