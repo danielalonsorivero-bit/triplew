@@ -4,7 +4,14 @@ import '../styles/triplew.css';
 import { nextShow, urls } from '../../../shared/lib.js';
 import pages from '../../../shared/data/paginas-triplew.json';
 const site = pages.sitio;
-const { title, description = 'Triple W · WhiteWolf Wrestling. Lucha libre en Madrid desde 2009.', accent = nextShow.color, accentInk = nextShow.ink, overlayHead = false } = Astro.props;
+// SEO: textos de shared/data/paginas-triplew.json (seo), editables en el panel (Ajustes).
+// Cada página pasa `seo` (clave de seo.pages) o su propia `description`/`image` (shows y luchadores).
+const seo = pages.seo;
+const { title, seo: seoKey, description: ownDesc, image: ownImage, accent = nextShow.color, accentInk = nextShow.ink, overlayHead = false } = Astro.props;
+const description = ownDesc || (seoKey && seo.pages[seoKey]) || seo.description;
+const fullTitle = title ? `${title} · Triple W` : seo.siteName;
+const shareImg = ownImage || seo.image || nextShow.poster;
+const abs = (p) => (p ? new URL(p, Astro.site).href : null);
 const path = Astro.url.pathname;
 const nav = [
   { href: '/shows/', label: 'Shows' },
@@ -18,10 +25,19 @@ const nav = [
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{title ? `${title} · Triple W` : 'Triple W · WhiteWolf Wrestling'}</title>
+  <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <meta name="theme-color" content="#0B0B0B" />
-  <meta name="robots" content="noindex" />
+  {!seo.index && <meta name="robots" content="noindex" />}
+  <link rel="canonical" href={abs(path)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:site_name" content={seo.siteName} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={abs(path)} />
+  {shareImg && <meta property="og:image" content={abs(shareImg)} />}
+  <meta name="twitter:card" content={shareImg ? 'summary_large_image' : 'summary'} />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </head>
 <body style={`--accent:${accent};--accent-ink:${accentInk}`}>

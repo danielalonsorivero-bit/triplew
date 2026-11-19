@@ -126,5 +126,20 @@
         "url": "https://www.instagram.com/marco111morales/"
       }
     ]
+  },
+  "seo": {
+    "_nota": "Cómo sale la web en Google y al compartir un enlace (WhatsApp, Instagram, etc.). Se edita en el panel, sección Ajustes. Las páginas de cada show y de cada luchador crean su texto e imagen solas (cartel / retrato).",
+    "siteName": "Triple W · WhiteWolf Wrestling",
+    "description": "Lucha libre en Madrid desde 2009. Shows en directo, luchadores, campeonatos y la historia de la Triple W.",
+    "image": "",
+    "index": false,
+    "pages": {
+      "home": "",
+      "shows": "Próximos shows de lucha libre de la Triple W en Madrid, con entradas, cartel y combates. Y todos los shows anteriores.",
+      "roster": "Los luchadores de la Triple W y de Level One: fichas, retratos, campeonatos y redes.",
+      "campeonatos": "Los cinturones de la Triple W, quién los lleva y su historia.",
+      "historia": "Desde 2009, la historia de la Triple W contada año a año.",
+      "salon": "Las leyendas que hicieron grande la Triple W."
+    }
   }
 }

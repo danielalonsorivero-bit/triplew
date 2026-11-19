@@ -76,3 +76,22 @@ export function inkFor(hex) {
 }
 
 export const kb = (bytes) => (bytes > 1e6 ? `${(bytes / 1e6).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`);
+
+// Recorta al centro y deja la imagen exactamente en w × h (p. ej. 1200 × 630 para compartir en redes).
+export async function cover(file, w, h, quality = 0.82, maxBytes = Infinity) {
+  if (!file.type.startsWith('image/')) throw new Error('no-image');
+  if (file.size > 25e6) throw new Error('too-big');
+  const { img, url } = await loadImage(file);
+  const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const sw = w / s, sh = h / s;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) * 0.35, sw, sh, 0, 0, w, h);
+  URL.revokeObjectURL(url);
+  const encode = (q) => new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
+  let blob = await encode(quality);
+  for (let q = quality - 0.08; blob.size > maxBytes && q >= 0.4; q -= 0.08) blob = await encode(q);
+  return { blob, url: URL.createObjectURL(blob), width: w, height: h, before: file.size, after: blob.size };
+}

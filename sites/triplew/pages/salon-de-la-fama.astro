@@ -7,7 +7,7 @@ import Provisional from '../../../shared/components/Provisional.astro';
 import hof from '../../../shared/data/salon-fama-triplew.json';
 const pending = hof.members.some((m) => m.provisional);
 ---
-<Base title={hof.title}>
+<Base title={hof.title} seo="salon">
   <section class="head wrap">
     <a class="back" href="/campeonatos/">← Campeonatos</a>
     <h1 class="hof-t">{[...hof.title].map((ch, k) => <span style={`--k:${k}`}>{ch === ' ' ? ' ' : ch}</span>)}</h1>

@@ -6,7 +6,7 @@ import { roster, divisions } from '../../../../shared/lib.js';
 const order = ['absoluto', 'levelone', 'parejas', 'arbitros', 'staff', 'invitados'].filter((d) => divisions[d]);
 const own = roster.filter((w) => !['invitados', 'arbitros', 'staff'].includes(w.division));
 ---
-<Base title="Roster">
+<Base title="Roster" seo="roster">
   <section class="section wrap">
     <h1 class="h-xl">Roster</h1>
     <p class="intro">{own.length} luchadores y equipos de Triple W y Level One, con sus árbitros, su staff y los invitados que han venido de fuera. <Provisional label="Divisiones por confirmar" /></p>

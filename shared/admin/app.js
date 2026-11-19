@@ -16,6 +16,7 @@ import * as store from './store.js';
 import { rosterHome, wrestlerEditor, newWrestlerForm, checkWrestler, changedRoster, removedRoster, wrestlerBy } from './luchadores.js';
 import { heroPane } from './portada.js';
 import { homeEditor, checkHome, homeChanged } from './portada-home.js';
+import { ajustesEditor, checkSeo } from './ajustes.js';
 import { historiaEditor, sitioEditor, checkPages, checkHof, pagesChanged, hofChanged } from './paginas.js';
 import { titlesHome, titleEditor, checkTitle, changedTitles, removedTitles, titleBy } from './campeonatos.js';
 
@@ -126,6 +127,8 @@ export function h(tag, attrs = {}, ...kids) {
 
 const ICONS = {
   plus: 'M12 5v14M5 12h14',
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  eyeoff: 'M3 3l18 18M10.6 5.1A10.5 10.5 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2',
   up: 'M12 19V5M6 11l6-6 6 6',
   down: 'M12 5v14M6 13l6 6 6-6',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
@@ -214,7 +217,7 @@ export function render() {
   S.view.keepScroll = false;
   app.replaceChildren(
     topbar(),
-    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm, titles: titlesHome, title: titleEditor, portada: homeEditor, historia: historiaEditor, sitio: sitioEditor }[S.view.name] || home)())),
+    h('div', { class: 'adm-body' }, sidebar(), h('main', { class: 'adm-main', id: 'main' }, ({ show: showEditor, roster: rosterHome, wrestler: wrestlerEditor, 'wrestler-new': newWrestlerForm, titles: titlesHome, title: titleEditor, portada: homeEditor, historia: historiaEditor, sitio: sitioEditor, ajustes: ajustesEditor }[S.view.name] || home)())),
     publishBar(),
     h('div', { class: 'adm-toast', role: 'status' }),
   );
@@ -243,13 +246,14 @@ function sidebar() {
     { k: 'titulos', label: 'Campeonatos', view: 'titles' },
     { k: 'paginas', label: 'Historia y Salón de la Fama', view: 'historia' },
     { k: 'sitio', label: 'Redes y contacto', view: 'sitio' },
+    { k: 'ajustes', label: 'Ajustes', view: 'ajustes' },
   ];
   return h('nav', { class: 'adm-side', 'aria-label': 'Secciones del panel' },
     h('div', { class: 'side-list' },
       items.map((it) => {
-        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titulos' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'paginas' : S.view.name === 'sitio' ? 'sitio' : 'shows');
+        const cur = it.k === (/^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titulos' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'paginas' : S.view.name === 'sitio' ? 'sitio' : S.view.name === 'ajustes' ? 'ajustes' : 'shows');
         return it.view
-        ? h('a', { href: { roster: '#luchadores', titles: '#campeonatos', portada: '#portada', historia: '#historia', sitio: '#redes' }[it.view] || '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
+        ? h('a', { href: { roster: '#luchadores', titles: '#campeonatos', portada: '#portada', historia: '#historia', sitio: '#redes', ajustes: '#ajustes' }[it.view] || '#', class: cur ? 'on' : null, 'aria-current': cur ? 'page' : null, onclick: (e) => { e.preventDefault(); go({ name: it.view }); } }, it.label)
         : h('span', { class: 'off', title: 'Disponible en la siguiente versión del prototipo' }, it.label, h('small', {}, 'Pronto'));
       })),
     h('div', { class: 'side-foot' },
@@ -271,6 +275,7 @@ export function go(view) {
   else if (view.name === 'portada') location.hash = 'portada';
   else if (view.name === 'historia') location.hash = 'historia';
   else if (view.name === 'sitio') location.hash = 'redes';
+  else if (view.name === 'ajustes') location.hash = 'ajustes';
   else history.replaceState(null, '', location.pathname);
   render();
 }
@@ -939,8 +944,8 @@ function refreshBar() {
   const has = ch.length || removed.length || vch || wch.length || wrm.length || tch.length || trm.length || hch || pch || fch;
   bar.classList.toggle('on', !!has);
   if (!has) { bar.replaceChildren(); return; }
-  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs), ...tch.flatMap((t) => checkTitle(t).errs), ...(hch ? checkHome().errs : []), ...(pch ? checkPages().errs : []), ...(fch ? checkHof().errs : [])];
-  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns), ...tch.flatMap((t) => checkTitle(t).warns), ...(hch ? checkHome().warns : []), ...(pch ? checkPages().warns : [])];
+  const problems = [...ch.flatMap((s) => check(s).errs), ...wch.flatMap((w) => checkWrestler(w).errs), ...tch.flatMap((t) => checkTitle(t).errs), ...(hch ? checkHome().errs : []), ...(pch ? [...checkPages().errs, ...checkSeo().errs] : []), ...(fch ? checkHof().errs : [])];
+  const warns = [...ch.flatMap((s) => check(s).warns), ...wch.flatMap((w) => checkWrestler(w).warns), ...tch.flatMap((t) => checkTitle(t).warns), ...(hch ? checkHome().warns : []), ...(pch ? [...checkPages().warns, ...checkSeo().warns] : [])];
   const parts = [];
   const nS = ch.length + removed.length, nW = wch.length + wrm.length;
   if (nS) parts.push(nS === 1 ? '1 show' : `${nS} shows`);
@@ -972,7 +977,7 @@ function refreshBar() {
             tch.map((t) => h('li', {}, h('b', {}, t.name || 'Campeonato nuevo'), ' · cambios')),
             trm.map((t) => h('li', {}, h('b', {}, t.name), ' · se borra')),
             hch && h('li', {}, h('b', {}, 'Portada'), ' · cambios en los bloques'),
-            pch && h('li', {}, h('b', {}, 'Historia, redes y contacto'), ' · cambios en textos o enlaces'),
+            pch && h('li', {}, h('b', {}, 'Historia, redes, contacto y ajustes'), ' · cambios en textos o enlaces'),
             fch && h('li', {}, h('b', {}, 'Salón de la Fama'), ' · cambios en los miembros'),
             vch && h('li', {}, h('b', {}, 'Salas'), ' · cambios en la lista de salas')),
           warns.length ? h('ul', { class: 'issues soft' }, warns.map((p) => h('li', {}, h('a', { href: '#', onclick: (e) => { e.preventDefault(); jump(p); } }, `Aviso: ${p.msg}`), ` (${p.show})`))) : null,
@@ -1017,7 +1022,7 @@ async function publish() {
 // ---------- Publicación real (GitHub a través de /api/admin) ----------
 // S.remote guarda los 6 ficheros tal como están publicados. Se envía solo lo que cambia, junto con
 // lo que el panel cree que hay publicado; si alguien publicó entretanto, la función no pisa nada.
-const FILE_NAMES = { shows: 'los shows', roster: 'los luchadores', titles: 'los campeonatos', home: 'la portada', pages: 'historia, redes y contacto', hof: 'el Salón de la Fama' };
+const FILE_NAMES = { shows: 'los shows', roster: 'los luchadores', titles: 'los campeonatos', home: 'la portada', pages: 'los textos y ajustes de la web', hof: 'el Salón de la Fama' };
 const listNames = (keys) => { const n = keys.map((k) => FILE_NAMES[k]); return n.length > 1 ? `${n.slice(0, -1).join(', ')} y ${n.at(-1)}` : n[0]; };
 
 function fullFiles(D = S, R = S.remote) {
@@ -1141,7 +1146,7 @@ async function discardAll() {
     for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
     S.restored = false; S.undo = []; S.redo = [];
     await store.set(store.draftKey(), null);
-    go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : 'home' });
+    go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : S.view.name === 'ajustes' ? 'ajustes' : 'home' });
     toast('Cambios descartados');
     return;
   }
@@ -1163,7 +1168,7 @@ async function discardAll() {
   for (const [p, f] of [...S.files]) if (!f.published) S.files.delete(p);
   S.restored = false; S.undo = []; S.redo = [];
   await store.set(store.draftKey(), null);
-  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : 'home' });
+  go({ name: /^(roster|wrestler)/.test(S.view.name) ? 'roster' : /^title/.test(S.view.name) ? 'titles' : S.view.name === 'portada' ? 'portada' : S.view.name === 'historia' ? 'historia' : S.view.name === 'sitio' ? 'sitio' : S.view.name === 'ajustes' ? 'ajustes' : 'home' });
   toast('Cambios descartados');
 }
 
@@ -1172,6 +1177,16 @@ async function discardAll() {
 function loginScreen(msg) {
   const err = h('p', { class: 'err', role: 'alert' }, msg ? [icon('alert'), msg] : null);
   const pw = h('input', { type: 'password', id: 'pw', autocomplete: 'current-password', required: true });
+  // Ojo para ver lo que se escribe. El cursor se queda donde estaba.
+  const eye = h('button', { class: 'pw-eye', type: 'button', 'aria-label': 'Mostrar la contraseña', 'aria-pressed': 'false', title: 'Mostrar la contraseña',
+    onclick: () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      eye.setAttribute('aria-pressed', String(show));
+      eye.setAttribute('aria-label', show ? 'Ocultar la contraseña' : 'Mostrar la contraseña'); eye.title = eye.getAttribute('aria-label');
+      eye.replaceChildren(icon(show ? 'eyeoff' : 'eye'));
+      pw.focus();
+    } }, icon('eye'));
   const remember = h('input', { type: 'checkbox', checked: true });
   const btn = h('button', { class: 'btn1 big', type: 'submit' }, 'Entrar');
   app.replaceChildren(h('main', { class: 'login' }, h('form', {
@@ -1188,7 +1203,7 @@ function loginScreen(msg) {
   },
   h('img', { src: '/logo/whitewolf-blanco.svg', alt: '', width: 64, height: 62 }),
   h('h1', {}, 'Panel ', h('b', {}, 'Triple W')),
-  h('div', { class: 'fld' }, h('label', { for: 'pw' }, 'Contraseña'), pw),
+  h('div', { class: 'fld' }, h('label', { for: 'pw' }, 'Contraseña'), h('div', { class: 'pw-wrap' }, pw, eye)),
   h('label', { class: 'tick' }, remember, 'Recordarla en este ordenador'),
   err, btn)));
   pw.focus();
@@ -1265,6 +1280,7 @@ function viewFromHash() {
   if (location.hash === '#portada') return { name: 'portada' };
   if (location.hash === '#historia') return { name: 'historia' };
   if (location.hash === '#redes') return { name: 'sitio' };
+  if (location.hash === '#ajustes') return { name: 'ajustes' };
   return { name: 'home' };
 }
 

@@ -14,7 +14,7 @@ const lastShow = pastShows.find((p) => p.results?.length);
 const featured = (home.rosterFeatured ?? []).map(wrestler).filter(Boolean).slice(0, 10);
 const champOf = (t) => t.holder && wrestler(t.holder);
 ---
-<Base overlayHead>
+<Base seo="home" overlayHead>
   <!-- PORTADA: la entrada de los luchadores del próximo show -->
   {[s, ...upcomingShows.filter((x) => x !== s)].slice(0, 3).map((x, k) => <Entrada show={x} hidden={k > 0} />)}
 

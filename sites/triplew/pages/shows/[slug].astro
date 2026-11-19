@@ -10,6 +10,8 @@ import { allShows, venues, dateLong, cronicaBlocks, ticketInfo } from '../../../
 export function getStaticPaths() { return allShows.map((s) => ({ params: { slug: s.slug }, props: { s: s } })); }
 const { s } = Astro.props;
 const v = venues[s.venue];
+// Texto para Google y para compartir, hecho solo con los datos del show.
+const seoDesc = `${s.name}: lucha libre ${s.brand === 'levelone' ? 'Level One' : 'Triple W'} el ${dateLong(s.date)}${v?.name ? ` en ${v.name}` : ''}.${(s.card || []).length ? ` ${s.card.length} ${s.card.length === 1 ? 'combate' : 'combates'} en el cartel.` : ''}`;
 const today = new Date(new Date().toISOString().slice(0, 10));
 const past = new Date(s.date) < today;
 const words = s.name.split(' ');
@@ -37,7 +39,7 @@ const tabs = [
 ].filter(Boolean);
 let n = 0;
 ---
-<Base title={s.name} accent={s.color} accentInk={s.ink} overlayHead>
+<Base title={s.name} description={seoDesc} image={s.poster || heroBg} accent={s.color} accentInk={s.ink} overlayHead>
   <section class="top" style={`--c:${s.color}`}>
     <div class:list={['top-bg', { photo: !!heroBg || !!s.heroVideo }]} aria-hidden="true">{s.heroVideo
       ? <video src={s.heroVideo} poster={heroBg} autoplay muted loop playsinline></video>

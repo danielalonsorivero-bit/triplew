@@ -11,6 +11,7 @@ import { roster, divisions, titleOf, allShows, dateLong, venues, socialLinks } f
 export function getStaticPaths() { return roster.map((w) => ({ params: { slug: w.slug }, props: { w } })); }
 const { w } = Astro.props;
 const div = divisions[w.division];
+const seoDesc = `${w.name}${w.nickname ? `, «${w.nickname}»` : ''}. ${w.bio ? w.bio.slice(0, 120) : `${({ arbitros: 'Árbitro', staff: 'Staff', invitados: 'Invitado' })[w.division] || (w.division === 'levelone' ? 'Luchador de Level One' : w.division === 'parejas' ? 'Pareja' : 'Luchador')} de la Triple W, lucha libre en Madrid.`}`;
 const champ = (w.titles || []).map(titleOf).filter(Boolean);
 const prov = w.provisional || [];
 const mentions = (s) => JSON.stringify([s.card, s.results]).includes(w.name);
@@ -58,7 +59,7 @@ const prev = same[(i - 1 + same.length) % same.length];
 const next = same[(i + 1) % same.length];
 const mail = `mailto:info@triplew.es?subject=${encodeURIComponent(`Contratación: ${w.name}`)}`;
 ---
-<Base title={w.name} accent={div.color} accentInk="#0b0b0b" overlayHead>
+<Base title={w.name} description={seoDesc} image={w.photo} accent={div.color} accentInk="#0b0b0b" overlayHead>
   <section class="pro" style={`--d:${div.color}`}>
     <div class="pro-stage" aria-hidden="true">
       {w.photo && <img src={w.photo} alt="" style={`object-position:${(w.photoPos || 'center 20%').split(' ')[0]} 6%`} fetchpriority="high" />}

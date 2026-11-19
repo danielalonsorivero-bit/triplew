@@ -9,6 +9,8 @@ export default defineConfig({
   publicDir: `./public/${SITE_ID}`,
   // En Vercel cada proyecto construye una sola web en dist/. En local, cada web va a su carpeta.
   outDir: process.env.VERCEL ? './dist' : `./dist/${SITE_ID}`,
-  site: SITE_ID === 'lucharama' ? 'https://www.lucharama.com' : 'https://www.triplew.es',
+  // Mientras la web vive en Vercel, los enlaces absolutos (imagen al compartir, canonical) apuntan a Vercel.
+  site: process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : SITE_ID === 'lucharama' ? 'https://www.lucharama.com' : 'https://www.triplew.es',
   build: { format: 'directory' },
 });
