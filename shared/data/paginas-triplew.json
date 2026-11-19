@@ -13,12 +13,6 @@
     "intro": "Miles de personas se han reunido al borde de nuestro ring para animar a sus luchadores favoritos. Y muchas, con el deseo de estar algún día sobre ese cuadrilátero.",
     "hitos": [
       {
-        "year": "2011",
-        "title": "Molino Rojo, Tabacalera",
-        "text": "Empiezan los shows en la nave Molino Rojo de la Tabacalera de Madrid. Ese mismo año, los shows se trasladan a la nave central.",
-        "photo": "/historia/2011-molino-rojo.jpg"
-      },
-      {
         "year": "2013",
         "title": "Debuta el Niño Anónimo",
         "text": "Un jovencísimo (y aún desconocido) «Niño Anónimo» sube al ring por primera vez. Es el comienzo de la leyenda de A-Kid.",
@@ -36,6 +30,12 @@
         "title": "Total Rumble IV",
         "text": "Total Rumble IV hace historia por la cantidad de público que llena la nave central de la Tabacalera de Madrid.",
         "photo": "/historia/2014-total-rumble-iv.jpg"
+      },
+      {
+        "year": "2015",
+        "title": "Molino Rojo, Tabacalera",
+        "text": "Empiezan los shows en la nave Molino Rojo de la Tabacalera de Madrid. Ese mismo año, los shows se trasladan a la nave central.",
+        "photo": "/historia/2011-molino-rojo.jpg"
       },
       {
         "year": "2015",
