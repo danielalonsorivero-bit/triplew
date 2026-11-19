@@ -1,6 +1,6 @@
 ---
 // Vista previa del panel: pinta una página REAL de la web con los datos sin publicar.
-// El panel envía aquí (POST, campo «data») { path, draft: {shows, roster, titles, home, pages, hof}, images: {ruta: dataURL} }.
+// El panel envía aquí (POST JSON) { path, draft: {shows, roster, titles, home, pages, hof}, images: {ruta: dataURL} }.
 // Se ejecuta en el servidor (función de Vercel); no se genera como página estática.
 export const prerender = false;
 import { setData, allShows, roster } from '../../../shared/lib.js';
@@ -16,8 +16,9 @@ import Salon from './salon-de-la-fama.astro';
 let path = null, error = null, s = null, w = null;
 if (Astro.request.method === 'POST') {
   try {
-    const form = await Astro.request.formData();
-    let raw = String(form.get('data') || '');
+    // El panel lo envía como JSON (fetch). Se acepta también el formulario antiguo, campo «data».
+    const json = (Astro.request.headers.get('content-type') || '').includes('application/json');
+    let raw = json ? await Astro.request.text() : String((await Astro.request.formData()).get('data') || '');
     const { images = {} } = JSON.parse(raw);
     // Las fotos que aún no están publicadas viajan dentro de la petición.
     for (const [p, url] of Object.entries(images)) if (/^data:image\/(jpeg|png|webp);base64,/.test(url)) raw = raw.split(JSON.stringify(p)).join(JSON.stringify(url));

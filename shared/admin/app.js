@@ -1046,11 +1046,20 @@ export async function openPreview(path) {
     if (!images[p]) delete images[p]; else budget -= images[p].length;
   }
   if (skipped) toast(`${skipped} ${skipped === 1 ? 'foto nueva no sale' : 'fotos nuevas no salen'} en la vista previa (son demasiadas). Al publicar sí saldrán.`);
-  const form = win.document.createElement('form');
-  form.method = 'POST'; form.action = '/vista-previa'; form.enctype = 'multipart/form-data';
-  const input = win.document.createElement('input');
-  input.type = 'hidden'; input.name = 'data'; input.value = JSON.stringify({ path, draft, images });
-  form.append(input); win.document.body.append(form); form.submit();
+  // Se envía con fetch (JSON) desde el propio panel y la página que devuelve se escribe en la pestaña nueva.
+  // Un formulario enviado desde una pestaña en blanco lo bloquea la protección de Astro contra envíos de otra web.
+  const fail = (t) => { win.document.body.innerHTML = `<p style="font:16px system-ui;padding:2rem;color:#f2f0ea;background:#0b0b0b;margin:0;min-height:100vh">${t}</p>`; };
+  let html;
+  try {
+    const r = await fetch('/vista-previa', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ path, draft, images }) });
+    html = await r.text();
+    if (!r.ok && !html.includes('<html')) return fail('No se ha podido preparar la vista previa. Vuelve a pulsar «Vista previa».');
+  } catch {
+    return fail('No hay conexión. Comprueba internet y vuelve a pulsar «Vista previa».');
+  }
+  if (win.closed) return;
+  win.document.open(); win.document.write(html); win.document.close();
+  try { win.history.replaceState(null, '', '/vista-previa'); } catch { /* la dirección se queda en blanco: no importa */ }
 }
 
 // ---------- Publicación real (GitHub a través de /api/admin) ----------
