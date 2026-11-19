@@ -1,10 +1,10 @@
 ---
+import { hof } from '../../../shared/lib.js';
 // Salón de la Fama: muro de retratos de quienes ya no están en activo pero forman parte de la historia.
 // Cada retrato está en penumbra y se enciende al entrar en pantalla (y al pasar el ratón), con el nombre en grande.
 // Datos: shared/data/salon-fama-triplew.json (lista PROVISIONAL hasta que la Triple W la confirme).
 import Base from '../layouts/Base.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
-import hof from '../../../shared/data/salon-fama-triplew.json';
 const pending = hof.members.some((m) => m.provisional);
 ---
 <Base title={hof.title} seo="salon">

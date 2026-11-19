@@ -3,7 +3,7 @@
 // (el campeón anterior pasa al historial con sus fechas y las fichas de ambos se actualizan).
 // Así nadie tiene que tocar a mano el historial ni las fichas, que es donde se cometerían errores.
 
-import { S, h, icon, field, change, persist, setLive, toast, go, render, imgSrc, same, nameInput, rowTools, dateNice, isPast } from './app.js';
+import { S, h, icon, previewBtn, field, change, persist, setLive, toast, go, render, imgSrc, same, nameInput, rowTools, dateNice, isPast } from './app.js';
 import { wrestlerBy } from './luchadores.js';
 
 const COLORS = ['#E8C547', '#2BD46A', '#F59E2B', '#E11D48', '#5EC8F2', '#A78BFA', '#F2F0EA', '#FF6B9A'];
@@ -89,7 +89,7 @@ export function titleEditor() {
       h('span', { class: 'belt-dot' }),
       h('div', { class: 'ed-tt' }, h('h1', { class: 'scr-title' }, t.name || 'Nuevo campeonato'),
         h('p', { class: 'ed-sub' }, t.team ? 'Campeonato de parejas' : 'Campeonato individual')),
-      h('a', { class: 'btn2 hd', href: '/campeonatos/', target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext'))),
+      h('div', { class: 'hd-btns' }, previewBtn('campeonatos'), h('a', { class: 'btn2 hd', href: '/campeonatos/', target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')))),
     isNew && !t.name ? secDatos(t, errOf) : null,
     secHolder(t, errOf),
     secHistory(t),

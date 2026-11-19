@@ -4,9 +4,8 @@ import Poster from '../../components/Poster.astro';
 import FaceOff from '../../components/FaceOff.astro';
 import Galeria from '../../components/Galeria.astro';
 import VideoYT from '../../components/VideoYT.astro';
-import pages from '../../../../shared/data/paginas-triplew.json';
 import Provisional from '../../../../shared/components/Provisional.astro';
-import { allShows, venues, dateLong, cronicaBlocks, ticketInfo } from '../../../../shared/lib.js';
+import { allShows, venues, dateLong, cronicaBlocks, ticketInfo, pages } from '../../../../shared/lib.js';
 export function getStaticPaths() { return allShows.map((s) => ({ params: { slug: s.slug }, props: { s: s } })); }
 const { s } = Astro.props;
 const v = venues[s.venue];

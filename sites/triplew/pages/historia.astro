@@ -4,8 +4,7 @@
 // Textos: shared/data/paginas-triplew.json (historia).
 import Base from '../layouts/Base.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
-import pages from '../../../shared/data/paginas-triplew.json';
-import { upcomingShows, dateLong } from '../../../shared/lib.js';
+import { upcomingShows, dateLong, pages } from '../../../shared/lib.js';
 const { intro, hitos, cierre } = pages.historia;
 const next = upcomingShows[0];
 ---

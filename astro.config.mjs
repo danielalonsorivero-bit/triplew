@@ -1,6 +1,7 @@
 // Una sola base de código, dos webs.
 // SITE_ID decide cuál se construye: "triplew" (por defecto) o "lucharama".
 import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
 
 const SITE_ID = process.env.SITE_ID === 'lucharama' ? 'lucharama' : 'triplew';
 
@@ -13,4 +14,7 @@ export default defineConfig({
   site: process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : SITE_ID === 'lucharama' ? 'https://www.lucharama.com' : 'https://www.triplew.es',
   build: { format: 'directory' },
+  // Casi todo se genera como páginas estáticas. Solo /api/admin y /vista-previa se ejecutan en el
+  // servidor (funciones de Vercel). Sin el adaptador no se podrían construir.
+  adapter: vercel(),
 });

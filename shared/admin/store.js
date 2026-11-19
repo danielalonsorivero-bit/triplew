@@ -31,6 +31,8 @@ export const del = (key) => tx('readwrite', (s) => s.delete(key)).catch(() => un
 // 'demo' | 'real'. setupPending = la función existe pero aún no tiene token/contraseña.
 export let mode = 'demo';
 export let setupPending = false;
+// true si el servidor tiene las funciones del panel (publicar y vista previa).
+export let hasServer = false;
 export const draftKey = () => (mode === 'real' ? 'draft-real' : 'draft');
 
 const API = '/api/admin';
@@ -44,6 +46,7 @@ export async function detect() {
     const r = await fetch(API, { cache: 'no-store' });
     if (!r.ok) return mode;
     const j = await r.json();
+    hasServer = true;
     if (j.ready) mode = 'real'; else setupPending = true;
   } catch { /* sin función (p. ej. en local): demostración */ }
   return mode;

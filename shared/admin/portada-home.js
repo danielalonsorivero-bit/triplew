@@ -2,7 +2,7 @@
 // Prevención: cada titular tiene un número fijo de líneas con un límite de letras que cabe en el diseño,
 // y las fotos tienen un mínimo y un máximo. Así se puede cambiar todo sin poder romper la maquetación.
 
-import { S, h, icon, field, change, setLive, toast, imgSrc, same, nameInput, rowTools, dropZone, snapshot } from './app.js';
+import { S, h, icon, previewBtn, field, change, setLive, toast, imgSrc, same, nameInput, rowTools, dropZone, snapshot } from './app.js';
 import { shrink } from './img.js';
 
 const SEQ = { min: 3, max: 8 };
@@ -47,7 +47,7 @@ export function homeEditor() {
     h('div', { class: 'scr-head' },
       h('div', {}, h('h1', { class: 'scr-title' }, 'Portada'),
         h('p', { class: 'scr-sub' }, 'Los bloques fijos de la portada. El hero de arriba se cambia en cada show, en el paso «Portada».')),
-      h('a', { class: 'btn2 hd', href: '/', target: '_blank', rel: 'noopener' }, 'Ver la portada', icon('ext'))),
+      h('div', { class: 'hd-btns' }, previewBtn(''), h('a', { class: 'btn2 hd', href: '/', target: '_blank', rel: 'noopener' }, 'Ver la portada', icon('ext')))),
     h('nav', { class: 'jumps', 'aria-label': 'Bloques de la portada' },
       [['p-inversa', 'Entrada inversa'], ['p-sequence', 'Secuencia'], ['p-featured', 'Luchadores destacados'], ['p-gallery', 'Galería'], ['p-youtube', 'YouTube'], ['p-school', 'Escuela']].map(([id, l]) =>
         h('a', { href: `#${id}`, onclick: (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, l))),

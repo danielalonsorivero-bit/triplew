@@ -5,8 +5,7 @@
 // Textos: shared/data/paginas-triplew.json (campeonatos) y shared/data/titles.json.
 import Base from '../layouts/Base.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
-import { titles, wrestler, allShows, dateShort } from '../../../shared/lib.js';
-import pages from '../../../shared/data/paginas-triplew.json';
+import { titles, wrestler, allShows, dateShort, pages } from '../../../shared/lib.js';
 const txt = pages.campeonatos;
 const hof = txt.hallOfFame;
 const showOf = (slug) => slug && allShows.find((x) => x.slug === slug);

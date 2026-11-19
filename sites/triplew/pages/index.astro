@@ -5,9 +5,7 @@ import Cromo from '../components/Cromo.astro';
 import FaceOff from '../components/FaceOff.astro';
 import Entrada from '../components/Entrada.astro';
 import Provisional from '../../../shared/components/Provisional.astro';
-import home from '../../../shared/data/portada-triplew.json';
-import pages from '../../../shared/data/paginas-triplew.json';
-import { nextShow, upcomingShows, pastShows, venues, dateLong, ticketLabel, titles, wrestler, roster, urls } from '../../../shared/lib.js';
+import { nextShow, upcomingShows, pastShows, venues, dateLong, ticketLabel, titles, wrestler, roster, urls, home, pages } from '../../../shared/lib.js';
 
 const s = nextShow;
 const lastShow = pastShows.find((p) => p.results?.length);

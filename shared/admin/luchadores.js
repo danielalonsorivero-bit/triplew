@@ -6,7 +6,7 @@
 
 import rosterJson from '../data/roster.json';
 import { shrink, kb } from './img.js';
-import { S, h, icon, field, choice, change, persist, setLive, toast, go, render, dropZone, imgSrc, slugify, snapshot, same } from './app.js';
+import { S, h, icon, previewBtn, field, choice, change, persist, setLive, toast, go, render, dropZone, imgSrc, slugify, snapshot, same } from './app.js';
 
 export const DIVISIONS = rosterJson.divisions;
 const MAX_PHOTOS = 10;
@@ -201,7 +201,7 @@ export function wrestlerEditor() {
       h('div', { class: 'ed-tt' },
         h('h1', { class: 'scr-title' }, w.name || 'Sin nombre'),
         h('p', { class: 'ed-sub' }, d.name, titleNames(w).length ? ` · Campeón: ${titleNames(w).join(', ')}` : '')),
-      isPublished(w) ? h('a', { class: 'btn2 hd', href: `/roster/${w.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null),
+      h('div', { class: 'hd-btns' }, previewBtn(`roster/${w.slug}`), isPublished(w) ? h('a', { class: 'btn2 hd', href: `/roster/${w.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null)),
     h('nav', { class: 'jumps', 'aria-label': 'Partes de la ficha' },
       [['w-datos', 'Datos'], ['w-retrato', 'Retrato'], ['w-fotos', 'Fotos'], ['w-ficha', 'Ficha técnica'], ['w-redes', 'Redes y vídeo']].map(([id, l]) =>
         h('a', { href: `#${id}`, onclick: (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, l))),

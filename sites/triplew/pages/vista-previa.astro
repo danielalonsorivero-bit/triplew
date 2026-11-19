@@ -1,0 +1,50 @@
+---
+// Vista previa del panel: pinta una página REAL de la web con los datos sin publicar.
+// El panel envía aquí (POST, campo «data») { path, draft: {shows, roster, titles, home, pages, hof}, images: {ruta: dataURL} }.
+// Se ejecuta en el servidor (función de Vercel); no se genera como página estática.
+export const prerender = false;
+import { setData, allShows, roster } from '../../../shared/lib.js';
+import Home from './index.astro';
+import ShowsIndex from './shows/index.astro';
+import ShowPage from './shows/[slug].astro';
+import RosterIndex from './roster/index.astro';
+import Ficha from './roster/[slug].astro';
+import Campeonatos from './campeonatos.astro';
+import Historia from './historia.astro';
+import Salon from './salon-de-la-fama.astro';
+
+let path = null, error = null, s = null, w = null;
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    let raw = String(form.get('data') || '');
+    const { images = {} } = JSON.parse(raw);
+    // Las fotos que aún no están publicadas viajan dentro de la petición.
+    for (const [p, url] of Object.entries(images)) if (/^data:image\/(jpeg|png|webp);base64,/.test(url)) raw = raw.split(JSON.stringify(p)).join(JSON.stringify(url));
+    const d = JSON.parse(raw);
+    setData({ ...d.draft, preview: true });
+    path = String(d.path || '').replace(/^\/+|\/+$/g, '');
+    const m = path.match(/^(shows|roster)\/(.+)$/);
+    if (m?.[1] === 'shows') { s = allShows.find((x) => x.slug === m[2]); if (!s) error = 'Ese show no existe.'; }
+    if (m?.[1] === 'roster') { w = roster.find((x) => x.slug === m[2]); if (!w) error = 'Esa ficha no existe.'; }
+  } catch {
+    error = 'No se ha podido leer la vista previa.';
+  }
+} else {
+  error = 'Esta página solo funciona desde el botón «Vista previa» del panel.';
+}
+Astro.response.headers.set('cache-control', 'no-store');
+Astro.response.headers.set('x-robots-tag', 'noindex');
+---
+{error ? (
+  <html lang="es"><head><meta charset="utf-8" /><meta name="robots" content="noindex" /><title>Vista previa</title></head>
+  <body style="font-family:system-ui;background:#0b0b0b;color:#f2f0ea;display:grid;place-items:center;min-height:100vh;margin:0">
+    <p>{error} Vuelve al panel y pulsa «Vista previa» otra vez.</p></body></html>
+) : s ? <ShowPage s={s} />
+  : w ? <Ficha w={w} />
+  : path === 'shows' ? <ShowsIndex />
+  : path === 'roster' ? <RosterIndex />
+  : path === 'campeonatos' ? <Campeonatos />
+  : path === 'historia' ? <Historia />
+  : path === 'salon-de-la-fama' ? <Salon />
+  : <Home />}

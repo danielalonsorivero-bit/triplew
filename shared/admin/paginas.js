@@ -3,7 +3,7 @@
 // Prevención: los hitos se ordenan solos por año; las redes se eligen de una lista y su enlace se comprueba;
 // un miembro del Salón de la Fama no se puede añadir sin foto.
 
-import { S, h, icon, field, change, setLive, toast, imgSrc, same, rowTools, dropZone, snapshot } from './app.js';
+import { S, h, icon, previewBtn, field, change, setLive, toast, imgSrc, same, rowTools, dropZone, snapshot } from './app.js';
 import { shrink } from './img.js';
 
 const isUrl = (v) => /^https:\/\/\S+\.\S+/.test(v || '');
@@ -49,7 +49,7 @@ export function historiaEditor() {
     h('div', { class: 'scr-head' },
       h('div', {}, h('h1', { class: 'scr-title' }, 'Historia y Salón de la Fama'),
         h('p', { class: 'scr-sub' }, 'Se tocan poco: un hito nuevo de vez en cuando y quien entre en el Salón de la Fama.')),
-      h('a', { class: 'btn2 hd', href: '/historia/', target: '_blank', rel: 'noopener' }, 'Ver la historia', icon('ext'))),
+      h('div', { class: 'hd-btns' }, previewBtn('historia', 'Vista previa: Historia'), previewBtn('salon-de-la-fama', 'Vista previa: Salón'), h('a', { class: 'btn2 hd', href: '/historia/', target: '_blank', rel: 'noopener' }, 'Ver la historia', icon('ext')))),
     jumps([['h-hitos', 'Hitos'], ['h-hof', 'Salón de la Fama'], ['h-textos', 'Textos de las páginas']]),
     sec('h-hitos', 'Hitos de la historia', 'Se ordenan solos por año al escribirlo. La foto es opcional: sin foto, el hito sale como rótulo.',
       h('ol', { class: 'hist' }, (P.historia.hitos || []).map((x, i) => hitoItem(x, i))),

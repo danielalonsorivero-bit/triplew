@@ -553,3 +553,7 @@ input.bad { border-color: var(--bad) !important; }
 .howto ol { padding-left: 1.3rem; display: grid; gap: .3rem; }
 .howto code { font-size: .9em; padding: .1rem .35rem; background: var(--panel2); border-radius: 4px; }
 @media (max-width: 900px) { .seo-prev { position: static; } }
+
+/* Botones de cabecera: vista previa + ver en la web */
+.hd-btns { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: flex-end; }
+.hd-btns .btn1.hd .ic { margin-right: .1rem; }

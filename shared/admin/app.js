@@ -379,8 +379,10 @@ function showEditor() {
       h('div', { class: 'ed-tt' },
         h('h1', { class: 'scr-title' }, s.name || 'Nuevo show'),
         h('p', { class: 'ed-sub' }, s.date ? `${dateNice(s.date)}${isPast(s) ? ' · ya celebrado' : ''}` : 'Empieza por el nombre y la fecha.')),
-      JSON.parse(S.published).some((p) => p.slug === s.slug)
-        ? h('a', { class: 'btn2 hd', href: `/shows/${s.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null),
+      h('div', { class: 'hd-btns' },
+        previewBtn(step.k === 'portada' ? '' : `shows/${s.slug}`, step.k === 'portada' ? 'Vista previa de la portada' : 'Vista previa'),
+        JSON.parse(S.published).some((p) => p.slug === s.slug)
+          ? h('a', { class: 'btn2 hd', href: `/shows/${s.slug}/`, target: '_blank', rel: 'noopener' }, 'Ver en la web', icon('ext')) : null)),
     stepsNav(s, step),
     locked
       ? h('div', { class: 'locked' }, icon('lock'),
@@ -1019,13 +1021,45 @@ async function publish() {
   toast(store.mode === 'real' ? 'Publicado. La web se actualiza sola en 1 o 2 minutos.' : 'Publicado (demostración). En la versión real la web se actualiza en unos 2 minutos.');
 }
 
+// ---------- Vista previa ----------
+// Abre en otra pestaña la página REAL de la web pintada con los cambios sin publicar
+// (sites/triplew/pages/vista-previa.astro). Las fotos nuevas viajan dentro de la petición.
+const BUNDLED = { shows: showsJson, roster: rosterJson, titles: titlesJson, home: homeJson, pages: pagesJson, hof: hofJson };
+const PREVIEW_IMG_BUDGET = 3.2e6;
+export const previewBtn = (path, label = 'Vista previa') => (store.hasServer
+  ? h('button', { class: 'btn1 hd', type: 'button', title: 'Ver cómo quedará antes de publicar', onclick: () => openPreview(path) }, icon('eye'), label) : null);
+
+export async function openPreview(path) {
+  const win = window.open('', '_blank');
+  if (!win) { toast('El navegador ha bloqueado la pestaña nueva. Permite las ventanas emergentes para este sitio.'); return; }
+  win.document.title = 'Vista previa';
+  win.document.body.innerHTML = '<p style="font:16px system-ui;padding:2rem;color:#f2f0ea;background:#0b0b0b;margin:0;min-height:100vh">Preparando la vista previa…</p>';
+  const draft = fullFiles(S, S.remote || BUNDLED);
+  const all = JSON.stringify(draft);
+  const key = path.split('/')[1] || '';
+  const pending = [...S.files].filter(([p, f]) => !f.published && all.includes(`"${p}"`))
+    .sort((a, b) => (key && b[0].includes(key) ? 1 : 0) - (key && a[0].includes(key) ? 1 : 0));
+  const images = {}; let budget = PREVIEW_IMG_BUDGET, skipped = 0;
+  for (const [p, f] of pending) {
+    if (f.blob.size * 1.37 > budget) { skipped++; continue; }
+    images[p] = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.onerror = () => res(null); fr.readAsDataURL(f.blob); });
+    if (!images[p]) delete images[p]; else budget -= images[p].length;
+  }
+  if (skipped) toast(`${skipped} ${skipped === 1 ? 'foto nueva no sale' : 'fotos nuevas no salen'} en la vista previa (son demasiadas). Al publicar sí saldrán.`);
+  const form = win.document.createElement('form');
+  form.method = 'POST'; form.action = '/vista-previa'; form.enctype = 'multipart/form-data';
+  const input = win.document.createElement('input');
+  input.type = 'hidden'; input.name = 'data'; input.value = JSON.stringify({ path, draft, images });
+  form.append(input); win.document.body.append(form); form.submit();
+}
+
 // ---------- Publicación real (GitHub a través de /api/admin) ----------
 // S.remote guarda los 6 ficheros tal como están publicados. Se envía solo lo que cambia, junto con
 // lo que el panel cree que hay publicado; si alguien publicó entretanto, la función no pisa nada.
 const FILE_NAMES = { shows: 'los shows', roster: 'los luchadores', titles: 'los campeonatos', home: 'la portada', pages: 'los textos y ajustes de la web', hof: 'el Salón de la Fama' };
 const listNames = (keys) => { const n = keys.map((k) => FILE_NAMES[k]); return n.length > 1 ? `${n.slice(0, -1).join(', ')} y ${n.at(-1)}` : n[0]; };
 
-function fullFiles(D = S, R = S.remote) {
+function fullFiles(D = S, R = S.remote || BUNDLED) {
   return {
     shows: { ...R.shows, venues: D.venues, shows: D.shows },
     roster: { ...R.roster, wrestlers: D.roster },

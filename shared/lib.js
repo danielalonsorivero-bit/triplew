@@ -2,20 +2,34 @@
 import showsData from './data/shows.json';
 import rosterData from './data/roster.json';
 import titlesData from './data/titles.json';
+import pagesData from './data/paginas-triplew.json';
+import homeData from './data/portada-triplew.json';
+import hofData from './data/salon-fama-triplew.json';
 
-export const venues = showsData.venues;
-export const roster = rosterData.wrestlers;
-export const divisions = rosterData.divisions;
-export const titles = titlesData.titles;
+// Los datos son variables «vivas»: al construir la web salen de los JSON publicados, y la
+// vista previa del panel (pages/vista-previa) los cambia por el borrador con setData() antes de pintar.
+export let preview = false;
+export let venues, roster, divisions, titles, allShows, upcomingShows, pastShows, nextShow, pages, home, hof;
 
 // "Hoy" se calcula al construir la web. Vercel reconstruye en cada cambio;
 // si un show pasa sin que haya cambios, sigue saliendo como próximo hasta la siguiente publicación.
-const today = new Date(new Date().toISOString().slice(0, 10));
-
-export const allShows = [...showsData.shows].sort((a, b) => a.date.localeCompare(b.date));
-export const upcomingShows = allShows.filter((s) => new Date(s.date) >= today);
-export const pastShows = allShows.filter((s) => new Date(s.date) < today).reverse();
-export const nextShow = upcomingShows[0] ?? allShows[allShows.length - 1];
+export function setData(d = {}) {
+  const sd = d.shows || showsData, rd = d.roster || rosterData, td = d.titles || titlesData;
+  const today = new Date(new Date().toISOString().slice(0, 10));
+  venues = sd.venues;
+  roster = rd.wrestlers;
+  divisions = rd.divisions;
+  titles = td.titles;
+  allShows = [...sd.shows].sort((a, b) => a.date.localeCompare(b.date));
+  upcomingShows = allShows.filter((s) => new Date(s.date) >= today);
+  pastShows = allShows.filter((s) => new Date(s.date) < today).reverse();
+  nextShow = upcomingShows[0] ?? allShows[allShows.length - 1];
+  pages = d.pages || pagesData;
+  home = d.home || homeData;
+  hof = d.hof || hofData;
+  preview = !!d.preview;
+}
+setData();
 
 const fmt = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'long', timeZone: 'UTC' });
 const fmtShort = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', timeZone: 'UTC' });

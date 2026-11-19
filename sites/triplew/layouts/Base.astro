@@ -1,8 +1,7 @@
 ---
 import '../../../shared/styles/base.css';
 import '../styles/triplew.css';
-import { nextShow, urls } from '../../../shared/lib.js';
-import pages from '../../../shared/data/paginas-triplew.json';
+import { nextShow, urls, pages, preview } from '../../../shared/lib.js';
 const site = pages.sitio;
 // SEO: textos de shared/data/paginas-triplew.json (seo), editables en el panel (Ajustes).
 // Cada página pasa `seo` (clave de seo.pages) o su propia `description`/`image` (shows y luchadores).
@@ -28,7 +27,7 @@ const nav = [
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <meta name="theme-color" content="#0B0B0B" />
-  {!seo.index && <meta name="robots" content="noindex" />}
+  {(!seo.index || preview) && <meta name="robots" content="noindex" />}
   <link rel="canonical" href={abs(path)} />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
@@ -41,7 +40,9 @@ const nav = [
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </head>
 <body style={`--accent:${accent};--accent-ink:${accentInk}`}>
-  <div class="proto-bar"><b>Prototipo</b> · Lo marcado como <b>provisional</b> está pendiente de confirmar por la Triple W.</div>
+  {preview
+    ? <div class="proto-bar preview-bar"><b>Vista previa</b> · Así quedará al publicar. Todavía no se ve en la web. Los enlaces llevan a la web publicada.</div>
+    : <div class="proto-bar"><b>Prototipo</b> · Lo marcado como <b>provisional</b> está pendiente de confirmar por la Triple W.</div>}
   <header class:list={['site-head', { overlay: overlayHead }]}>
     <div class="wrap head-in">
       <a class="brand" href="/" aria-label="Triple W, inicio">

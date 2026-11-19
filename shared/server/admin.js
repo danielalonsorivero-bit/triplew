@@ -1,4 +1,4 @@
-// Función de Vercel del panel (/api/admin). Recibe lo que publica el panel y lo guarda en GitHub
+// Lógica del endpoint del panel (/api/admin, ver sites/triplew/pages/api/admin.js). Recibe lo que publica el panel y lo guarda en GitHub
 // como un commit; Vercel ve el commit y reconstruye la web sola (1–2 minutos).
 //
 // Variables de entorno (Vercel → Settings → Environment Variables):
@@ -61,13 +61,13 @@ async function gh(path, { method = 'GET', body, raw } = {}) {
 const head = async () => (await gh(`/git/ref/heads/${BRANCH}`)).object.sha;
 const readFile = async (key, ref) => JSON.parse(await gh(`/contents/${FILES[key]}?ref=${ref}`, { raw: true }));
 
-export async function GET() {
+export async function handleGet() {
   // Solo dice si el guardado real está configurado. No necesita contraseña ni revela nada.
   if (process.env.SITE_ID === 'lucharama') return json(404, { error: 'not-found' });
   return json(200, { ready: !!(process.env.GITHUB_TOKEN && process.env.ADMIN_PASSWORD) });
 }
 
-export async function POST(request) {
+export async function handlePost(request) {
   if (process.env.SITE_ID === 'lucharama') return json(404, { error: 'not-found' });
   if (!process.env.GITHUB_TOKEN || !process.env.ADMIN_PASSWORD) return json(503, { error: 'setup' });
 
