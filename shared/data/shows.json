@@ -58,7 +58,8 @@
       "start": "18:00",
       "venue": "lucharama",
       "ticket": {
-        "type": "inversa"
+        "type": "venta",
+        "url": "https://entradium.com/events/triple-w-top-1-2026"
       },
       "color": "#F2711C",
       "ink": "#1A0E05",
@@ -110,8 +111,7 @@
       "color": "#2BD46A",
       "ink": "#04140A",
       "tagline": "La cantera de Triple W sube al ring.",
-      "provisional": true,
-      "card": []
+      "provisional": true
     },
     {
       "slug": "instinto-animal",
