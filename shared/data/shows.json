@@ -145,7 +145,25 @@
         }
       ],
       "poster": "/carteles/instinto-animal.jpg",
-      "doors": "17:30"
+      "doors": "17:30",
+      "cronica": "El show comenzó con Héctor del Bar 🎤 dando paso al combate entre Rizo ⚡ y Jon Valow 🐘, interrumpido por Trevor de Vries 🕶️, quien roció con laca a ambos luchadores y al staff. Coajim Echevarría 👔 pactó entonces un combate entre Trevor y Valow, además del main event entre Rizo y Pimp Ross con el campeonato en juego.\n\nTrevor de Vries 🕶️ venció a Jon Valow 🐘 (vía pin)\n\nVaro Díaz 🤼‍♂️ se impuso a Orión 👾, Reaper 💀, Erik de la Cruz ⚔️, Pedro Guzmán 🔪 y \"Machoflaco\" Marco Morales 🤠, convirtiéndose en el primer clasificado para el Top 1 (vía pin)\n\nLa celebración de los 15 años de Super Franki 🕹️ una vez más fue interrumpida, siendo esta vez por AnaRKHia 🔥, provocando la aparición de La Forja ⚒️ y un reto a un combate tornado.\n\nLa Forja ⚒️ venció a AnaRKHia 🔥 (vía pin)\n\nJoro ☄️ venció a Newt Nova ⭐ y retuvo su campeonato de Level One (vía pin)\n\nTras el descanso, dio comienzo la terapia del Doctor Amor 📋 para Ángel Rose 🌹 y Guillermo ❤️‍🔥, donde el último de la dupla no estaba presente en el show. La Nueva Ola 🌊 exigió un compañero para Ángel para el combate, siendo finalmente el propio Doctor Amor quien ocupó su lugar.\n\nEl combate terminó sin resultado tras el ataque de los enmascarados.\n\nPad Campos 🙄 venció a Johan ✨ y se clasificó para el Top 1 (vía pin)\n\nTras una nueva oportunidad fallida de Johan concedida por Coajim Echevarría, César Hawk 🦅 logró otro pin rápido para clasificarse al Top 1. Sin embargo, el regreso de Parker 🪖 terminó con un reto por su puesto.\n\nParker 🪖 venció a César Hawk 🦅 y le arrebató su clasificación para el Top 1 (vía pin)\n\n𝗠𝗔𝗜𝗡 𝗘𝗩𝗘𝗡𝗧\nRizo ⚡ y Pimp Ross 💪🏻 tras un tenso combate terminaron noqueados fuera del ring, provocando un final sin resultado por cuenta de 10.",
+      "card": [
+        {
+          "title": "Combate individual",
+          "sides": [
+            "Rizo",
+            "Jon Valow"
+          ],
+          "note": "Interrumpido por Trevor de Vries"
+        },
+        {
+          "title": "Continúa el combate anterior",
+          "sides": [
+            "Jon Valow",
+            "Trevor de Vries"
+          ]
+        }
+      ]
     },
     {
       "slug": "kilometro-cero",
@@ -343,6 +361,21 @@
       "ink": "#0D1404",
       "tagline": "Pulsa start.",
       "provisional": true
+    },
+    {
+      "slug": "rencores-y-malas-caras-2026",
+      "name": "Rencores y Malas caras",
+      "brand": "levelone",
+      "date": "2026-12-04",
+      "doors": "17:30",
+      "start": "18:00",
+      "venue": "lucharama",
+      "ticket": {
+        "type": "inversa"
+      },
+      "color": "#2BD46A",
+      "ink": "#0B0B0B",
+      "tagline": "Todo tiene consecuencias."
     }
   ]
 }
