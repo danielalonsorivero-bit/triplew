@@ -361,21 +361,6 @@
       "ink": "#0D1404",
       "tagline": "Pulsa start.",
       "provisional": true
-    },
-    {
-      "slug": "rencores-y-malas-caras-2026",
-      "name": "Rencores y Malas caras",
-      "brand": "levelone",
-      "date": "2026-12-04",
-      "doors": "17:30",
-      "start": "18:00",
-      "venue": "lucharama",
-      "ticket": {
-        "type": "inversa"
-      },
-      "color": "#2BD46A",
-      "ink": "#0B0B0B",
-      "tagline": "Todo tiene consecuencias."
     }
   ]
 }
