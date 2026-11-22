@@ -66,34 +66,53 @@
       "tagline": "Tres hombres, tres destinos… y una sola cuenta pendiente.",
       "card": [
         {
-          "title": "Campeonatos de Parejas",
+          "title": "Combate individual",
           "sides": [
-            "La Nueva Ola",
-            "Flying Bryant Brothers"
+            "Trevor de Vries",
+            "Pimp Ross",
+            "Jon Valow"
           ]
         },
         {
-          "title": "Aspirante al Campeonato Absoluto",
+          "title": "Campeonato de Level One",
           "sides": [
-            "Trevor de Vries",
-            "Pimp Ross"
+            "Joro",
+            "Alexa Jade"
           ],
           "note": "El ganador luchará por el título en Top 1."
         },
         {
-          "title": "Clasificatorio para Top 1",
+          "title": "Campeonato por parejas",
           "sides": [
-            "Shallow",
-            "Por anunciar"
+            "La Nueva Ola",
+            "Flying Bryant Brothers"
           ],
-          "provisional": true
+          "provisional": true,
+          "type": "parejas"
         },
         {
-          "title": "Aparición especial",
+          "title": "Clasificación para Top 1",
           "sides": [
-            "Jon Valow"
+            "Shallow",
+            "Damiao"
           ],
           "note": "¿Qué querrá decirnos El Animal antes de Top 1?"
+        },
+        {
+          "title": "Oportunidad titular",
+          "sides": [
+            "Johan",
+            "Jon Valow"
+          ]
+        },
+        {
+          "title": "Celebración de 15 años de superfranki",
+          "sides": [
+            "Super Franki",
+            "Doctor Amor",
+            "Sangre Pagana",
+            "Marco Morales"
+          ]
         }
       ],
       "poster": "/carteles/el-bueno-el-malo-y-el-canalla.jpg",
